@@ -1,0 +1,17 @@
+.idea/
+*.iml
+/out/
+/lib/
+/local/
+/classes/
+hs_err_*.log
+/run
+__pycache__
+
+/UI
+/res/base/
+
+/chat.jar
+/cache/
+/accounts/
+/temp/

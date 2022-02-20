@@ -1,0 +1,189 @@
+str.defaultEM = 13 // initial UI scale, in pixels of font size
+chat {
+  
+  loadImgs = safe // none - display no images inline; safe - load only mxc:// images; all - load all images 
+  notifyOnEdit = false // whether to increase unread count on an edit
+  timeSinceLast = true // whether to show time since last message in the log
+  timeBetween = true // whether to show time between adjacent messages in the log
+  logDate = false // whether to show the start of each date in the log
+  mergeMessages = true // whether to visually merge consecutive messages by the same user (posted within 5 minutes of each other)
+  markdown = true // whether to parse your messages as markdown
+  
+  keys {
+    editUp = { "up" }
+    editDn = { "down" }
+    replyUp = { "alt+up" }
+    replyDn = { "alt+down" }
+    roomUp = { "ctrl+up" }
+    roomDn = { "ctrl+down" }
+    hideCurrent = { "alt+r" } // hide unread count for the current room
+    hideGlobal  = { "ctrl+alt+r" } // globally hide unread count
+    deleteMsg = { "ctrl+alt+shift+del" }
+    fontPlus = { "ctrl+shift+=" "ctrl+plus" }
+    fontMinus = { "ctrl+minus" }
+  }
+  
+  col.link = #A7DBC6
+  
+  msg.userWidth = 10em // width for user tags to the left of a message
+  msg.sep = 0.3em // separation between messages
+  msg.my = #333333 // my message bg
+  msg.other = #505C63 // other message bg 
+  msg.sel = #3E3E3E // bg for replies to hovered message
+  msg.edit = #444444 // currently edited message bg
+  msg.reply = #555565 // currently replying to bg
+  msg.highlight = #9D7650 // temporary highlight bg
+  msg.notice = #0000 // notice message bg
+  msg.border = #888 // dashed border color
+  quote.line  = #999 // color of line left of a quote
+  quote.color = #999 // text color in quote
+  
+  pill.padL = 0em
+  pill.padR = 0em
+  pill.padLMine = .05em
+  pill.padRMine = .15em
+  pill.bg = #0000
+  pill.bgMine = #A3692F
+  pill.round = 0.2em
+  
+  code.family = "BQN386 Unicode"
+  code.bgInline = #222
+  code.bgBlock = #222
+  
+  spoiler.xpad = .2em // padding around content inside a spoiler
+  spoiler.bg = #464B4D
+  
+  room.selected = #373C44
+  room.hovered = #2D3237
+  
+  
+  // layouts
+  
+  // main
+  ui = h {
+    scroll { x=off y=hidden tempOverlap=true
+      weight=.3
+      w=10em:20em
+      bg=#26272A
+      v {
+        id=accounts
+        pad=.9em
+        // rooms.accountP / rooms.accountSepP
+      }
+    }
+    v {
+      h { h=3.3em alY=center
+        pad { l=4em
+          text { tsz=1.3em "" id=roomName }
+        }
+        bg=#191A1A
+      }
+      scroll { x=off id=msgsScroll
+        bg=#383838
+        h {
+          pad { x=.3em u=5em d=.3em
+            v { h=min id=msgs
+              // actual message list
+            }
+          }
+          h { w=0em:5em weight=.05 }
+          id=bc
+        }
+      }
+      pad { all=.5em l=2em bg=#222
+        h { h=min pad=.5em
+          scroll { h=6.2em w=10em:40em bg=#383838 x=off
+            pad { all=.3em id=inputPlace }
+          }
+          v { pad=.2em weight=.2 w=10em:99em // todo figure out why this breaks with weight=.1
+            h { h=min pad=.5em
+              btn { style=rect id=send "send" padX=.5em padY=.3em }
+              btn { style=rect id=upload "upload" padX=.5em padY=.3em }
+            }
+            v {
+              text { id=actionbar "" color=#888 }
+              h { h=max alY=bottom alX=right
+                hideOverflow { h=min text { id=infobar "" color=#AAA } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // messages
+  msg.mainP = pad { u=.3em id=padU
+    h { h=min pad=.5em
+      pad { u=.2em // assumes .1em+1px == .2em, which isn't true but eh
+        hideOverflow { w=10em id=user "" }
+      }
+      msgBorder { id=border bg=#00FF00
+        pad { y=.1em
+          h { id=body
+            h { w=1.5em alX=center h=min id=edit }
+            ""
+          }
+        }
+      }
+    }
+  }
+  
+  info.mainP = pad { u=.3em infoType="idk"
+    h { h=min pad=.5em
+      h { w=10em h=.3em }
+      pad { y=.3em l=1.5em id=body }
+    }
+  }
+  info.textP = text { id=body color=#999 }
+  info.titleP = h { alX=center text { id=body color=#AAA } }
+  
+  // message contents
+  code.inlineP = text { family=chat.code.family bg=chat.code.bgInline xpad=.2em }
+  code.blockP = pad { r=.6em y=.3em
+    pad { all=.2em bg=chat.code.bgBlock
+      stext { family=chat.code.family id=body }
+    }
+  }
+  msg.noticeP = text { id=ch italics=true color=#BBB } // X joined/left/etc
+  msg.removedP = text { "(removed)" color=#5FFF }
+  msg.imageLoadingP = text { "(image loading…)" }
+  
+  // general UI
+  rooms.accountP = v { h=min
+    pad { all=.5em x=.5em
+      h {
+        text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=#666 id=server "…" family="DejaVu Sans Mono" } }
+      }
+    }
+    overlap { id=overlap v { id=roomlist h { alX=center text{ italics=true color=str.colorDisabled "loading..." } } /* … rooms.roomP */ } }
+  }
+  rooms.accountSepP = vsep { x=.5em }
+  rooms.roomP = pad { bg=#00000000 id=bg
+    all=.5em x=1em
+    h {
+      text {
+        text { id=name "…" }
+        text { id=unread }
+      }
+    }
+  }
+  rooms.unreadP = text { " " text { bg=#7666 id=num } }
+  rooms.unreadHiddenP = text { color=#BBB " (h)" }
+  
+  // icons
+  // https://github.com/Templarian/MaterialDesign/blob/master/LICENSE https://www.apache.org/licenses/LICENSE-2.0
+  icon.editedP = pad { u=.1em svgicon { w=24 h=24 sz=6 color=#999 src="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" } }
+  icon.replyP = svgicon { w=24 h=24 sz=6 color=#AAA src="M11 17v-5h5v8h5V7H11V2l-7 7.5z" }
+}
+
+
+btn.rect {
+  bg = #4F4F50
+  borderL = #333
+  borderD = #000
+}
+
+codearea {
+  wrapPairs = "()[]{}``"
+}
