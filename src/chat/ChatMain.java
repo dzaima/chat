@@ -130,7 +130,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void warn(String s) {
-    MxServer.log("chat !!", s);
+    System.err.println("["+LocalDateTime.now()+" !!] "+s);
   }
   
   public void send() {

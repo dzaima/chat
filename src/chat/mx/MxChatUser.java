@@ -36,7 +36,7 @@ public class MxChatUser extends ChatUser {
     queueNetwork(() -> {
       T r;
       try { r = network.get(); }
-      catch (Throwable e) { r = null; }
+      catch (Throwable e) { e.printStackTrace(); r = null; }
       T finalR = r;
       this.primary.add(() -> { if (c==null || v==c.value) primary.accept(finalR); });
     });
