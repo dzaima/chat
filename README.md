@@ -1,3 +1,5 @@
+# A Matrix chat client
+
 ### Usage
 
 1. `./build.py`
@@ -10,13 +12,14 @@
        "userid": "@example:matrix.org",
        "password": "yourPassword" // or "token": "tokenToUse"
      }
+     // you can add more accounts here
    ]}
    ```
-3. `./run`
+3. `./run` (alternatively, `./run path/to/alternateProfile.json`)
 
 ### keybindings
 
-|                           key | value                                          |
+|                           key | action                                         |
 |------------------------------:|------------------------------------------------|
 |                 <kbd>up</kbd> | edit previous message                          |
 |               <kbd>down</kbd> | edit next message (or stop editing if at last) |
