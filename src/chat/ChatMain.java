@@ -302,7 +302,9 @@ public class ChatMain extends NodeWindow {
     msgs.clearCh();
   }
   public MsgNode createMessage(ChatEvent cm) {
-    return new MsgNode(msgs.ctx.shadow(), cm.type(), cm);
+    MsgNode r = new MsgNode(msgs.ctx.shadow(), cm.type(), cm);
+    r.ctx.id("user").replace(0, new UserTagNode(this, cm));
+    return r;
   }
   
   private String lastTimeStr;
@@ -394,7 +396,6 @@ public class ChatMain extends NodeWindow {
   public void updMessage(Node msg, ChatEvent cm, Node body, boolean live) {
     boolean end = atEnd();
     newHover = true;
-    msg.ctx.id("user").replace(0, new UserTagNode(this, cm));
     if (cm.edited) {
       Node n = msg.ctx.id("edit");
       if (n.ch.sz==0) n.add(n.ctx.make(n.gc.getProp("chat.icon.editedP").gr()));
