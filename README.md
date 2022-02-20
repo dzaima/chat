@@ -35,7 +35,7 @@
 |              <kbd>alt+r</kbd> | hide/unhide unread count for current room      |
 |         <kbd>ctrl+alt+r</kbd> | hide/unhide unread count for all rooms         |
 
-Most of those (along with some other things) are configurable in `res/chat.dzcfg` (dynamically reload with ctrl+f5, though some things may need a restart)
+Most of those (along with some other things) are configurable in `res/chat.dzcfg` (reload with f5, though some things may need selecting another room or a restart)
 
 ### syntax
 ````
