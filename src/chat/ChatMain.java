@@ -25,6 +25,7 @@ import java.util.*;
 
 public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
+  public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
   
   
   public Path profilePath;
@@ -600,6 +601,10 @@ public class ChatMain extends NodeWindow {
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));
+        gc0.addCfg(() -> {
+          if (Files.exists(LOCAL_CFG)) return Tools.readFile(LOCAL_CFG);
+          return "";
+        });
       });
       
       mgr.start(new ChatMain(gc, ctx, args.length==0? DEFAULT_PROFILE : args[0], gc.getProp("chat.ui").gr()));
