@@ -135,11 +135,13 @@ public class ChatMain extends NodeWindow {
   }
   
   public void send() {
-    if (room!=null) {
+    Chatroom r = room;
+    if (r==null && view!=null) r = view.room();
+    if (r!=null) {
       String s = input.getAll();
       if (s.length()>0) {
-        if (editing!=null) room.edit(editing, s);
-        else room.post(s, replying==null? null : replying.id);
+        if (editing!=null) r.edit(editing, s);
+        else r.post(s, replying==null? null : replying.id);
         markEdit(null);
         markReply(null);
         input.removeAll();
