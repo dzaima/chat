@@ -377,7 +377,8 @@ public class ChatMain extends NodeWindow {
       }
     }
     msgs.insert(atEnd? msgs.ch.sz : 0, prep);
-    if (atEnd) msgsScroll.ignoreEnd();
+    if (!atEnd) msgsScroll.ignoreStart();
+    if ( atEnd) msgsScroll.ignoreEnd();
   }
   
   
@@ -388,13 +389,14 @@ public class ChatMain extends NodeWindow {
     removeLastTime();
     newHover = true;
     Node msg = cm.show(live);
-    boolean end = atEnd();
+    boolean atEnd = atEnd();
     if (msgs.ch.sz>0) {
       Node sep = handlePair(msgs.ch.peek(), msg);
       if (sep!=null) msgs.add(sep);
     }
     msgs.add(msg);
-    if (end && toLast==0) toLast = 1;
+    if (atEnd && toLast==0) toLast = 1;
+    if (atEnd) msgsScroll.ignoreEnd();
   }
   public void updMessage(Node msg, ChatEvent cm, Node body, boolean live) {
     boolean end = atEnd();
