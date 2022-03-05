@@ -411,10 +411,8 @@ public class ChatMain extends NodeWindow {
       nb = new STextNode(ctx, Node.KS_NONE, Node.VS_NONE);
       nb.add(new LinkBtn(ctx, nb.ctx.makeHere(n.gc.getProp("chat.icon.replyP").gr()), cm));
       nb.add(body);
-      nb.add(new InlineNode.LineEnd(ctx, false)); // TODO something smarter for being able to select past the end of text
     } else if (body instanceof InlineNode) {
       nb = new STextNode(body);
-      nb.add(new InlineNode.LineEnd(ctx, false));
     } else nb = body;
     n.replace(1, nb);
     if (end) toLast = Math.max(toLast, live? 1 : 2);
