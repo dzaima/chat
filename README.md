@@ -39,9 +39,9 @@
 
 Most of those (along with some other things) are options in `res/chat.dzcfg`.
 
-While `res/chat.dzcfg` can be directly modified, it may be better to make a file `local.dzcfg` (in the root folder of the project) and copy the necessary fields in.
+While `res/chat.dzcfg` can be directly modified, it is preferred to make a file `local.dzcfg` in the root folder of the project and copy the necessary fields in.
 
-You can reload the config with <kbd>f5</kbd>, though some things may need refreshing the changed thing (by e.g. selecting clicking a room to refresh message list), or restarting the app completely.
+You can reload the config with <kbd>f5</kbd>, though you may need to reload the corresponding object (by e.g. clicking a room to refresh message list), or restart the app completely.
 
 
 
@@ -52,7 +52,7 @@ by default, messages are interpreted as a markdown-ish thing. This default can b
 /md forced *markdown*
 /text forced plain text (also "/plain ..." works)
 /me does something
-file uploading is a very temporary & unfinished thing and just gives you a link to the image
+file uploading is a very temporary & unfinished thing and just gives you a link
 
 _italics_
 *bold*

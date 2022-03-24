@@ -594,7 +594,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
-    Windows.setManager(Windows.Manager.JWM);
+    Windows.setManager(Windows.Manager.LWJGL);
     StringNode.PARAGRAPH_TEXT = true;
     
     Windows.start(mgr -> {
