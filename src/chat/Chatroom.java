@@ -144,6 +144,7 @@ public abstract class Chatroom {
   
   public abstract void readAll();
   public abstract void older();
+  public abstract boolean highlight(String s);
   public abstract void post(String s, String target);
   public abstract void edit(ChatEvent m, String s);
   public abstract void delete(ChatEvent m);

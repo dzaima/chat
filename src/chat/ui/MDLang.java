@@ -14,7 +14,7 @@ public class MDLang extends Lang {
   }
   
   public MDLang(Font f, ChatMain m, ChatTextArea ta) {
-    super(new MDState(ta));
+    super(new MDState(m, ta));
     styles = new TextStyle[36];
     int defTextCol = m.gc.getProp("str.color").col();
     int spoilerCol = m.gc.getProp("chat.preview.spoilerBg").col();
@@ -48,13 +48,16 @@ public class MDLang extends Lang {
   public Lang font(Font f) { return new TextLang(f); }
   
   static class MDState extends LangState<MDState> {
+    private final ChatMain m;
     private final ChatTextArea ta;
-    MDState(ChatTextArea ta) {
+    MDState(ChatMain m, ChatTextArea ta) {
       this.ta = ta;
+      this.m = m;
     }
     public MDState after(int sz, char[] p, byte[] b) {
       String s = ta.getAll();
-      int[] styles = MDParser.eval(s, c->"").styles;
+      Chatroom r = m.room;
+      int[] styles = r==null || r.highlight(s)? MDParser.eval(s, c->"").styles : new int[s.length()];
       int cx = 0;
       for (EditNode.Line l : ta.lns) {
         int lsz = l.sz();
@@ -62,7 +65,7 @@ public class MDLang extends Lang {
         for (int i = 0; i < lsz; i++) {
           bs[i] = (byte)styles[cx+i];
         }
-        cx+= lsz +1;
+        cx+= lsz+1;
       }
       return this;
     }

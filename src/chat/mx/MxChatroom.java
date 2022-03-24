@@ -131,15 +131,27 @@ public class MxChatroom extends Chatroom {
     if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, usernames::get));
     else return new MxFmt(s, Utils.toHTML(s, true));
   }
+  private String[] command(String s) {
+    if (!s.startsWith("/")) return new String[]{s};
+    int ss = 1;
+    while (!MDParser.border(s, ss)) ss++;
+    int se = ss;
+    if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
+    return new String[]{s.substring(1, ss), s.substring(se)};
+  }
+  public boolean highlight(String s) {
+    String[] cmd = command(s);
+    boolean def = m.gc.getProp("chat.markdown").b();
+    if (cmd.length==1 || cmd[0].equals("me")) return def;
+    return cmd[0].equals("md");
+  }
   public void post(String s, String target) {
     MxSendMsg f;
-    if (s.startsWith("/")) {
+    String[] cmd = command(s);
+    if (cmd.length==2) {
       int ss = 1;
-      while (!MDParser.border(s, ss)) ss++;
-      int se = ss;
-      if (ss<s.length() && Character.isWhitespace(s.charAt(se))) se++;
-      String left = s.substring(se);
-      switch (s.substring(1, ss)) {
+      String left = cmd[1];
+      switch (cmd[0]) {
         // case "img": {
         //   int p2 = left.indexOf('\n');
         //   String l0, body;
