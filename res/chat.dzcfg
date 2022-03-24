@@ -16,14 +16,23 @@ chat {
     replyDn = { "alt+down" }
     roomUp = { "ctrl+up" }
     roomDn = { "ctrl+down" }
-    hideCurrent = { "alt+r" } // hide unread count for the current room
-    hideGlobal  = { "ctrl+alt+r" } // globally hide unread count
+    hideCurrent = { "alt+h" } // hide unread count for the current room
+    hideGlobal  = { "ctrl+alt+h" } // globally hide unread count
     deleteMsg = { "ctrl+alt+shift+del" }
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }
   }
   
-  col.link = #A7DBC6
+  // syntax preview in message box
+  preview.enabled = true
+  preview.defFamily = str.defaultFont
+  preview.escape = #779 // color of escape characters
+  preview.codeBg = #63000000 // weird colors & alpha because this will be drawn over the selection tinting, but we want that to be at least somewhat visible
+  preview.spoilerBg = #20A9D0E0
+  preview.codeFamily = chat.code.family
+  
+  link.col = #A7DBC6
+  // link.underline = false // TODO implement
   
   msg.userWidth = 10em // width for user tags to the left of a message
   msg.sep = 0.3em // separation between messages

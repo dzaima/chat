@@ -304,7 +304,7 @@ public class HTMLParser {
   }
   
   public static TextNode link(Chatroom r, String url) {
-    return new TextNode(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.col.link"), EnumProp.TRUE}) {
+    return new TextNode(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.link.col"), EnumProp.TRUE}) {
       public boolean mouseDown(int x, int y, Click c) {
         c.notify(this, x, y);
         return true;

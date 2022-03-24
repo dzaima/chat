@@ -44,7 +44,6 @@ public class ChatMain extends NodeWindow {
   
   public ChatMain(GConfig gc, Ctx pctx, String profilePath, PNodeGroup g) {
     super(gc, pctx, g, new WindowInit("chat"));
-    cfgUpdated();
     if (Tools.DBG) MxServer.LOG = true;
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -89,6 +88,7 @@ public class ChatMain extends NodeWindow {
       if (mod==0) { send(); return true; }
       return false;
     });
+    // input.append("hello world _asd_ *asd* ---sdsad--- [link _it_](hello) `code \\`_it_ asd` abc `` hello \\`world `` ||spoiler|| text\n```java\nhello\nworld\n```\nmore");
     ((BtnNode) base.ctx.id("send")).setFn(c -> send());
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
       if (room!=null) openFile(null, null, p -> {
@@ -97,6 +97,7 @@ public class ChatMain extends NodeWindow {
     });
     
     this.profilePath = Paths.get(profilePath);
+    cfgUpdated();
   }
   
   @Override
@@ -593,7 +594,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
-    Windows.setManager(Windows.Manager.LWJGL);
+    Windows.setManager(Windows.Manager.JWM);
     StringNode.PARAGRAPH_TEXT = true;
     
     Windows.start(mgr -> {
@@ -619,5 +620,8 @@ public class ChatMain extends NodeWindow {
   public Paint msgBorder;
   @Override public void cfgUpdated() { super.cfgUpdated();
     msgBorder = new Paint().setColor(gc.getProp("chat.msg.border").col()).setPathEffect(PathEffect.makeDash(new float[]{1, 1}, 0));
+    if (gc.getProp("chat.preview.enabled").b()) {
+      input.setLang(MDLang.makeLanguage(this, input));
+    } else input.setLang(gc.langs().defLang);
   }
 }
