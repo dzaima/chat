@@ -1,5 +1,7 @@
 # A Matrix chat client
 
+![screenshot](https://github.com/dzaima/dzaima.github.io/blob/master/images/chatClient.png)
+
 ### Usage
 
 1. `./build.py`
