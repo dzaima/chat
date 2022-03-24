@@ -177,7 +177,12 @@ public class MxChatroom extends Chatroom {
           break;
       }
     } else f = parse(s);
-    if (target!=null && f instanceof MxFmt) ((MxFmt) f).reply(r, target);
+    if (target!=null && f instanceof MxFmt) {
+      MxFmt ff = (MxFmt) f;
+      MxChatEvent tce = log.msgMap.get(target);
+      if (tce!=null) ff.reply(r, target, tce.e.uid, tce.username);
+      else ff.reply(r, target);
+    }
     u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
   }
   public void edit(ChatEvent m, String s) {

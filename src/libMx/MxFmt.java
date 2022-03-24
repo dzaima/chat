@@ -22,7 +22,12 @@ public class MxFmt extends MxSendMsg {
   public void reply(MxRoom r, String mid) {
     assert replyId==null;
     replyId = mid;
-    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+">↥</a></mx-reply>");
+    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+">↥</a> </mx-reply>");
+  }
+  public void reply(MxRoom r, String mid, String uid, String username) {
+    assert replyId==null;
+    replyId = mid;
+    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+">↥</a> "+userHTML(uid, username)+" </mx-reply>");
   }
   
   public void txt(String text) {
@@ -50,9 +55,12 @@ public class MxFmt extends MxSendMsg {
     body.append("[").append(text).append("](").append(href).append(")");
     html.append("<a href=\"").append(Utils.toHTML(href)).append("\">").append(Utils.toHTML(text)).append("</a>");
   }
+  public static String userHTML(String uid, String nick) {
+    return "<a href=\"https://matrix.to/#/"+Utils.toHTML(uid)+"\">"+Utils.toHTML(nick)+"</a>";
+  }
   public void user(String uid, String nick) {
     body.append(nick);
-    html.append("<a href=\"https://matrix.to/#/").append(Utils.toHTML(uid)).append("\">").append(Utils.toHTML(nick)).append("</a>");
+    html.append(userHTML(uid, nick));
   }
   
   public void c(String code) {

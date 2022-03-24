@@ -1,6 +1,5 @@
 package libMx;
 
-import chat.ChatMain;
 import dzaima.utils.JSON;
 import dzaima.utils.JSON.Obj;
 import org.jsoup.Jsoup;
@@ -79,7 +78,7 @@ public final class MxMessage {
       String id = Obj.objPath(c.ct, Obj.E, "m.relates_to", "m.in_reply_to").str("event_id", null);
       try {
         if (id!=null) reply = r.message(id);
-      } catch (Exception e) { ChatMain.warn("Bad reply "+id); }
+      } catch (Exception e) { MxServer.warn("Bad reply "+id); }
       gotReply = true;
     }
     return reply;
