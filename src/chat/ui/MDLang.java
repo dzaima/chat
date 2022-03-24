@@ -65,6 +65,7 @@ public class MDLang extends Lang {
         for (int i = 0; i < lsz; i++) {
           bs[i] = (byte)styles[cx+i];
         }
+        l.clearPara();
         cx+= lsz+1;
       }
       return this;

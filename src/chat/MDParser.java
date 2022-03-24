@@ -132,13 +132,18 @@ public class MDParser {
           r.append('`'); // `abc
         } else { // ``...
           i = sei;
+          int backtickEndI = i;
           if (am==3 && s.indexOf('\n',i)>=0 && s.indexOf('`', i) > s.indexOf('\n',i)) { // ```[no more backticks]\n[whatever]`
             int le = s.indexOf('\n',i);
             String lang = s.substring(i, le);
             int afterStart = i;
             i = le+1;
             int cend = (s+"\n").indexOf("\n"+Tools.repeat('`', am)+"\n", i);
-            if (cend==-1) cend = s.length();
+            if (cend==-1) {
+              i = backtickEndI;
+              r.append(Tools.repeat('`', am));
+              continue;
+            }
             String cont = le+1<cend? s.substring(le+1, cend) : "";
             i = cend+am+2;
             
