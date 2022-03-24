@@ -80,12 +80,16 @@ public class MDParser {
         }
       }
       else if (c=='[') {
+        int li = i;
         String v = run(']');
         int ls = i+1;
         if (i<s.length() && s.charAt(i)=='(') {
           int le = s.indexOf(')', i);
           if (le!=-1) {
+            ss(li-1, li, S_DEF_ESC);
+            ss(ls-2, ls, S_DEF_ESC);
             ss(ls, le, S_LINK);
+            ss(le, le+1, S_DEF_ESC);
             r.append("<a href=").append(htmlString(s.substring(ls, le))).append(">");
             r.append(v);
             r.append("</a>");
