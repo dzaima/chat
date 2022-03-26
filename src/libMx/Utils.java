@@ -126,7 +126,7 @@ public class Utils {
       } catch (Exception e) {
         e.printStackTrace();
       }
-    });
+    }, false);
   }
   
   
@@ -140,8 +140,9 @@ public class Utils {
     return Arrays.copyOf(b, i);
   }
   
-  public static Thread thread(Runnable o) {
+  public static Thread thread(Runnable o, boolean daemon) {
     Thread th = new Thread(o);
+    th.setDaemon(daemon);
     th.start();
     return th;
   }

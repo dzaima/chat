@@ -612,9 +612,6 @@ public class ChatMain extends NodeWindow {
       
       mgr.start(new ChatMain(gc, ctx, args.length==0? DEFAULT_PROFILE : args[0], gc.getProp("chat.ui").gr()));
     });
-    
-    Tools.sleep(1000);
-    System.exit(0); // so syncs won't keep waiting
   }
   
   public Paint msgBorder;

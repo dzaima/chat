@@ -43,11 +43,12 @@ public class MxChatUser extends ChatUser {
   }
   
   public Thread networkThread = Tools.thread(() -> {
-    //noinspection InfiniteLoopStatement
     while (true) {
       try {
         network.take().run();
-      } catch(Throwable e) {
+      } catch (InterruptedException e) {
+        return;
+      } catch (Throwable e) {
         e.printStackTrace();
       }
     }

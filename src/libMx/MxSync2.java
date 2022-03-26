@@ -51,7 +51,7 @@ public class MxSync2 {
         Utils.sleep(100);
       }
       stoppedBatchToken = batch;
-    });
+    }, true);
   }
   public void stop() {
     if (!running.compareAndSet(true, false)) throw new RuntimeException("Cannot stop a stopped MxSync");
