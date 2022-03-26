@@ -283,8 +283,12 @@ public class ChatMain extends NodeWindow {
     }
   }
   
-  public void draw(Graphics g, boolean full) {
-    super.draw(g, full);
+  public boolean draw(Graphics g, boolean full) {
+    return super.draw(g, full);
+  }
+  
+  public int tickDelta() {
+    return focused? 1000/60 : 1000/5;
   }
   
   public void stopped() {
