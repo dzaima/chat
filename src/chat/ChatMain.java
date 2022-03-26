@@ -65,7 +65,7 @@ public class ChatMain extends NodeWindow {
             }
             break;
           case "replyUp": case "replyDn":
-            if (room!=null && editing==null && key.onlyAlt()) {
+            if (room!=null && editing==null) {
               markReply(name.equals("replyUp")? room.prevMsg(replying, false) : room.nextMsg(replying, false));
               return true;
             }
