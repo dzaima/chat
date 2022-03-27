@@ -20,7 +20,8 @@ public class MxTranscriptView extends TranscriptView {
   }
   
   
-  public void tick() {
+  public void viewTick() {
+    super.viewTick();
     if (highlightTime>=0) highlightTime--;
     if (highlightTime==0) {
       MxChatEvent m = log.get(highlightID);

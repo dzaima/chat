@@ -10,7 +10,7 @@ import dzaima.utils.Vec;
 
 import java.nio.file.Path;
 
-public abstract class Chatroom {
+public abstract class Chatroom extends View {
   public final ChatMain m;
   public RNode node;
   public String name;
@@ -24,8 +24,6 @@ public abstract class Chatroom {
     setName("Unnamed room");
   }
   
-  public abstract boolean key(Key key, int scancode, KeyAction a);
-  public abstract boolean typed(int codepoint);
   
   private static final Prop TRANSPARENT = new ColProp(0);
   
@@ -129,6 +127,15 @@ public abstract class Chatroom {
     }
   }
   
+  public void viewTick() {
+    if (m.toLast!=0) {
+      m.msgsScroll.toLast(m.toLast==2);
+      m.toLast = 0;
+    } else {
+      if (-m.msgsScroll.oy < m.endDist) older();
+    }
+  }
+  
   
   public void setName(String name) {
     this.name = name;
@@ -136,7 +143,12 @@ public abstract class Chatroom {
     if (open) m.setCurrentName(name);
   }
   
+  public String title() {
+    return name;
+  }
+  
   public abstract ChatUser user();
+  public Chatroom room() { return this; }
   
   protected boolean open;
   public /*open*/ void show() { open=true; node.updBg(); unreadChanged(); m.setCurrentName(name); }

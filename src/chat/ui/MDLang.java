@@ -56,7 +56,7 @@ public class MDLang extends Lang {
     }
     public MDState after(int sz, char[] p, byte[] b) {
       String s = ta.getAll();
-      Chatroom r = m.room;
+      Chatroom r = m.room();
       int[] styles = r==null || r.highlight(s)? MDParser.eval(s, c->"").styles : new int[s.length()];
       int cx = 0;
       for (EditNode.Line l : ta.lns) {

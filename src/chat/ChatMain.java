@@ -30,17 +30,20 @@ public class ChatMain extends NodeWindow {
   
   public Path profilePath;
   private final Node msgs;
-  private final ScrollNode msgsScroll;
+  public final ScrollNode msgsScroll;
   public final ChatTextArea input;
   public final Vec<ChatUser> users = new Vec<>();
   public final Node accountNode;
   public final Node actionbar, infobar;
-  public Chatroom room;
-  public TranscriptView view; // TODO superclass for this and room
+  public View view;
   public ChatEvent editing;
   public ChatEvent replying;
   
   public boolean globalHidden = false;
+  
+  public Chatroom room() {
+    return view==null? null : view.room();
+  }
   
   public ChatMain(GConfig gc, Ctx pctx, String profilePath, PNodeGroup g) {
     super(gc, pctx, g, new WindowInit("chat"));
@@ -56,7 +59,8 @@ public class ChatMain extends NodeWindow {
         String name = gc.keymap(key, a, "chat");
         switch (name) {
           case "editUp": case "editDn":
-            if (room!=null && (editing==null? getAll().length()==0 : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
+            if (view instanceof Chatroom && (editing==null? getAll().length()==0 : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
+              Chatroom room = (Chatroom) view;
               markEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
               removeAll();
               if (editing!=null) append(editing.getSrc());
@@ -65,13 +69,15 @@ public class ChatMain extends NodeWindow {
             }
             break;
           case "replyUp": case "replyDn":
-            if (room!=null && editing==null) {
+            if (view instanceof Chatroom && editing==null) {
+              Chatroom room = (Chatroom) view;
               markReply(name.equals("replyUp")? room.prevMsg(replying, false) : room.nextMsg(replying, false));
               return true;
             }
             break;
           case "deleteMsg":
-            if (editing!=null) {
+            Chatroom room = room();
+            if (room!=null && editing!=null) {
               ChatEvent toDel = editing;
               markEdit(null);
               room.delete(toDel);
@@ -91,8 +97,8 @@ public class ChatMain extends NodeWindow {
     // input.append("hello world _asd_ *asd* ---sdsad--- [link _it_](hello) `code \\`_it_ asd` abc `` hello \\`world `` ||spoiler|| text\n```java\nhello\nworld\n```\nmore");
     ((BtnNode) base.ctx.id("send")).setFn(c -> send());
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
-      if (room!=null) openFile(null, null, p -> {
-        if (p!=null && room!=null) room.upload(p);
+      if (view!=null) openFile(null, null, p -> {
+        if (p!=null && view!=null) view.room().upload(p);
       });
     });
     
@@ -136,8 +142,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public void send() {
-    Chatroom r = room;
-    if (r==null && view!=null) r = view.room();
+    Chatroom r = room();
     if (r!=null) {
       String s = input.getAll();
       if (s.length()>0) {
@@ -173,17 +178,15 @@ public class ChatMain extends NodeWindow {
   public void hideCurrent() {
     markEdit(null);
     markReply(null);
-    if (room!=null) room.hide();
-    room = null;
-    cHover = null;
     if (view!=null) view.hide();
     view = null;
+    cHover = null;
     removeAllMessages();
     lastTimeStr = null;
   }
   public void toRoom(Chatroom c) {
     hideCurrent();
-    room = c;
+    view = c;
     c.show();
     updActions();
     toLast = 2;
@@ -199,6 +202,7 @@ public class ChatMain extends NodeWindow {
     String info = "";
     if (cHover!=null) info+= Time.localTimeStr(cHover.msg.time);
     info+= "\n";
+    Chatroom room = room();
     if (room!=null && room.typing.length()>0) {
       info+= room.typing;
     }
@@ -228,7 +232,10 @@ public class ChatMain extends NodeWindow {
   private boolean prevAtEnd;
   private int updInfoDelay;
   private long nextTimeUpdate;
+  public int endDist;
   public void tick() {
+    endDist = gc.em*20;
+    
     boolean nAtEnd = atEnd();
     if (prevAtEnd!=nAtEnd) {
       updateUnread();
@@ -243,22 +250,13 @@ public class ChatMain extends NodeWindow {
       if (cHover!=null) updActions();
       else updInfoDelay = 10;
     }
-    int endDist = gc.em*20;
-    if (room!=null) {
-      if (toLast!=0) {
-        msgsScroll.toLast(toLast==2);
-        toLast = 0;
-      } else {
-        if (-msgsScroll.oy < endDist) room.older();
-      }
-    }
-    if (view!=null) {
-      if (msgsScroll.atStart(endDist)) view.older();
-      if (msgsScroll.atEnd(endDist)) view.newer();
-    }
+    
     super.tick();
+    
     for (ChatUser c : users) c.tick();
-    if (view!=null) view.tick(); // TODO don't
+    
+    if (view!=null) view.viewTick();
+    
     
     if (gc.lastNs>nextTimeUpdate) {
       insertLastTime();
@@ -318,7 +316,7 @@ public class ChatMain extends NodeWindow {
   private String lastTimeStr;
   public String currDelta() {
     if (!gc.getProp("chat.timeSinceLast").b()) return null;
-    if (msgs.ch.sz==0 || room==null) return null;
+    if (msgs.ch.sz==0 || !(view instanceof Chatroom)) return null;
     int n = msgs.ch.sz-1;
     Node a = msgs.ch.get(n);
     if (!(a instanceof MsgNode)) { n--; if(n>=0) a = msgs.ch.get(n); }
@@ -427,6 +425,8 @@ public class ChatMain extends NodeWindow {
     updateTitle();
   }
   public void updateTitle() {
+    Chatroom room = room();
+    
     int otherNew = 0;
     int currentNew = room==null?0:room.unread();
     boolean ping = false;
@@ -436,6 +436,7 @@ public class ChatMain extends NodeWindow {
         ping|= r.ping;
       }
     }
+    
     String ct;
     if (otherNew!=0 || currentNew!=0 || ping) {
       StringBuilder b = new StringBuilder("(");
@@ -445,13 +446,14 @@ public class ChatMain extends NodeWindow {
       b.append(") ");
       ct = b.toString();
     }
+    
     else ct = "";
-    if (room==null) setTitle(ct+"chat");
-    else setTitle(ct+room.name);
+    if (view==null) setTitle(ct+"chat");
+    else setTitle(ct+view.title());
   }
   
   public void updateUnread() {
-    if (room!=null) room.unreadChanged();
+    if (view instanceof Chatroom) ((Chatroom) view).unreadChanged();
     else unreadChanged();
   }
   
@@ -519,13 +521,13 @@ public class ChatMain extends NodeWindow {
   
   
   public boolean chatKey(Key key, int scancode, KeyAction a) {
-    if (room==null) return false;
-    return room.key(key, scancode, a);
+    if (view==null) return false;
+    return view.key(key, scancode, a);
   }
   
   public boolean chatTyped(int codepoint) {
-    if (room==null) return false;
-    return room.typed(codepoint);
+    if (view==null) return false;
+    return view.typed(codepoint);
   }
   
   public void focused() { super.focused();
@@ -538,7 +540,7 @@ public class ChatMain extends NodeWindow {
       case "fontPlus":  gc.setEM(gc.em+1); return true;
       case "fontMinus": gc.setEM(gc.em-1); return true;
       case "hideCurrent":
-        if (room!=null) room.toggleHide();
+        if (view instanceof Chatroom) ((Chatroom) view).toggleHide();
         return true;
       case "hideGlobal":
         globalHidden^= true;
@@ -547,6 +549,7 @@ public class ChatMain extends NodeWindow {
         return true;
       case "roomUp": case "roomDn": {
         boolean up = name.equals("roomUp");
+        Chatroom room = room();
         if (room==null) {
           for (ChatUser u : users) {
             Vec<Chatroom> rs = u.rooms();
