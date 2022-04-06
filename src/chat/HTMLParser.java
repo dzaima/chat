@@ -23,21 +23,6 @@ public class HTMLParser {
     if (ss>=se) return new TextNode(r.m.base.ctx, Node.KS_NONE, Node.VS_NONE);
     s = s.substring(ss, se);
     Element b = Jsoup.parse(s).body();
-    if (b.childrenSize() == 1) {
-      Element c0 = b.child(0);
-      if (c0.tagName().equals("div") && c0.hasClass("onebox")) {
-        if (c0.hasClass("ob-image")) {
-          String src = c0.child(0).child(0).attr("src");
-          try {
-            return image(r, src, Tools.get(src, true));
-          } catch (Exception e) {
-            return image(r, src, null);
-          }
-        } else {
-          ChatMain.warn("Unknown onebox in " + s);
-        }
-      }
-    }
     TextNode base = new TextNode(r.m.base.ctx, Node.KS_NONE, Node.VS_NONE);
     rec(b, base, false, null, r);
     return base;
