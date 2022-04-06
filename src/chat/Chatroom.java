@@ -38,20 +38,23 @@ public abstract class Chatroom extends View {
     boolean hovered;
     public void hoverS() { hovered=true;  updBg(); ctx.win().setCursor(Window.CursorType.HAND   ); }
     public void hoverE() { hovered=false; updBg(); ctx.win().setCursor(Window.CursorType.REGULAR); }
-  
-  
+    
+    
     private int drState=2; // 0 - not started; 1 - dragging; 2 - canceled
     private int drStartY; // my original index
     private int drSelY; // current index of empty
     private int drDrawY; // y position where to draw
     private int drDY0; // thing for mouse y tracking
     private boolean drSel; // whether to reorder
-    public boolean mouseDown(int x, int y, Click c) {
-      drState = 0;
-      c.notify(this,x,y);
-      return true;
+    
+    public void mouseStart(int x, int y, Click c) {
+      c.register(this, x, y);
     }
-  
+    
+    public void mouseDown(int x, int y, Click c) {
+      drState = 0;
+    }
+    
     public void mouseTick(int x, int y, Click c) {
       ChatUser u = user();
       if (drState==0 && !gc.isClick(c)) {
@@ -76,7 +79,7 @@ public abstract class Chatroom extends View {
       if (drState==1) {
         Vec<Node> lch = u.listNode.ch;
         
-        drDrawY = drDY0+c.dy;
+        drDrawY = drDY0 + c.cy-c.sy;
         drDrawY = Math.max(drDrawY, 0);
         drDrawY = Math.min(drDrawY, u.overlapNode.h-h);
         boolean drSelN = x>=0 && x<w;

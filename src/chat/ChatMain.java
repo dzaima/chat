@@ -512,7 +512,12 @@ public class ChatMain extends NodeWindow {
     }
     public void hoverS() { ctx.win().setCursor(CursorType.HAND); }
     public void hoverE() { ctx.win().setCursor(CursorType.REGULAR); }
-    public boolean mouseDown(int x, int y, Click c) { c.notify(this,x,y); return true; }
+  
+    public void mouseStart(int x, int y, Click c) {
+      super.mouseStart(x, y, c);
+      c.register(this, x, y);
+    }
+    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
     public void mouseUp(int x, int y, Click c) {
       if (gc.isClick(c)) m.toTarget();
     }

@@ -59,17 +59,13 @@ public class MsgNode extends WrapNode {
     setBG();
   }
   
-  
-  public boolean mouseDown(int x, int y, Click c) {
-    if (super.mouseDown(x, y, c)) return true;
-    if (!Key.alt(c.mod)) return false;
-    c.notify(this, x, y);
-    return true;
+  public void mouseStart(int x, int y, Click c) {
+    super.mouseStart(x, y, c);
+    if (Key.alt(c.mod)) c.register(this, x, y);
   }
+  public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    if (gc.isClick(c) && Key.alt(c.mod)) {
-      msg.room().m.markReply(msg);
-    }
+    msg.room().m.markReply(msg);
   }
   
   public void tickC() {

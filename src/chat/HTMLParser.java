@@ -305,13 +305,13 @@ public class HTMLParser {
   
   public static TextNode link(Chatroom r, String url) {
     return new TextNode(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.link.col"), EnumProp.TRUE}) {
-      public boolean mouseDown(int x, int y, Click c) {
-        c.notify(this, x, y);
-        return true;
+      public void mouseStart(int x, int y, Click c) {
+        super.mouseStart(x, y, c);
+        c.register(this, x, y);
       }
-      
+      public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
       public void mouseUp(int x, int y, Click c) {
-        if (gc.isClick(c)) r.user().openLink(url);
+        r.user().openLink(url);
       }
       
       public void hoverS() { super.hoverS(); r.m.hoverURL=url;  r.m.updInfo(); }
@@ -336,31 +336,19 @@ public class HTMLParser {
           g.rect(0, eY1, eX, eY2, bg);
         }
       }
+  
+      public void mouseStart(int x, int y, Click c) {
+        if (open) super.mouseStart(x, y, c);
+        c.register(this, x, y);
+      }
       
-      public boolean mouseDown(int x, int y, Click c) {
-        if (open && super.mouseDown(x, y, c)) return true;
-        c.notify(this, x, y);
-        return true;
-      }
-  
       public void mouseTick(int x, int y, Click c) {
-        if (!gc.isClick(c) && open) {
-          c.redirect();
-          if (super.mouseDown(c.lx, c.ly, c)) return;
-          Node n = p;
-          while (n.p instanceof InlineNode) n = n.p;
-          if (n instanceof STextNode) {
-            XY d = relPos(n);
-            ((STextNode) n).forceStart(c.lx-d.x, c.ly-d.y, c);
-          }
-        }
+        c.onClickEnd();
       }
-  
+      
       public void mouseUp(int x, int y, Click c) {
-        if (gc.isClick(c)) {
-          open^= true;
-          mRedraw();
-        }
+        open^= true;
+        mRedraw();
       }
     };
   }
