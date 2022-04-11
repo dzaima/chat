@@ -16,8 +16,8 @@ public abstract class TranscriptView extends View {
   
   public /*open*/ void viewTick() {
     ChatMain m = room().m;
-    if (m.msgsScroll.atStart(m.endDist)) older();
-    if (m.msgsScroll.atEnd(m.endDist)) newer();
+    if (!m.msgsScroll.ignoreS && m.msgsScroll.atStart(m.endDist)) older();
+    if (!m.msgsScroll.ignoreE && m.msgsScroll.atEnd  (m.endDist)) newer();
   }
   
   

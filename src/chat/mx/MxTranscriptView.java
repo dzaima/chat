@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import dzaima.utils.Tools;
 import libMx.*;
 
 public class MxTranscriptView extends TranscriptView {
@@ -21,12 +22,12 @@ public class MxTranscriptView extends TranscriptView {
   
   
   public void viewTick() {
-    super.viewTick();
-    if (highlightTime>=0) highlightTime--;
-    if (highlightTime==0) {
+    if (highlightTime>=0) {
+      highlightTime--;
       MxChatEvent m = log.get(highlightID);
       if (m!=null) m.highlight(true);
     }
+    super.viewTick();
   }
   
   public void show() { super.show(); log.show(); }
@@ -39,7 +40,11 @@ public class MxTranscriptView extends TranscriptView {
     if (tokB==null) return;
     String tok = tokB;
     tokB = null;
-    r.u.queueRequest(null, () -> r.r.beforeTok(tok, 50), r -> {
+    r.u.queueRequest(null, () -> {
+      Tools.sleep(1000);
+      return r.r.beforeTok(tok, 50);
+    }, r -> {
+      System.out.println("adding older");
       if (r.events.size()==0) return;
       log.addEvents(r.events, false);
       tokB = r.eTok;
@@ -49,7 +54,11 @@ public class MxTranscriptView extends TranscriptView {
     if (tokF==null) return;
     String tok = tokF;
     tokF = null;
-    r.u.queueRequest(null, () -> r.r.afterTok(tok, 50), r -> {
+    r.u.queueRequest(null, () -> {
+      Tools.sleep(1000);
+      return r.r.afterTok(tok, 50);
+    }, r -> {
+      System.out.println("adding newer");
       if (r.events.size()==0) return;
       log.addEvents(r.events, true);
       tokF = r.eTok;
