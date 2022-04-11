@@ -174,7 +174,8 @@ public class ChatMain extends NodeWindow {
     accountNode.add(u.node);
   }
   
-  public int toLast; // 0-no; 1-smooth; 2-instant
+  public int toLast; // 0-no; 1-smooth; 2-instant; 3-to highlighted
+  public ChatEvent toHighlight;
   public void hideCurrent() {
     markEdit(null);
     markReply(null);
@@ -185,11 +186,15 @@ public class ChatMain extends NodeWindow {
     lastTimeStr = null;
   }
   public void toRoom(Chatroom c) {
+    toRoom(c, null);
+  }
+  public void toRoom(Chatroom c, ChatEvent toHighlight) {
     hideCurrent();
     view = c;
     c.show();
     updActions();
-    toLast = 2;
+    toLast = toHighlight!=null? 3 : 2;
+    this.toHighlight = toHighlight;
   }
   public void toTranscript(TranscriptView v) {
     hideCurrent();

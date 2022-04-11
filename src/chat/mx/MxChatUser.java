@@ -205,8 +205,7 @@ public class MxChatUser extends ChatUser {
           if (r!=null) {
             MxChatEvent ev = r.log.get(msgId);
             if (ev!=null) {
-              m.toRoom(r);
-              primary.add(() -> ev.highlight(true)); // wait until the room is loaded
+              m.toRoom(r, ev);
               return;
             }
             r.openTranscript(msgId, v -> {
