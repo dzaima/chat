@@ -200,7 +200,7 @@ public class ChatMain extends NodeWindow {
   }
   public void updActions() {
     String info = "";
-    if (cHover!=null) info+= Time.localTimeStr(cHover.msg.time);
+    if (cHover!=null) info+= Time.localNearTimeStr(cHover.msg.time);
     info+= "\n";
     Chatroom room = room();
     if (room!=null && room.typing.length()>0) {
