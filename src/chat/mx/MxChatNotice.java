@@ -5,7 +5,10 @@ import chat.ui.MsgNode;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
 import dzaima.utils.JSON;
+import dzaima.utils.JSON.Obj;
 import libMx.MxEvent;
+
+import java.util.Objects;
 
 public class MxChatNotice extends MxChatEvent {
   public final MxEvent e;
@@ -33,8 +36,22 @@ public class MxChatNotice extends MxChatEvent {
           String msg;
           switch (e.ct.str("membership", "")) {
             case "join":
-              String prev = JSON.Obj.path(e.o, JSON.Str.E, "unsigned", "prev_content", "displayname").str("");
-              msg = prev.isEmpty()? member+" joined" : prev+" changed their display name to "+member;
+              Obj prev = Obj.path(e.o, Obj.E, "unsigned", "prev_content").obj();
+              if (!prev.str("membership","").equals("join")) {
+                msg = member+" joined";
+              } else {
+                msg = "";
+                String prevName = prev.str("displayname", null);
+                if (!prevName.equals(member)) msg+= prevName+" changed their display name to "+member;
+                String prevAvatar = prev.str("avatar_url", null);
+                String currAvatar = e.ct.str("avatar_url", null);
+                if (!Objects.equals(prevAvatar, currAvatar)) {
+                  if (msg.isEmpty()) msg = prevName+" ";
+                  else msg+= " and ";
+                  msg+= "changed their avatar";
+                }
+                if (msg.isEmpty()) msg = "did m.room.member";
+              }
               break;
             case "invite": msg = executer+" invited "+member; break;
             case "leave":
