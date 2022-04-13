@@ -296,55 +296,63 @@ public class HTMLParser {
     return n;
   }
   
-  public static TextNode link(Chatroom r, String url) {
-    return new TextNode(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.link.col"), EnumProp.TRUE}) {
-      public void mouseStart(int x, int y, Click c) {
-        super.mouseStart(x, y, c);
-        c.register(this, x, y);
-      }
-      public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
-      public void mouseUp(int x, int y, Click c) {
-        r.user().openLink(url);
-      }
-      
-      public void hoverS() { super.hoverS(); r.m.hoverURL=url;  r.m.updInfo(); }
-      public void hoverE() { super.hoverE(); r.m.hoverURL=null; r.m.updInfo(); }
-    };
-  }
-  private static TextNode spoiler(Ctx ctx) {
-    return new TextNode(ctx, new String[]{"hover", "xpad"}, new Prop[]{EnumProp.TRUE, ctx.gc.getProp("chat.spoiler.xpad")}) {
-      boolean open;
-      
-      public void drawCh(Graphics g, boolean full) {
-        if (open) super.drawCh(g, full);
-      }
-      
-      public void bg(Graphics g, boolean full) {
-        int bg = gc.getProp("chat.spoiler.bg").col();
-        if (sY1==eY1) {
-          g.rect(sX, sY1, eX, eY2, bg);
-        } else {
-          g.rect(sX, sY1, w, sY2, bg);
-          if (sY2<eY1) g.rect(0, sY2, w, eY1, bg);
-          g.rect(0, eY1, eX, eY2, bg);
-        }
-      }
   
-      public void mouseStart(int x, int y, Click c) {
-        if (open) super.mouseStart(x, y, c);
-        c.register(this, x, y);
-      }
-      
-      public void mouseTick(int x, int y, Click c) {
-        c.onClickEnd();
-      }
-      
-      public void mouseUp(int x, int y, Click c) {
-        open^= true;
-        mRedraw();
-      }
-    };
+  
+  public static TextNode link(Chatroom r, String url) {
+    return new LinkNode(r, url);
   }
+  private static class LinkNode extends TextNode {
+    private final Chatroom r;
+    private final String url;
+    public LinkNode(Chatroom r, String url) {
+      super(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.link.col"), EnumProp.TRUE});
+      this.r = r;
+      this.url = url;
+    }
+    public void mouseStart(int x, int y, Click c) {
+      super.mouseStart(x, y, c);
+      c.register(this, x, y);
+    }
+    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
+    public void mouseUp(int x, int y, Click c) { r.user().openLink(url); }
+    public void hoverS() { super.hoverS(); r.m.hoverURL=url;  r.m.updInfo(); }
+    public void hoverE() { super.hoverE(); r.m.hoverURL=null; r.m.updInfo(); }
+  }
+  
+  
+  
+  private static TextNode spoiler(Ctx ctx) {
+    return new SpoilerNode(ctx);
+  }
+  private static class SpoilerNode extends TextNode {
+    boolean open;
+    public SpoilerNode(Ctx ctx) { super(ctx, new String[]{"hover", "xpad"}, new Prop[]{EnumProp.TRUE, ctx.gc.getProp("chat.spoiler.xpad")}); }
+    
+    public void drawCh(Graphics g, boolean full) {
+      if (open) super.drawCh(g, full);
+    }
+    public void bg(Graphics g, boolean full) {
+      int bg = gc.getProp("chat.spoiler.bg").col();
+      if (sY1==eY1) {
+        g.rect(sX, sY1, eX, eY2, bg);
+      } else {
+        g.rect(sX, sY1, w, sY2, bg);
+        if (sY2<eY1) g.rect(0, sY2, w, eY1, bg);
+        g.rect(0, eY1, eX, eY2, bg);
+      }
+    }
+    public void mouseStart(int x, int y, Click c) {
+      if (open) super.mouseStart(x, y, c);
+      c.register(this, x, y);
+    }
+    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
+    public void mouseUp(int x, int y, Click c) {
+      open^= true;
+      mRedraw();
+    }
+  }
+  
+  
   
   private static final String[] iKey = {"italics"};
   private static final String[] bKey = {"bold"};
