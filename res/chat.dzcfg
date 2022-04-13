@@ -31,7 +31,7 @@ chat {
   preview.spoilerBg = #20A9D0E0
   preview.codeFamily = chat.code.family
   
-  link.col = #A7DBC6
+  link.col = #A7DBC6 // #7cacff - a blue alternative
   // link.underline = false // TODO implement
   
   msg.userWidth = 10em // width for user tags to the left of a message
@@ -47,6 +47,10 @@ chat {
   quote.line  = #999 // color of line left of a quote
   quote.color = #999 // text color in quote
   
+  userCols.myNick = #D2D2D2
+  userCols.myPill = chat.userCols.myNick
+  userCols.otherNicks = { "#54a7f0" "#ea6ee6" "#24d7a4" "#f28c8f" "#ff9047" "#3fbdbf" "#a1d37a" } // can be set to just a single color if not wanted
+  userCols.otherPills = chat.userCols.otherNicks // can be a separate list, or just a single color
   pill.padL = 0em
   pill.padR = 0em
   pill.padLMine = .05em

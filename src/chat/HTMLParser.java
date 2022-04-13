@@ -8,7 +8,6 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
-import dzaima.utils.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
@@ -135,7 +134,7 @@ public class HTMLParser {
             String url = fixURL(c.attr("href"));
             if (url.startsWith("https://matrix.to/#/@")) {
               String id = url.substring(20);
-              pill(p, c.text(), id, id.equals(r.user().id()));
+              pill(r, p, c.text(), id, id.equals(r.user().id()));
             } else {
               TextNode t = link(r, url);
               rec(c, t, mono, url, r);
@@ -174,13 +173,13 @@ public class HTMLParser {
             if (tag.equals("font") && c.hasAttr("color")) colTxt = c.attr("color");
             else if (c.hasAttr("data-mx-color")) colTxt = c.attr("data-mx-color");
             if (colTxt!=null) {
-              Integer col = Token.ColorTok.parse(colTxt.startsWith("#")? colTxt.substring(1) : colTxt);
+              Integer col = Token.ColorTok.parsePrefixed(colTxt);
               if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, new String[]{"color"}, new Prop[]{new ColProp(col)}));
             }
             
             if (c.hasAttr("data-mx-bg-color")) {
               String bgTxt = c.attr("data-mx-bg-color");
-              Integer col = Token.ColorTok.parse(bgTxt.startsWith("#")? bgTxt.substring(1) : bgTxt);
+              Integer col = Token.ColorTok.parsePrefixed(bgTxt);
               if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, new String[]{"bg"}, new Prop[]{new ColProp(col)}));
             }
             
@@ -195,7 +194,7 @@ public class HTMLParser {
             p.add(new InlineNode.LineEnd(p.ctx, true));
             break;
           case "pill":
-            if (c.hasAttr("mine") && c.hasAttr("id")) pill(p, c.text(), c.attr("id"), c.attr("mine").equals("true"));
+            if (c.hasAttr("mine") && c.hasAttr("id")) pill(r, p, c.text(), c.attr("id"), c.attr("mine").equals("true"));
             else wrap(p, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
             break;
           case "ol":
@@ -235,23 +234,28 @@ public class HTMLParser {
     }
   }
   
-  private static void pill(Node p, String text, String id, boolean mine) {
-    p.add(new Pill(p.ctx, mine, id, new StringNode(p.ctx, "@"+text)));
+  private static void pill(Chatroom r, Node p, String text, String id, boolean mine) {
+    p.add(new Pill(p.ctx, r.user(), mine, id, "@"+text));
   }
-  public static class Pill extends WrapNode implements StringifiableNode {
+  public static class Pill extends Node implements StringifiableNode {
     public final boolean mine;
-    public final String id;
-    public Pill(Ctx ctx, boolean mine, String id, Node ch) {
-      super(ctx, ch);
+    public final ChatUser u;
+    public final String id, text;
+    public Pill(Ctx ctx, ChatUser u, boolean mine, String id, String text) {
+      super(ctx, KS_NONE, VS_NONE);
       this.mine = mine;
       this.id = id;
+      this.u = u;
+      this.text = text;
     }
-    int l, r, rr, bg;
+    int l, r, rr, bg, tw, col;
     public void propsUpd() { super.propsUpd();
       l = gc.getProp(mine? "chat.pill.padLMine" : "chat.pill.padL").len();
       r = gc.getProp(mine? "chat.pill.padRMine" : "chat.pill.padR").len();
       bg= gc.getProp(mine? "chat.pill.bgMine"   : "chat.pill.bg"  ).col();
       rr = gc.getProp("chat.pill.round").len();
+      tw = gc.defFont.width(text);
+      col = u.userCol(id, mine, true);
     }
     
     public void bg(Graphics g, boolean full) {
@@ -259,9 +263,14 @@ public class HTMLParser {
       g.rrect(0, 0, w, h, rr, bg);
     }
   
-    public int minW() { return super.minW()+l+r; }
-    public int maxW() { return super.maxW()+l+r; }
-    public void resized() { ch.get(0).resize(w, h, l, 0); }
+    public void drawC(Graphics g) {
+      Font f = gc.defFont;
+      StringNode.text(g, text, f, col, l, f.asc);
+    }
+  
+    public int minW() { return tw+l+r; }
+    public int maxW() { return tw+l+r; }
+    public int minH(int w) { return gc.defFont.hi; }
   
     public String asString() { return id; }
   }

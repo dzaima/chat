@@ -2,7 +2,7 @@ package chat;
 
 import chat.mx.MxChatUser;
 import chat.ui.*;
-import dzaima.ui.eval.PNodeGroup;
+import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.gui.io.*;
@@ -627,8 +627,29 @@ public class ChatMain extends NodeWindow {
     });
   }
   
+  public int colMyNick, colMyPill;
+  public int[] colOtherNicks;
+  public int[] colOtherPills;
   public Paint msgBorder;
+  private static int[] colorList(Prop p) {
+    if (p instanceof ColProp) {
+      return new int[]{p.col()};
+    } else {
+      Vec<PNode> l = p.gr().ch;
+      int[] res = new int[l.sz];
+      for (int i = 0; i < res.length; i++) {
+        int c = Token.ColorTok.parsePrefixed(((PNodeStr) l.get(i)).s);
+        res[i] = c;
+      }
+      return res;
+    }
+  }
   @Override public void cfgUpdated() { super.cfgUpdated();
+    colMyNick = gc.getProp("chat.userCols.myNick").col();
+    colMyPill = gc.getProp("chat.userCols.myPill").col();
+    colOtherNicks = colorList(gc.getProp("chat.userCols.otherNicks"));
+    colOtherPills = colorList(gc.getProp("chat.userCols.otherPills"));
+    
     msgBorder = new Paint().setColor(gc.getProp("chat.msg.border").col()).setPathEffect(PathEffect.makeDash(new float[]{1, 1}, 0));
     if (gc.getProp("chat.preview.enabled").b()) {
       input.setLang(MDLang.makeLanguage(this, input));

@@ -3,17 +3,22 @@ package chat.ui;
 import chat.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
 
 public class UserTagNode extends TextNode {
   private final ChatMain m;
+  private final ChatUser u;
   private final String userString;
+  private boolean mine;
   public boolean vis = true;
   
   public UserTagNode(ChatMain m, ChatEvent ev) {
     super(m.ctx, KS_NONE, VS_NONE);
     this.m = m;
+    this.u = ev.room().user();
     this.userString = ev.userString();
+    mine = ev.mine;
     add(new StringNode(ctx, ev.username));
   }
   
@@ -39,5 +44,18 @@ public class UserTagNode extends TextNode {
       mRedraw();
       vis = v;
     }
+  }
+  
+  public void addInline(InlineSolver sv) {
+    if (p instanceof InlineNode && sv.resize) {
+      dx = dy = 0;
+      w = sv.w;
+    }
+    int pFG = sv.tcol;
+    
+    sv.tcol = u.userCol(userString, mine, false);
+    
+    for (Node c : ch) sv.add(c);
+    sv.tcol = pFG;
   }
 }
