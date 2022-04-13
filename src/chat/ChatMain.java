@@ -422,6 +422,7 @@ public class ChatMain extends NodeWindow {
     } else if (body instanceof InlineNode) {
       nb = new STextNode(body);
     } else nb = body;
+    nb.add(new InlineNode.LineEnd(ctx, false));
     n.replace(1, nb);
     if (end) toLast = Math.max(toLast, live? 1 : 2);
   }

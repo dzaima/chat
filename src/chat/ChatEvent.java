@@ -38,7 +38,7 @@ public abstract class ChatEvent {
   }
   public void highlight(boolean forceScroll) {
     if (visible) {
-      ScrollNode.scrollTo(n, ScrollNode.Mode.NONE, forceScroll? ScrollNode.Mode.INSTANT : ScrollNode.Mode.OFFSCREEN);
+      ScrollNode.scrollTo(n, ScrollNode.Mode.NONE, forceScroll? ScrollNode.Mode.INSTANT : ScrollNode.Mode.PARTLY_OFFSCREEN);
       n.highlight();
     }
   }
