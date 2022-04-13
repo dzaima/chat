@@ -26,6 +26,8 @@ public class MDParser {
   public static final int SD_ST = 4; // strikethrough
   public static final int SD_SP = 8; // spoiler
   
+  public static final String ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~\\";
+  
   private void ss(int s, int e, int m) {
     Arrays.fill(styles, s, e, m);
   }
@@ -59,12 +61,15 @@ public class MDParser {
         return r.toString();
       }
       if (c=='\n') r.append("<br>");
-      else if (c=='\\' && i<s.length() && "!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~\\".indexOf(s.charAt(i))!=-1) addText(r, s.charAt(i++));
       else if (c=='*' && ifTag(r, "*", '*', "b", SD_B)) { }
       else if (c=='-' && ifTag(r, "---", '-', "del", SD_ST)) { }
       else if (c=='~' && ifTag(r, "~~", '~', "del", SD_ST)) { }
       else if (c=='|' && ifTag(r, "||", '|', "span", " data-mx-spoiler", SD_SP)) { }
       else if (c=='_' && border(s, i-2) && ifTag(r, "_", '_', "i", SD_I)) { }
+      else if (c=='\\' && i<s.length() && ESCAPABLE.indexOf(s.charAt(i))!=-1) {
+        ss(i-1, i, S_DEF_ESC);
+        addText(r, s.charAt(i++));
+      }
       else if (c=='@' && border(s, i-2)) {
         int j = i;
         while (j<s.length() && (MxUser.nameChars.indexOf(c=s.charAt(j))!=-1 || c==':')) j++;
@@ -123,7 +128,7 @@ public class MDParser {
               r.append("</code>");
               continue str;
             }
-            if (c=='\\' && ei<s.length()) {
+            if (c=='\\' && ei<s.length() && ESCAPABLE.indexOf(s.charAt(ei))!=-1) {
               escapes.add(ei-1);
               c = s.charAt(ei++);
             }
