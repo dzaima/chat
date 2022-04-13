@@ -53,7 +53,6 @@ public class HTMLParser {
     if (c0.endsWith("\n")) c0 = c0.substring(0, c0.length()-1);
     Node n = ctx.make(ctx.gc.getProp("chat.code.blockP").gr());
     n.ctx.id("body").add(new StringNode(ctx, c0));
-    n.ctx.id("body").add(new InlineNode.LineEnd(ctx, false));
     return n;
   }
   
