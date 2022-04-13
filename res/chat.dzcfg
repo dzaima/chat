@@ -133,7 +133,7 @@ chat {
   msg.mainP = pad { u=.3em id=padU
     h { h=min pad=.5em
       pad { u=.2em // assumes .1em+1px == .2em, which isn't true but eh
-        hideOverflow { w=10em id=user "" }
+        hideOverflow { alX=right w=10em id=user "" }
       }
       msgBorder { id=border bg=#00FF00
         pad { y=.1em
