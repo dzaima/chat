@@ -592,9 +592,6 @@ public class ChatMain extends NodeWindow {
     
     if (a.typed) {
       if (key.k_esc()) {
-        if (editing !=null) { markEdit (null); input.removeAll(); return true; }
-        if (replying!=null) { markReply(null);                    return true; }
-        if (input.getAll().length() != 0)    { input.removeAll(); return true; }
       }
       if (key.k_f5()) {
         gc.reloadCfg();
@@ -612,7 +609,6 @@ public class ChatMain extends NodeWindow {
   
   public static void main(String[] args) {
     Windows.setManager(Windows.Manager.LWJGL);
-    StringNode.PARAGRAPH_TEXT = true;
     
     Windows.start(mgr -> {
       BaseCtx ctx = Ctx.newCtx();

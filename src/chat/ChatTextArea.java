@@ -20,6 +20,13 @@ public class ChatTextArea extends CodeAreaNode {
   
   public int action(Key key, KeyAction a) {
     if (m.chatKey(key, 0, a)) return 1;
-    return super.action(key, a);
+    int r0 = super.action(key, a);
+    if (r0==1) return r0;
+    if (a.press && key.k_esc()) {
+      if (m.editing !=null) { m.markEdit (null);  removeAll();  return 1; }
+      if (m.replying!=null) { m.markReply(null);                return 1; }
+      if (getAll().length() != 0)                { removeAll(); return 1; }
+    }
+    return r0;
   }
 }
