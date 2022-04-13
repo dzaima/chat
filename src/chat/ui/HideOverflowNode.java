@@ -28,7 +28,12 @@ public class HideOverflowNode extends FrameNode {
     assert ch.size()==1;
     Node c = ch.get(0);
     int mw = c.maxW();
-    if (mw > w) c.resize(mw*2, h, 0, 0); // TODO remove *2 after hProps is properly invoked where needed
-    else c.resize(mw*2, h, w-mw, 0);
+    if (xalign()==1) {
+      if (mw > w) c.resize(mw*2, h, 0, 0); // TODO remove *2 after hProps is properly invoked where needed
+      else c.resize(mw*2, h, w-mw, 0);
+    } else {
+      c.resize(mw*2, h, 0, 0);
+    }
+    mRedraw();
   }
 }

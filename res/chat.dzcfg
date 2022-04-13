@@ -114,9 +114,13 @@ chat {
               btn { style=rect id=upload "upload" padX=.5em padY=.3em }
             }
             v {
-              text { id=actionbar "" color=#888 }
+              hideOverflow { alX=left
+                text { id=actionbar "" color=#888 } // typing list, hovered message date/time
+              }
               h { h=max alY=bottom alX=right
-                hideOverflow { h=min text { id=infobar "" color=#AAA } }
+                hideOverflow { alX=right h=min
+                  text { id=infobar "" color=#AAA } // active action, link, etc
+                }
               }
             }
           }
