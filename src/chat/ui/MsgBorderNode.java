@@ -1,6 +1,9 @@
 package chat.ui;
 
-import dzaima.ui.gui.Graphics;
+import chat.ChatMain;
+import dzaima.ui.eval.PNodeGroup;
+import dzaima.ui.gui.*;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Prop;
@@ -31,6 +34,15 @@ public class MsgBorderNode extends Node {
   public void hover(boolean on) {
     this.on = on;
     mRedraw();
+  }
+  
+  public void mouseStart(int x, int y, Click c) {
+    super.mouseStart(x, y, c);
+    if (c.bR()) c.register(this, x, y);
+  }
+  
+  public void mouseDown(int x, int y, Click c) {
+    if (c.bR()) n.msg.rightClick(c);
   }
   
   public void bg(Graphics g, boolean full) {

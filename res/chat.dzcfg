@@ -59,7 +59,8 @@ chat {
   pill.bgMine = #A3692F
   pill.round = 0.2em
   
-  code.family = "BQN386 Unicode"
+  code.family = "BQN386 Unicode" // font used in chat messages
+  code.familyUI = "DejaVu Sans Mono" // font used in UI for monospace
   code.bgInline = #222
   code.bgBlock = #222
   
@@ -145,6 +146,32 @@ chat {
       }
     }
   }
+  mx.msgMenu {
+    main = menu {
+      // mi { id=viewHistory "View History" }
+    }
+    message = {
+      mi { id=replyTo "Reply To" }
+      mi { id=copyLink "Copy Link" }
+      vsep{}
+    }
+    mine = {
+      mi { id=delete "Delete" }
+      mi { id=edit "Edit" }
+      vsep{}
+    }
+    dev = {
+      mi { id=viewSource "View Source" }
+    }
+  }
+  linkMenu = menu {
+    mi { id=copy "Copy Link Address" }
+  }
+  sourceUI = h { bg=bg.middle
+    scroll {
+      codearea { family=chat.code.familyUI id=src }
+    }
+  }
   
   info.mainP = pad { u=.3em infoType="idk"
     h { h=min pad=.5em
@@ -170,7 +197,7 @@ chat {
   rooms.accountP = v { h=min
     pad { all=.5em x=.5em
       h {
-        text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=#666 id=server "…" family="DejaVu Sans Mono" } }
+        text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=#666 id=server "…" family=chat.code.familyUI } }
       }
     }
     overlap { id=overlap v { id=roomlist h { alX=center text{ italics=true color=str.colorDisabled "loading..." } } /* … rooms.roomP */ } }

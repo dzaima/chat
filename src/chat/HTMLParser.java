@@ -313,8 +313,19 @@ public class HTMLParser {
       super.mouseStart(x, y, c);
       c.register(this, x, y);
     }
-    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
-    public void mouseUp(int x, int y, Click c) { r.user().openLink(url); }
+    public void mouseTick(int x, int y, Click c) {
+      if (c.bR()) Popup.rightClickMenu(gc, ctx, "chat.linkMenu", cmd -> {
+        switch (cmd) { default: ChatMain.warn("bad cmd " + cmd); break;
+          case "copy":
+            r.m.copyString(url);
+            break;
+        }
+      }).takeClick(c);
+      c.onClickEnd();
+    }
+    public void mouseUp(int x, int y, Click c) {
+      if (c.bL()) r.user().openLink(url);
+    }
     public void hoverS() { super.hoverS(); r.m.hoverURL=url;  r.m.updInfo(); }
     public void hoverE() { super.hoverE(); r.m.hoverURL=null; r.m.updInfo(); }
   }

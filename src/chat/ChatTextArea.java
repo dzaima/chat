@@ -23,7 +23,7 @@ public class ChatTextArea extends CodeAreaNode {
     int r0 = super.action(key, a);
     if (r0==1) return r0;
     if (a.press && key.k_esc()) {
-      if (m.editing !=null) { m.markEdit (null);  removeAll();  return 1; }
+      if (m.editing !=null) { m.setEdit  (null);                return 1; }
       if (m.replying!=null) { m.markReply(null);                return 1; }
       if (getAll().length() != 0)                { removeAll(); return 1; }
     }

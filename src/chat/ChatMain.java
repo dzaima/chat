@@ -61,10 +61,7 @@ public class ChatMain extends NodeWindow {
           case "editUp": case "editDn":
             if (view instanceof Chatroom && (editing==null? getAll().length()==0 : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
               Chatroom room = (Chatroom) view;
-              markEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
-              removeAll();
-              if (editing!=null) append(editing.getSrc());
-              um.clear();
+              setEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
               return true;
             }
             break;
@@ -79,7 +76,7 @@ public class ChatMain extends NodeWindow {
             Chatroom room = room();
             if (room!=null && editing!=null) {
               ChatEvent toDel = editing;
-              markEdit(null);
+              setEdit(null);
               room.delete(toDel);
               removeAll(); um.clear();
             }
@@ -155,11 +152,20 @@ public class ChatMain extends NodeWindow {
       }
     }
   }
-  public void markEdit(ChatEvent m) {
-    if (replying!=null) return;
+  public void setEdit(ChatEvent m) {
+    if (!markEdit(m)) return;
+    input.removeAll();
+    if (editing!=null) {
+      input.append(editing.getSrc());
+      input.um.clear();
+    }
+  }
+  private boolean markEdit(ChatEvent m) {
+    if (replying!=null) return false;
     if (editing!=null) editing.mark(0);
     editing = m;
     if (editing!=null) editing.mark(1);
+    return true;
   }
   public void markReply(ChatEvent m) {
     if (editing!=null) return;
@@ -177,7 +183,7 @@ public class ChatMain extends NodeWindow {
   public int toLast; // 0-no; 1-smooth; 2-instant; 3-to highlighted
   public ChatEvent toHighlight;
   public void hideCurrent() {
-    markEdit(null);
+    setEdit(null);
     markReply(null);
     if (view!=null) view.hide();
     view = null;
@@ -609,7 +615,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
-    Windows.setManager(Windows.Manager.LWJGL);
+    Windows.setManager(Windows.Manager.JWM);
     
     Windows.start(mgr -> {
       BaseCtx ctx = Ctx.newCtx();

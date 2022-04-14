@@ -1,6 +1,7 @@
 package chat;
 
 import chat.ui.MsgNode;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.types.ScrollNode;
 
 import java.time.Instant;
@@ -52,4 +53,6 @@ public abstract class ChatEvent {
   public abstract MsgNode.MsgType type();
   
   public abstract String userString();
+  
+  public abstract void rightClick(Click c);
 }
