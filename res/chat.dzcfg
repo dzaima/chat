@@ -183,7 +183,7 @@ chat {
       h { pad=.4em btn { "Choose File" style=rect id=choose }
                                 scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=path } } }
       h { pad=.4em "File name:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=name } } }
-      h { pad=.4em "Mime type:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=mime } } }
+      h { pad=.4em "MIME type:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=mime } } }
       pad { u=1em
         h { alX=right pad=0.4em
           btn { "Get link" style=rect id=getLink }
