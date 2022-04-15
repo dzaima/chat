@@ -22,8 +22,9 @@ public class UserTagNode extends TextNode {
     add(new StringNode(ctx, ev.username));
   }
   
-  public void hoverS() { if (vis) ctx.win().setCursor(Window.CursorType.HAND); }
-  public void hoverE() {          ctx.win().setCursor(Window.CursorType.REGULAR); }
+  private boolean cursorPushed;
+  public void hoverS() { if (vis) { ctx.vw().pushCursor(Window.CursorType.HAND); cursorPushed=true; } }
+  public void hoverE() { if (cursorPushed) ctx.vw().popCursor(); }
   
   public void mouseStart(int x, int y, Click c) {
     if (vis) c.register(this, x, y);

@@ -155,7 +155,7 @@ chat {
   mx.msgMenu {
     main = menu { }
     message = {
-      // mi { id=viewHistory "View History" }
+      // mi { id=viewHistory "View edit history" }
       mi { id=replyTo "Reply to" key=chat.menuKeys.reply }
       mi { id=copyLink "Copy message link" key=chat.menuKeys.copyLink }
       vsep{}
@@ -205,7 +205,7 @@ chat {
   code.inlineP = text { family=chat.code.family bg=chat.code.bgInline xpad=.2em }
   code.blockP = pad { r=.6em y=.3em
     pad { all=.2em bg=chat.code.bgBlock
-      stext { family=chat.code.family id=body }
+      stext { family=chat.code.family id=body ibeam=true }
     }
   }
   msg.noticeP = text { id=ch italics=true color=#BBB } // X joined/left/etc

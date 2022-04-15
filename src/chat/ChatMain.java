@@ -10,7 +10,6 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.*;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
-import dzaima.ui.node.types.editable.EditNode;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import io.github.humbleui.skija.*;
@@ -92,7 +91,6 @@ public class ChatMain extends NodeWindow {
       if (mod==0) { send(); return true; }
       return false;
     });
-    // input.append("hello world _asd_ *asd* ---sdsad--- [link _it_](hello) `code \\`_it_ asd` abc `` hello \\`world `` ||spoiler|| text\n```java\nhello\nworld\n```\nmore");
     ((BtnNode) base.ctx.id("send")).setFn(c -> send());
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
       if (view!=null) view.room().upload();
@@ -421,11 +419,12 @@ public class ChatMain extends NodeWindow {
     Node n = msg.ctx.id("body");
     Node nb;
     if (cm.target!=null) {
-      nb = new STextNode(ctx, Node.KS_NONE, Node.VS_NONE);
+      nb = new STextNode(ctx, true);
       nb.add(new LinkBtn(ctx, nb.ctx.makeHere(n.gc.getProp("chat.icon.replyP").gr()), cm));
       nb.add(body);
     } else if (body instanceof InlineNode) {
-      nb = new STextNode(body);
+      nb = new STextNode(ctx, true);
+      nb.add(body);
     } else nb = body;
     nb.add(new InlineNode.LineEnd(ctx, false));
     n.replace(1, nb);
@@ -521,8 +520,8 @@ public class ChatMain extends NodeWindow {
       super(ctx, ch, 0, .05f, .1f, .1f);
       this.m = m;
     }
-    public void hoverS() { ctx.win().setCursor(CursorType.HAND); }
-    public void hoverE() { ctx.win().setCursor(CursorType.REGULAR); }
+    public void hoverS() { ctx.vw().pushCursor(CursorType.HAND); }
+    public void hoverE() { ctx.vw().popCursor(); }
   
     public void mouseStart(int x, int y, Click c) {
       super.mouseStart(x, y, c);

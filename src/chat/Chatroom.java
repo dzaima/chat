@@ -34,8 +34,8 @@ public abstract class Chatroom extends View {
       this.r = r;
     }
     boolean hovered;
-    public void hoverS() { hovered=true;  updBg(); ctx.win().setCursor(Window.CursorType.HAND   ); }
-    public void hoverE() { hovered=false; updBg(); ctx.win().setCursor(Window.CursorType.REGULAR); }
+    public void hoverS() { hovered=true;  updBg(); ctx.vw().pushCursor(Window.CursorType.HAND); }
+    public void hoverE() { hovered=false; updBg(); ctx.vw().popCursor(); }
     
     
     private int drState=2; // 0 - not started; 1 - dragging; 2 - canceled
