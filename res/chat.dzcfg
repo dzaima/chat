@@ -156,8 +156,8 @@ chat {
       vsep{}
     }
     mine = {
-      mi { id=delete "Delete" }
       mi { id=edit "Edit" }
+      mi { id=delete "Delete" }
       vsep{}
     }
     dev = {
