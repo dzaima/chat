@@ -231,7 +231,7 @@ public class MxChatroom extends Chatroom {
             e.printStackTrace();
           }
           
-          MxSendMsg f = MxSendMsg.image(l, name.getAll(), size, w, h);
+          MxSendMsg f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
           u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
           close();
         });
