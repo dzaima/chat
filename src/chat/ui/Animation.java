@@ -54,12 +54,14 @@ public class Animation {
     if (b == null) {
       b = new Bitmap();
       b.allocPixels(c.getImageInfo());
+      pFrame = -1;
     }
     
     if (cFrame!=pFrame || pImage==null) {
       try {
         closeImage();
-        c.readPixels(b, cFrame, pFrame);
+        if (pFrame!=-1 && pFrame+1 == cFrame) c.readPixels(b, cFrame, pFrame);
+        else c.readPixels(b, cFrame);
         pFrame = cFrame;
         pImage = Image.makeFromBitmap(b);
       } catch (Exception ex) { ChatMain.warn("Failed to animate:"); ex.printStackTrace(); valid = false; }
