@@ -77,7 +77,7 @@ abstract class MxChatEvent extends ChatEvent {
           new Popup(n.ctx.win()) {
             protected void unfocused() { if (isVW) close(); }
             protected XY getSize() { return super.getSize().max(wr.w(), wr.h()); }
-            protected XY pos() { return new XY(wr.sx, wr.sy); }
+            protected XY pos(XY size, Rect bounds) { return new XY(wr.sx, wr.sy); }
   
             protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
   
