@@ -178,6 +178,20 @@ chat {
       codearea { family=chat.code.familyUI id=src }
     }
   }
+  mxUpload = pad { bg=bg.middle all=1em
+    v { pad=.4em w=30em h=7em
+      h { pad=.4em btn { "Choose File" style=rect id=choose }
+                                scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=path } } }
+      h { pad=.4em "File name:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=name } } }
+      h { pad=.4em "Mime type:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=mime } } }
+      pad { u=1em
+        h { alX=right pad=0.4em
+          btn { "Get link" style=rect id=getLink }
+          btn { "Send as message" style=rect id=sendMessage }
+        }
+      }
+    }
+  }
   
   info.mainP = pad { u=.3em infoType="idk"
     h { h=min pad=.5em

@@ -51,6 +51,9 @@ public class Utils {
     return postPut("PUT", path, data);
   }
   public static String postPut(String method, String path, byte[] data) {
+    return postPut(method, path, data, "application/x-www-form-urlencoded");
+  }
+  public static String postPut(String method, String path, byte[] data, String contentType) {
     try {
       URL u = new URL(path);
       HttpURLConnection c = (HttpURLConnection) u.openConnection();
@@ -58,7 +61,7 @@ public class Utils {
       c.setReadTimeout(globalTimeout);
       c.setRequestMethod(method);
       c.setUseCaches(false);
-      c.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+      c.setRequestProperty("Content-Type", contentType);
       c.setRequestProperty("Content-Length", Integer.toString(data.length));
       c.setRequestProperty("Content-Language", "en-US");
       

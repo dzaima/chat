@@ -8,8 +8,6 @@ import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 import dzaima.utils.Vec;
 
-import java.nio.file.Path;
-
 public abstract class Chatroom extends View {
   public final ChatMain m;
   public RNode node;
@@ -27,7 +25,7 @@ public abstract class Chatroom extends View {
   
   private static final Prop TRANSPARENT = new ColProp(0);
   
-  public abstract void upload(Path p);
+  public abstract void upload();
   
   public class RNode extends WrapNode {
     public final Chatroom r;

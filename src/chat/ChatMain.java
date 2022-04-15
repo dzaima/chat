@@ -10,6 +10,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.*;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
+import dzaima.ui.node.types.editable.EditNode;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import io.github.humbleui.skija.*;
@@ -94,9 +95,7 @@ public class ChatMain extends NodeWindow {
     // input.append("hello world _asd_ *asd* ---sdsad--- [link _it_](hello) `code \\`_it_ asd` abc `` hello \\`world `` ||spoiler|| text\n```java\nhello\nworld\n```\nmore");
     ((BtnNode) base.ctx.id("send")).setFn(c -> send());
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
-      if (view!=null) openFile(null, null, p -> {
-        if (p!=null && view!=null) view.room().upload(p);
-      });
+      if (view!=null) view.room().upload();
     });
     
     this.profilePath = Paths.get(profilePath);

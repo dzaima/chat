@@ -1,12 +1,16 @@
 package chat.mx;
 
 import chat.*;
+import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.types.editable.Cursor;
+import dzaima.ui.node.types.BtnNode;
+import dzaima.ui.node.types.editable.*;
 import dzaima.utils.JSON.*;
 import dzaima.utils.*;
+import io.github.humbleui.skija.Image;
 import libMx.*;
 
+import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
 import java.util.function.Consumer;
@@ -146,33 +150,11 @@ public class MxChatroom extends Chatroom {
     return cmd[0].equals("md");
   }
   public void post(String s, String target) {
-    MxSendMsg f;
+    MxFmt f;
     String[] cmd = command(s);
     if (cmd.length==2) {
-      int ss = 1;
       String left = cmd[1];
       switch (cmd[0]) {
-        // case "img": {
-        //   int p2 = left.indexOf('\n');
-        //   String l0, body;
-        //   if (p2==-1) { l0=left; body=""; }
-        //   else {
-        //     l0 = left.substring(0, p2);
-        //     body = left.substring(p2+1);
-        //   }
-        //   String[] parts = l0.split(" ");
-        //   if (parts.length!=4) {
-        //     String last = parts[parts.length-1];
-        //     parts = new String[4];
-        //     parts[0] = parts[1] = parts[2] = "-1";
-        //     parts[3] = last;
-        //   }
-        //   int[] is = new int[3];
-        //   for (int i = 0; i < 3; i++) try { is[i] = Integer.parseInt(parts[i]); } catch (Throwable t) { is[i] = -1; }
-        //   f = MxSendMsg.image(parts[3], body, is[0], is[1], is[2]);
-        //   System.out.println(f.msgJSON());
-        //   break;
-        // }
         case "md":
           f = new MxFmt(left, MDParser.toHTML(left, usernames::get));
           break;
@@ -189,11 +171,11 @@ public class MxChatroom extends Chatroom {
           break;
       }
     } else f = parse(s);
-    if (target!=null && f instanceof MxFmt) {
-      MxFmt ff = (MxFmt) f;
+    
+    if (target!=null) {
       MxChatEvent tce = log.msgMap.get(target);
-      if (tce!=null) ff.reply(r, target, tce.e.uid, tce.username);
-      else ff.reply(r, target);
+      if (tce!=null) f.reply(r, target, tce.e.uid, tce.username);
+      else f.reply(r, target);
     }
     u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
   }
@@ -205,38 +187,74 @@ public class MxChatroom extends Chatroom {
     u.queueNetwork(() -> r.s.primaryLogin.deleteMessage(r, m.id));
   }
   
-  public void upload(Path p) {
-    try {
-      byte[] data = Files.readAllBytes(p);
-      String name = p.getFileName().toString();
-      int dot = name.lastIndexOf('.');
-      String req = r.s.url+"/_matrix/media/r0/upload?access_token="+r.s.gToken;
-      filename: if (dot!=-1) {
-        for (int i = dot+1; i < name.length(); i++) {
-          char c = name.charAt(i);
-          if (!(c>='0'&c<='9' || c>='a'&c<='z' || c>='A'&c<='Z')) break filename;
-        }
-        req+= "&filename=file."+name.substring(dot+1);
+  
+  public void upload() {
+    new Popup(m) {
+      protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
+      protected void unfocused() { close(); }
+      protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
+      EditNode name, mime, path;
+      protected void setup() {
+        name = (EditNode) node.ctx.id("name");
+        mime = (EditNode) node.ctx.id("mime");
+        path = (EditNode) node.ctx.id("path");
+        ((BtnNode) node.ctx.id("choose")).setFn(c -> m.openFile(null, null, p -> {
+          if (p==null) return;
+          path.removeAll(); path.append(p.toString());
+          name.removeAll(); name.append(p.getFileName().toString());
+          String mimeType = null;
+          try {
+            mimeType = Files.probeContentType(p);
+          } catch (IOException e) {
+            e.printStackTrace();
+          }
+          mime.removeAll();
+          mime.append(mimeType!=null? mimeType : "application/octet-stream");
+        }));
+        ((BtnNode) node.ctx.id("getLink")).setFn(c -> {
+          String l = getUpload();
+          if (l==null) return;
+          m.input.append(u.s.mxcToURL(l));
+          close();
+        });
+        ((BtnNode) node.ctx.id("sendMessage")).setFn(c -> {
+          String l = getUpload();
+          if (l==null) return;
+          int size = data.length;
+          int w = -1, h = -1;
+          try {
+            Image img = Image.makeFromEncoded(data);
+            w = img.getWidth();
+            h = img.getHeight();
+            img.close();
+          } catch (Throwable e) {
+            e.printStackTrace();
+          }
+          
+          MxSendMsg f = MxSendMsg.image(l, name.getAll(), size, w, h);
+          u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
+          close();
+        });
       }
-      Obj o = JSON.parseObj(Utils.post(req, data));
-      
-      m.input.append(u.s.mxcToURL(o.str("content_uri")));
+      byte[] data;
+      String getUpload() {
+        try {
+          data = Files.readAllBytes(Paths.get(path.getAll()));
+          return upload(data, name.getAll(), mime.getAll());
+        } catch (IOException e) {
+          e.printStackTrace();
+          return null;
+        }
+      }
+    }.open(m.gc, m.ctx, m.gc.getProp("chat.mxUpload").gr());
+  }
+  
+  public String upload(byte[] data, String name, String mime) {
+    String req = r.s.url+"/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+r.s.gToken;
+    String res = Utils.postPut("POST", req, data, mime);
+    Obj o = JSON.parseObj(res);
     
-      // String info;
-      // try {
-      //   Image img = Image.makeFromEncoded(data);
-      //   info = img.getWidth()+" "+img.getHeight();
-      //   img.close();
-      // } catch (Throwable t) {
-      //   info = "-1 -1";
-      // }
-      // int n = input.um.pushIgnore();
-      // input.removeAll();
-      // input.append("/img "+data.length+" "+info+" "+o.str("content_uri")+"\n"+p.getFileName().toString());
-      // input.um.popIgnore(n);
-    } catch (Throwable e) {
-      e.printStackTrace();
-    }
+    return o.str("content_uri");
   }
   
   public ChatEvent find(String id) { return log.find(id); }

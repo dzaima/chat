@@ -72,15 +72,12 @@ abstract class MxChatEvent extends ChatEvent {
           r.m.markReply(this);
           break;
         case "viewSource":
-          Rect pr = n.ctx.vw().rect;
-          Rect wr = pr.centered((int) (pr.w()*.6), (int) (pr.h()*.8));
           new Popup(n.ctx.win()) {
             protected void unfocused() { if (isVW) close(); }
-            protected XY getSize() { return super.getSize().max(wr.w(), wr.h()); }
-            protected XY pos(XY size, Rect bounds) { return new XY(wr.sx, wr.sy); }
-  
+            protected Rect fullRect() { return centered(n.ctx.vw(), 0.6, 0.8); }
+            
             protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
-  
+            
             protected void setup() {
               CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
               e.append(MxChatEvent.this.e.o.toString(2));
