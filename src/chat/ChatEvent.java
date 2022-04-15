@@ -51,6 +51,7 @@ public abstract class ChatEvent {
   public abstract String getSrc();
   
   public abstract MsgNode.MsgType type();
+  public abstract boolean isDeleted();
   
   public abstract String userString();
   

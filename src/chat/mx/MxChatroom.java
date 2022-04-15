@@ -245,7 +245,7 @@ public class MxChatroom extends Chatroom {
     Vec<MxChatEvent> l = log.list;
     int i = l.indexOf((MxChatEvent) msg);
     if (i==-1) i = l.sz;
-    while (--i>=0) if ((!mine || l.get(i).mine) && !l.get(i).type.equals("deleted")) return l.get(i);
+    while (--i>=0) if ((!mine || l.get(i).mine) && !l.get(i).isDeleted()) return l.get(i);
     return msg;
   }
   
@@ -253,7 +253,7 @@ public class MxChatroom extends Chatroom {
     Vec<MxChatEvent> l = log.list;
     int i = l.indexOf((MxChatEvent) msg);
     if (i==-1) return null;
-    while (++i<l.sz) if ((!mine || l.get(i).mine) && !l.get(i).type.equals("deleted")) return l.get(i);
+    while (++i<l.sz) if ((!mine || l.get(i).mine) && !l.get(i).isDeleted()) return l.get(i);
     return null;
   }
   

@@ -598,8 +598,6 @@ public class ChatMain extends NodeWindow {
     }
     
     if (a.typed) {
-      if (key.k_esc()) {
-      }
       if (key.k_f5()) {
         gc.reloadCfg();
         return true;

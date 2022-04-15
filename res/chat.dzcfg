@@ -22,6 +22,12 @@ chat {
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }
   }
+  menuKeys {
+    copyLink = { "c" }
+    viewSource = { "s" }
+    reply = { "r" }
+    edit = { "e" }
+  }
   
   // syntax preview in message box
   preview.enabled = true
@@ -151,21 +157,21 @@ chat {
       // mi { id=viewHistory "View History" }
     }
     message = {
-      mi { id=replyTo "Reply To" }
-      mi { id=copyLink "Copy Link" }
+      mi { id=replyTo "Reply To" key=chat.menuKeys.reply }
+      mi { id=copyLink "Copy Link" key=chat.menuKeys.copyLink }
       vsep{}
     }
     mine = {
-      mi { id=edit "Edit" }
-      mi { id=delete "Delete" }
+      mi { id=edit "Edit" key=chat.menuKeys.edit }
+      mi { id=delete "Delete" key=chat.keys.deleteMsg }
       vsep{}
     }
     dev = {
-      mi { id=viewSource "View Source" }
+      mi { id=viewSource "View Source" key=chat.menuKeys.viewSource }
     }
   }
   linkMenu = menu {
-    mi { id=copy "Copy Link Address" }
+    mi { id=copy "Copy Link Address" key=chat.menuKeys.copyLink }
   }
   sourceUI = h { bg=bg.middle
     scroll {
