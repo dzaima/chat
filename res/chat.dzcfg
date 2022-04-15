@@ -1,4 +1,5 @@
 str.defaultEM = 13 // initial UI scale, in pixels of font size
+tmpScale = 1
 chat {
   
   loadImgs = safe // none - display no images inline; safe - load only mxc:// images; all - load all images 
@@ -52,6 +53,8 @@ chat {
   msg.border = #888 // dashed border color
   quote.line  = #999 // color of line left of a quote
   quote.color = #999 // text color in quote
+  image.maxW = 25em // maximum size of inline images
+  image.maxH = 25em
   
   userCols.myNick = #D2D2D2
   userCols.myPill = chat.userCols.myNick

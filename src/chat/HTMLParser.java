@@ -1,6 +1,8 @@
 package chat;
 
+import chat.ui.ImageNode;
 import dzaima.ui.eval.*;
+import dzaima.ui.gui.Font;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.gui.select.StringifiableNode;
@@ -31,9 +33,7 @@ public class HTMLParser {
     Ctx ctx = r.m.base.ctx;
     TextNode l = link(r, link);
     VNode v = new VNode(ctx, new String[]{"h"}, new Prop[]{new EnumProp("min")});
-    ImgNode img = new ImgNode(ctx, new String[]{"maxW", "maxH"}, new Prop[]{new LenProp(ctx.gc, 25, "em"), new LenProp(ctx.gc, 25, "em")}); // TODO extract to theme
-    if (data!=null) img.setImg(data);
-    v.add(img);
+    v.add(new ImageNode(ctx, data));
     l.add(v);
     return l;
   }
