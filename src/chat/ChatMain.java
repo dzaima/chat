@@ -513,6 +513,32 @@ public class ChatMain extends NodeWindow {
     return i+" "+k+(i==1?"":"s");
   }
   
+  public void viewImage(Animation anim) {
+    new Popup(this) {
+      protected void unfocused() { close(); }
+      protected Rect fullRect() { return centered(base.ctx.vw(), 0.8, 0.9); }
+  
+      ImageViewerNode img;
+      protected void setup() {
+        img = (ImageViewerNode) node.ctx.id("viewer");
+        img.setAnim(anim);
+        img.ctx.focus(img);
+        img.zoomToFit();
+      }
+  
+      protected boolean key(Key key, KeyAction a) { img.mRedraw();
+        switch (gc.keymap(key, a, "imageViewer")) { default: return false;
+          case "exit": close(); return true;
+          case "pixelFit": img.center(); img.zoom(img.w/2, img.gh()/2, 1); return true;
+          case "playPause": img.playPause(); return true;
+          case "nextFrame": img.nextFrame(); return true;
+          case "prevFrame": img.prevFrame(); return true;
+          case "toStart": img.toFrame(0); return true;
+        }
+      }
+    }.open(gc, ctx, gc.getProp("imageViewer.ui").gr());
+  }
+  
   
   static class LinkBtn extends PadCNode {
     private final ChatEvent m;
@@ -617,6 +643,7 @@ public class ChatMain extends NodeWindow {
       BaseCtx ctx = Ctx.newCtx();
       ctx.put("msgBorder", MsgBorderNode::new);
       ctx.put("hideOverflow", HideOverflowNode::new);
+      ctx.put("imageViewer", ImageViewerNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));

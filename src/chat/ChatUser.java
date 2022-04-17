@@ -1,7 +1,6 @@
 package chat;
 
 import dzaima.ui.node.Node;
-import dzaima.ui.node.prop.Prop;
 import dzaima.ui.node.types.OverlapNode;
 import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
@@ -30,7 +29,7 @@ public abstract class ChatUser {
   
   public abstract Obj data();
   
-  public abstract void openLink(String url);
+  public abstract void openLink(String url, boolean img, boolean external, byte[] data);
   
   public int userCol(String name, boolean mine, boolean pill) {
     if (mine) return pill? m.colMyPill : m.colMyNick;

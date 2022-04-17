@@ -1,12 +1,14 @@
 package chat.mx;
 
 import chat.*;
+import chat.ui.Animation;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.*;
 import dzaima.utils.Tools;
 import dzaima.utils.JSON.*;
 import libMx.*;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -182,39 +184,66 @@ public class MxChatUser extends ChatUser {
     }
     return null;
   }
-  public void openLink(String url) {
-    if (url.startsWith("https://matrix.to/#/")) {
-      try {
-        URI u = new URI(url);
-        String fr = u.getFragment().substring(1);
-        int pos = fr.indexOf('?');
-        if (pos!=-1) fr = fr.substring(0, pos);
-        String[] parts = Tools.split(fr, '/');
-        int n = parts.length;
-        while (n>0 && parts[n-1].isEmpty()) n--;
-        if (n==1) {
-          MxChatroom r = findRoom(parts[0]);
-          if (r!=null) {
-            m.toRoom(r);
-            return;
-          }
-        }
-        if (n==2) {
-          MxChatroom r = findRoom(parts[0]);
-          String msgId = parts[1];
-          if (r!=null) {
-            MxChatEvent ev = r.log.get(msgId);
-            if (ev!=null) {
-              m.toRoom(r, ev);
+  public void openLink(String url, boolean img, boolean external, byte[] data) {
+    if (!external) {
+      if (url.startsWith("https://matrix.to/#/")) {
+        try {
+          URI u = new URI(url);
+          String fr = u.getFragment().substring(1);
+          int pos = fr.indexOf('?');
+          if (pos!=-1) fr = fr.substring(0, pos);
+          String[] parts = Tools.split(fr, '/');
+          int n = parts.length;
+          while (n>0 && parts[n-1].isEmpty()) n--;
+          if (n==1) {
+            MxChatroom r = findRoom(parts[0]);
+            if (r!=null) {
+              m.toRoom(r);
               return;
             }
-            r.openTranscript(msgId, v -> {
-              if (!v) m.gc.openLink(url);
+          }
+          if (n==2) {
+            MxChatroom r = findRoom(parts[0]);
+            String msgId = parts[1];
+            if (r!=null) {
+              MxChatEvent ev = r.log.get(msgId);
+              if (ev!=null) {
+                m.toRoom(r, ev);
+                return;
+              }
+              r.openTranscript(msgId, v -> {
+                if (!v) m.gc.openLink(url);
+              });
+              return;
+            }
+          }
+        } catch (URISyntaxException ignored) { }
+      }
+      if (m.gc.getProp("chat.internalImageViewer").b() && (img || url.contains("/_matrix/media/"))) {
+        byte[] d = data;
+        if (d==null) {
+          try {
+            HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+            c.setRequestMethod("HEAD");
+            String[] ct = new String[1];
+            c.getHeaderFields().forEach((k, v) -> {
+              if ("Content-Type".equals(k) && v.size()==1) ct[0] = v.get(0);
             });
+            c.disconnect();
+            
+            if (ct[0]!=null && ct[0].startsWith("image/")) d = Tools.get(url);
+          } catch (Throwable e) {
+            e.printStackTrace();
+          }
+        }
+        if (d!=null) {
+          Animation anim = new Animation(d);
+          if (anim.valid) {
+            m.viewImage(anim);
             return;
           }
         }
-      } catch (URISyntaxException ignored) { }
+      }
     }
     
     m.gc.openLink(url);

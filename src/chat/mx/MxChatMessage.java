@@ -83,7 +83,7 @@ public class MxChatMessage extends MxChatEvent {
         String loadUrl = getURL(s<=1);
         
         if (s>0 && loadUrl!=null) {
-          TextNode tmpLink = HTMLParser.link(r, getURL(false));
+          TextNode tmpLink = HTMLParser.link(r, getURL(false), true);
           tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           r.m.updMessage(n, this, tmpLink, live);
           
@@ -102,7 +102,7 @@ public class MxChatMessage extends MxChatEvent {
           });
         } else {
           String url = getURL(false);
-          TextNode link = HTMLParser.link(r, url);
+          TextNode link = HTMLParser.link(r, url, true);
           link.add(new StringNode(n.ctx, url));
           r.m.updMessage(n, this, link, live);
         }
@@ -113,7 +113,7 @@ public class MxChatMessage extends MxChatEvent {
         if (!visible) return;
         
         String url = getURL(false);
-        TextNode link = HTMLParser.link(r, url);
+        TextNode link = HTMLParser.link(r, url, false);
         link.add(new StringNode(n.ctx, url));
         r.m.updMessage(n, this, link, live);
         break;

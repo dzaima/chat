@@ -74,7 +74,7 @@ abstract class MxChatEvent extends ChatEvent {
         case "viewSource":
           new Popup(n.ctx.win()) {
             protected void unfocused() { if (isVW) close(); }
-            protected Rect fullRect() { return centered(n.ctx.vw(), 0.6, 0.8); }
+            protected Rect fullRect() { return centered(n.ctx.vw(), 0.8, 0.8); }
             
             protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
             

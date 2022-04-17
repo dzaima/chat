@@ -1,6 +1,7 @@
 package chat.ui;
 
 import dzaima.ui.gui.Graphics;
+import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import io.github.humbleui.skija.Image;
@@ -19,6 +20,10 @@ public class ImageNode extends Node {
     }
   }
   
+  public static float fitScale(GConfig gc, int iw, int ih, int mw, int mh) {
+    return Math.min(Math.min(mw*1f/iw, mh*1f/ih), gc.imgScale);
+  }
+  
   int aw, ah;
   public void propsUpd() {
     if (f0!=null) {
@@ -27,12 +32,11 @@ public class ImageNode extends Node {
       
       int mw = gc.getProp("chat.image.maxW").len();
       int mh = gc.getProp("chat.image.maxH").len();
-      
-      float sc0 = gc.imgScale;
-      float sc = Math.min(Math.min(mw/(iw*sc0), mh/(ih*sc0)), sc0);
-      
-      aw = (int) (iw*sc0*sc);
-      ah = (int) (ih*sc0*sc);
+  
+      float sc = fitScale(gc, iw, ih, mw, mh);
+    
+      aw = (int) (iw*sc);
+      ah = (int) (ih*sc);
     }
   }
   

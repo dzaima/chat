@@ -31,7 +31,7 @@ public class HTMLParser {
   
   public static Node image(Chatroom r, String link, byte[] data) {
     Ctx ctx = r.m.base.ctx;
-    TextNode l = link(r, link);
+    TextNode l = new LinkNode(r, link, true, data);
     VNode v = new VNode(ctx, new String[]{"h"}, new Prop[]{new EnumProp("min")});
     v.add(new ImageNode(ctx, data));
     l.add(v);
@@ -88,7 +88,7 @@ public class HTMLParser {
                 URI uri = new URI(url);
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
                 Node inner = p;
-                if (link==null) p.add(inner = link(r, url));
+                if (link==null) p.add(inner = link(r, url, false));
                 String txt = uri.getHost()+"/";
                 trunc: { int L = 50;
                   if (!uri.getScheme().equals("https")) txt = uri.getScheme()+"://"+txt;
@@ -135,7 +135,7 @@ public class HTMLParser {
               String id = url.substring(20);
               pill(r, p, c.text(), id, id.equals(r.user().id()));
             } else {
-              TextNode t = link(r, url);
+              TextNode t = link(r, url, false);
               rec(c, t, mono, url, r);
               p.add(t);
             }
@@ -144,7 +144,7 @@ public class HTMLParser {
             TextNode base = new TextNode(p.ctx, Node.KS_NONE, Node.VS_NONE);
             String src = c.attr("src");
             base.add(new StringNode(p.ctx, src));
-            p.add(link(r, src));
+            p.add(link(r, src, true));
             break;
           case "code":
             wrap(p, c, true, link, r, "chat.code.inlineP");
@@ -298,16 +298,20 @@ public class HTMLParser {
   
   
   
-  public static TextNode link(Chatroom r, String url) {
-    return new LinkNode(r, url);
+  public static TextNode link(Chatroom r, String url, boolean img) {
+    return new LinkNode(r, url, img, null);
   }
   private static class LinkNode extends TextNode {
     private final Chatroom r;
     private final String url;
-    public LinkNode(Chatroom r, String url) {
+    private final boolean img;
+    private final byte[] data;
+    public LinkNode(Chatroom r, String url, boolean img, byte[] data) {
       super(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.link.col"), EnumProp.TRUE});
       this.r = r;
       this.url = url;
+      this.img = img;
+      this.data = data;
     }
     public void mouseStart(int x, int y, Click c) {
       super.mouseStart(x, y, c);
@@ -319,12 +323,14 @@ public class HTMLParser {
           case "copy":
             r.m.copyString(url);
             break;
+          case "openExt":
+            r.user().openLink(url, false, true, null);
         }
       }).takeClick(c);
       c.onClickEnd();
     }
     public void mouseUp(int x, int y, Click c) {
-      if (c.bL()) r.user().openLink(url);
+      if (c.bL()) r.user().openLink(url, img, false, data);
     }
     public void hoverS() { super.hoverS(); r.m.hoverURL=url;  r.m.updInfo(); }
     public void hoverE() { super.hoverE(); r.m.hoverURL=null; r.m.updInfo(); }

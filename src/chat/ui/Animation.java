@@ -9,10 +9,13 @@ public class Animation {
   public Codec c;
   int[] starts; // start of each frame
   public final int duration; // in milliseconds
+  public final int w, h;
   
   public Animation(byte[] data) {
     int time = 0;
     Codec c0;
+    int w0 = -1;
+    int h0 = -1;
     try {
       c0 = Codec.makeFromData(Data.makeFromBytes(data));
       AnimationFrameInfo[] fi = c0.getFramesInfo();
@@ -21,18 +24,38 @@ public class Animation {
         starts[i] = time;
         time+= fi[i].getDuration();
       }
+      w0 = c0.getWidth();
+      h0 = c0.getHeight();
       valid = true;
     } catch (Exception ex) {
       ChatMain.warn("Failed to load animation:");
       ex.printStackTrace();
       c0 = null;
     }
+    if (starts==null || starts.length==0) starts = new int[]{0};
+    w = w0;
+    h = h0;
     c = c0;
     duration = time;
   }
   
   public int frameCount() {
-    return starts==null? 0 : starts.length;
+    return starts.length;
+  }
+  
+  public int nextFrameTime(int ms) {
+    int f = findFrame(ms)+1;
+    if (f==frameCount()) f = 0;
+    return starts[f];
+  }
+  public int prevFrameTime(int ms) {
+    int f = findFrame(ms);
+    f = f==0? frameCount()-1 : f-1;
+    return starts[f];
+  }
+  
+  public int frameTime(int n) {
+    return starts[n];
   }
   
   public int findFrame(long ms) { // find frame at time ms
