@@ -249,6 +249,22 @@ public class MxChatroom extends Chatroom {
     }.open(m.gc, m.ctx, m.gc.getProp("chat.mxUpload").gr());
   }
   
+  public Vec<UserRes> autocompleteUsers(String prefix) {
+    String term = prefix.toLowerCase();
+    Vec<UserRes> res = new Vec<>();
+    boolean[] complete = new boolean[1];
+    usernames.forEach((k, v) -> {
+      String src = k.substring(1).toLowerCase();
+      String disp = v.toLowerCase();
+      if (src.startsWith(term) || disp.startsWith(term)) {
+        if (src.equals(term) || disp.equals(term)) complete[0] = true;
+        res.add(new UserRes(disp, k));
+      }
+    });
+    if (complete[0]) res.clear();
+    return res;
+  }
+  
   public String upload(byte[] data, String name, String mime) {
     String req = r.s.url+"/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+r.s.gToken;
     String res = Utils.postPut("POST", req, data, mime);

@@ -27,6 +27,12 @@ public abstract class Chatroom extends View {
   
   public abstract void upload();
   
+  public static class UserRes {
+    public final String disp, src;
+    public UserRes(String disp, String src) { this.disp = disp; this.src = src; }
+  }
+  public abstract Vec<UserRes> autocompleteUsers(String prefix);
+  
   public class RNode extends WrapNode {
     public final Chatroom r;
     public RNode(Chatroom r, Node ch) {

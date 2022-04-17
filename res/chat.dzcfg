@@ -10,6 +10,7 @@ chat {
   mergeMessages = true // whether to visually merge consecutive messages by the same user (posted within 5 minutes of each other)
   markdown = true // whether to parse your messages as markdown
   internalImageViewer = true // whether to use the internal image viewer when clicking images (or some links); you can always right click → "Open externally"
+  userAutocomplete = true // whether to show autocompletion options for usernames
   
   keys {
     editUp = { "up" }
@@ -30,6 +31,11 @@ chat {
     viewSource = { "s" }
     reply = { "r" }
     edit = { "e" }
+  }
+  autocomplete.keys {
+    prev = { "up" }
+    next = { "down" }
+    // once either of those is activated and the menu focused, regular menu keys will work (incl. menu.keys.accept for accepting an entry)
   }
   
   // syntax preview in message box
@@ -196,6 +202,7 @@ chat {
       }
     }
   }
+  userAutocompleteUI = menu { }
   
   info.mainP = pad { u=.3em infoType="idk"
     h { h=min pad=.5em

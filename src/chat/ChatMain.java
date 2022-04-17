@@ -54,37 +54,7 @@ public class ChatMain extends NodeWindow {
     infobar = base.ctx.id("infobar");
     msgsScroll = (ScrollNode) base.ctx.id("msgsScroll");
     Node inputPlace = base.ctx.id("inputPlace");
-    input = new ChatTextArea(this, inputPlace.ctx, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE}) {
-      public boolean keyF2(Key key, int scancode, KeyAction a) {
-        String name = gc.keymap(key, a, "chat");
-        switch (name) {
-          case "editUp": case "editDn":
-            if (view instanceof Chatroom && (editing==null? getAll().length()==0 : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
-              Chatroom room = (Chatroom) view;
-              setEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
-              return true;
-            }
-            break;
-          case "replyUp": case "replyDn":
-            if (view instanceof Chatroom && editing==null) {
-              Chatroom room = (Chatroom) view;
-              markReply(name.equals("replyUp")? room.prevMsg(replying, false) : room.nextMsg(replying, false));
-              return true;
-            }
-            break;
-          case "deleteMsg":
-            Chatroom room = room();
-            if (room!=null && editing!=null) {
-              ChatEvent toDel = editing;
-              setEdit(null);
-              room.delete(toDel);
-              removeAll(); um.clear();
-            }
-          return true;
-        }
-        return super.keyF2(key, scancode, a);
-      }
-    };
+    input = new ChatTextArea(this, inputPlace.ctx, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE});
     input.wrap = true;
     inputPlace.add(input);
     input.setFn(mod -> {
@@ -576,6 +546,13 @@ public class ChatMain extends NodeWindow {
   }
   
   public boolean key(Key key, int scancode, KeyAction a) {
+    if (input.psP!=null) {
+      switch (gc.keymap(key, a, "chat.autocomplete")) {
+        case "prev": ((MenuNode) input.psP.node).focusPrev(); return true;
+        case "next": ((MenuNode) input.psP.node).focusNext(); return true;
+      }
+    }
+    
     String name = gc.keymap(key, a, "chat");
     switch (name) {
       case "fontPlus":  gc.setEM(gc.em+1); return true;
