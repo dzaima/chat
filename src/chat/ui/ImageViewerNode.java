@@ -62,8 +62,8 @@ public class ImageViewerNode extends Node {
     
     g.push();
     g.clip(0, 0, w, h);
+    g.translateLocal((int)(drx*sc), (int)(dry*sc));
     if (sc!=1) g.scaleLocal(sc, sc);
-    g.translateLocal((int)drx, (int)dry);
   
     g.image(anim.frame(pFrame), 0, 0, anim.w, anim.h, sc<2? Graphics.Sampling.LINEAR_MIPMAP : Graphics.Sampling.NEAREST);
     g.pop();
