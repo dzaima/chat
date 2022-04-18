@@ -3,9 +3,11 @@ package chat;
 import dzaima.utils.Tools;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.FileTime;
 import java.time.*;
+import java.util.function.Supplier;
 
 public class CacheObj {
   public static Path cachePath = Paths.get("cache");
@@ -30,6 +32,20 @@ public class CacheObj {
   
   public static CacheObj forID(byte[] id) {
     return new CacheObj(cachePath.resolve(Tools.sha256(id)));
+  }
+  
+  public static byte[] compute(String id, Supplier<byte[]> compute) {
+    return compute(id.getBytes(StandardCharsets.UTF_8), compute);
+  }
+  public static byte[] compute(byte[] id, Supplier<byte[]> compute) {
+    CacheObj v = forID(id);
+    
+    byte[] p = v.find();
+    if (p!=null) return p;
+    
+    p = compute.get();
+    v.store(p);
+    return p;
   }
   
   public byte[] find() {

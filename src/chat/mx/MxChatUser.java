@@ -5,7 +5,7 @@ import chat.ui.Animation;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.StringNode;
-import dzaima.ui.node.types.editable.code.CodeAreaNode;
+import dzaima.ui.node.types.editable.code.*;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import libMx.*;
@@ -32,6 +32,14 @@ public class MxChatUser extends ChatUser {
   
   private final ConcurrentLinkedQueue<Runnable> primary = new ConcurrentLinkedQueue<>();
   private final LinkedBlockingDeque<Runnable> network = new LinkedBlockingDeque<>();
+  
+  public static byte[] get(String logText, String url) {
+    return CacheObj.compute(url, () -> {
+      MxServer.log("file", logText+" "+url);
+      return Tools.get(url);
+    });
+  }
+  
   public void queueNetwork(Runnable r) { network.add(r); }
   @FunctionalInterface public interface Request<T> { T get() throws Throwable; }
   
@@ -187,8 +195,8 @@ public class MxChatUser extends ChatUser {
     }
     return null;
   }
-  public void openLink(String url, boolean img, boolean external, byte[] data) {
-    if (!external) {
+  public void openLink(String url, HTMLParser.Type type, byte[] data) {
+    if (type!=HTMLParser.Type.EXT) {
       if (url.startsWith("https://matrix.to/#/")) {
         try {
           URI u = new URI(url);
@@ -223,7 +231,7 @@ public class MxChatUser extends ChatUser {
         } catch (URISyntaxException ignored) { }
       }
       
-      if (m.gc.getProp("chat.internalImageViewer").b() && (img || url.contains("/_matrix/media/"))) {
+      if (m.gc.getProp("chat.internalImageViewer").b() && (type==HTMLParser.Type.IMG || url.contains("/_matrix/media/"))) {
         byte[] d = data;
         if (d==null) {
           try {
@@ -235,7 +243,9 @@ public class MxChatUser extends ChatUser {
             });
             c.disconnect();
             
-            if (ct[0]!=null && ct[0].startsWith("image/")) d = Tools.get(url);
+            if (ct[0]!=null && ct[0].startsWith("image/")) {
+              d = Tools.get(url);
+            }
           } catch (Throwable e) {
             e.printStackTrace();
           }
@@ -275,25 +285,35 @@ public class MxChatUser extends ChatUser {
           inflated = v.get(0, v.sz);
         } catch (IllegalArgumentException | DataFormatException e) { e.printStackTrace(); break paste; }
         
-        new Popup(m.ctx.win()) {
-          protected void unfocused() { if (isVW) close(); }
-          protected Rect fullRect() { return centered(m.ctx.vw(), 0.8, 0.8); }
-          protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
-          
-          protected void setup() {
-            CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
-            e.append(new String(inflated, StandardCharsets.UTF_8));
-            e.setLang(m.gc.langs().fromName(lang));
-            e.um.clear();
-            e.focusMe();
-          }
-        }.openVW(m.gc, m.ctx, m.gc.getProp("chat.pasteUI").gr(), true);
+        openText(new String(inflated, StandardCharsets.UTF_8), m.gc.langs().fromName(lang));
+        return;
+      }
+      
+      if (type==HTMLParser.Type.TEXT) {
+        byte[] bs = get("Load text", url);
+        openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
         return;
       }
     }
     
     m.gc.openLink(url);
   }
+  private void openText(String text, Language lang) {
+    new Popup(m.ctx.win()) {
+      protected void unfocused() { if (isVW) close(); }
+      protected Rect fullRect() { return centered(m.ctx.vw(), 0.8, 0.8); }
+      protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
+    
+      protected void setup() {
+        CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
+        e.append(text);
+        if (lang!=null) e.setLang(lang);
+        e.um.clear();
+        e.focusMe();
+      }
+    }.openVW(m.gc, m.ctx, m.gc.getProp("chat.textUI").gr(), true);
+  }
+  
   public static final HashMap<String, String> pasteMap = new HashMap<>();
   static {
     pasteMap.put("APL", "APL");

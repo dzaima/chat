@@ -67,9 +67,11 @@ abstract class MxChatEvent extends ChatEvent {
           break;
         case "edit":
           if (r.m.editing==null) r.m.setEdit(this);
+          r.m.input.focusMe();
           break;
         case "replyTo":
           r.m.markReply(this);
+          r.m.input.focusMe();
           break;
         case "viewSource":
           new Popup(n.ctx.win()) {

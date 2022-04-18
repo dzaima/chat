@@ -83,26 +83,21 @@ public class MxChatMessage extends MxChatEvent {
         String loadUrl = getURL(s<=1);
         
         if (s>0 && loadUrl!=null) {
-          TextNode tmpLink = HTMLParser.link(r, getURL(false), true);
+          TextNode tmpLink = HTMLParser.link(r, getURL(false), HTMLParser.Type.IMG);
           tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           r.m.updMessage(n, this, tmpLink, live);
           
-          r.u.queueRequest(updateBodyCtr, () -> {
-            CacheObj o = CacheObj.forID(loadUrl.getBytes(StandardCharsets.UTF_8));
-            byte[] v = o.find();
-            if (v==null) {
-              MxServer.log("img", "Load image "+loadUrl);
-              o.store(v = Tools.get(loadUrl));
+          r.u.queueRequest(updateBodyCtr,
+            () -> MxChatUser.get("Load image", loadUrl),
+            data -> {
+              if (visible) { // room may have changed by the time the image loads
+                r.m.updMessage(n, this, HTMLParser.image(r, loadUrl, data), false);
+              }
             }
-            return v;
-          }, data -> {
-            if (visible) { // room may have changed by the time the image loads
-              r.m.updMessage(n, this, HTMLParser.image(r, loadUrl, data), false);
-            }
-          });
+          );
         } else {
           String url = getURL(false);
-          TextNode link = HTMLParser.link(r, url, true);
+          TextNode link = HTMLParser.link(r, url, HTMLParser.Type.IMG);
           link.add(new StringNode(n.ctx, url));
           r.m.updMessage(n, this, link, live);
         }
@@ -113,7 +108,11 @@ public class MxChatMessage extends MxChatEvent {
         if (!visible) return;
         
         String url = getURL(false);
-        TextNode link = HTMLParser.link(r, url, false);
+        String mime = m0.ct.obj("info", JSON.Obj.E).str("mimetype", "");
+        HTMLParser.Type t = HTMLParser.Type.UNK;
+        if (type.equals("m.file") && mime.startsWith("text/")) t = HTMLParser.Type.TEXT;
+        
+        TextNode link = HTMLParser.link(r, url, t);
         link.add(new StringNode(n.ctx, url));
         r.m.updMessage(n, this, link, live);
         break;

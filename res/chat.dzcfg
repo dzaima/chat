@@ -184,12 +184,16 @@ chat {
     mi { id=copy "Copy link address" key=chat.menuKeys.copyLink }
     mi { id=openExt "Open externally" key=chat.menuKeys.openExternal }
   }
-  pasteUI = h { bg=bg.middle
+  textUI = h { bg=bg.middle // used for paste & text files
     scroll {
-      codearea { family=chat.code.familyUI id=src }
+      codearea { id=src
+        family=chat.code.familyUI
+        padLns=20
+        padChrs=60
+      }
     }
   }
-  sourceUI = chat.pasteUI
+  sourceUI = chat.textUI
   mxUpload = pad { bg=bg.middle all=1em
     v { pad=.4em w=30em h=7em
       h { pad=.4em btn { "Choose File" style=rect id=choose }
@@ -199,7 +203,7 @@ chat {
       pad { u=1em
         h { alX=right pad=0.4em
           btn { "Get link" style=rect id=getLink }
-          btn { "Send as message" style=rect id=sendMessage }
+          btn { "Send as image" style=rect id=sendMessage }
         }
       }
     }
