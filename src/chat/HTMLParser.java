@@ -274,7 +274,7 @@ public class HTMLParser {
     public String asString() { return id; }
   }
   
-  private static String fixURL(String url) {
+  public static String fixURL(String url) {
     url = url.replace("[", "%5B").replace("]", "%5D").replace("(", "%28").replace("]", "%29");
     int h = url.indexOf("#");
     if (h!=-1) url = url.substring(0, h+1) + url.substring(h+1).replace("#", "%23");

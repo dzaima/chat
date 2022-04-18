@@ -10,6 +10,7 @@ chat {
   mergeMessages = true // whether to visually merge consecutive messages by the same user (posted within 5 minutes of each other)
   markdown = true // whether to parse your messages as markdown
   internalImageViewer = true // whether to use the internal image viewer when clicking images (or some links); you can always right click → "Open externally"
+  internalPasteViewer = true // whether to use the internal dzaima.github.io/paste viewer for simple cases
   userAutocomplete = true // whether to show autocompletion options for usernames
   
   keys {
@@ -183,11 +184,12 @@ chat {
     mi { id=copy "Copy link address" key=chat.menuKeys.copyLink }
     mi { id=openExt "Open externally" key=chat.menuKeys.openExternal }
   }
-  sourceUI = h { bg=bg.middle
+  pasteUI = h { bg=bg.middle
     scroll {
       codearea { family=chat.code.familyUI id=src }
     }
   }
+  sourceUI = chat.pasteUI
   mxUpload = pad { bg=bg.middle all=1em
     v { pad=.4em w=30em h=7em
       h { pad=.4em btn { "Choose File" style=rect id=choose }

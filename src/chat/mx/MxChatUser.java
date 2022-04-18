@@ -2,17 +2,20 @@ package chat.mx;
 
 import chat.*;
 import chat.ui.Animation;
+import dzaima.ui.gui.Popup;
+import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.StringNode;
+import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
-import dzaima.utils.Tools;
 import dzaima.utils.JSON.*;
 import libMx.*;
 
-import java.io.IOException;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.*;
+import java.util.function.Consumer;
+import java.util.zip.*;
 
 import static chat.mx.MxChatroom.DEFAULT_MSGS;
 
@@ -219,6 +222,7 @@ public class MxChatUser extends ChatUser {
           }
         } catch (URISyntaxException ignored) { }
       }
+      
       if (m.gc.getProp("chat.internalImageViewer").b() && (img || url.contains("/_matrix/media/"))) {
         byte[] d = data;
         if (d==null) {
@@ -244,8 +248,67 @@ public class MxChatUser extends ChatUser {
           }
         }
       }
+      
+      paste: if (m.gc.getProp("chat.internalPasteViewer").b() && url.startsWith("https://dzaima.github.io/paste")) {
+        String[] ps;
+        try {
+          ps = Tools.split(new URI(HTMLParser.fixURL(url)).getFragment(), '#');
+        } catch (URISyntaxException e) { e.printStackTrace(); break paste; }
+        if (ps.length!=1 && ps.length!=2) break paste;
+        
+        String lang = ps.length==1? "text" : pasteMap.get(ps[1]);
+        if (lang==null) break paste;
+        
+        byte[] inflated;
+        try {
+          byte[] deflated = Base64.getDecoder().decode(ps[0].substring(1).replace('@', '+'));
+          Inflater i = new Inflater(true);
+          i.setInput(deflated);
+          
+          byte[] buf = new byte[1024];
+          ByteVec v = new ByteVec();
+          while (true) {
+            int l = i.inflate(buf);
+            if (l<=0) break;
+            v.addAll(v.sz, buf, 0, l);
+          }
+          inflated = v.get(0, v.sz);
+        } catch (IllegalArgumentException | DataFormatException e) { e.printStackTrace(); break paste; }
+        
+        new Popup(m.ctx.win()) {
+          protected void unfocused() { if (isVW) close(); }
+          protected Rect fullRect() { return centered(m.ctx.vw(), 0.8, 0.8); }
+          protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
+          
+          protected void setup() {
+            CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
+            e.append(new String(inflated, StandardCharsets.UTF_8));
+            e.setLang(m.gc.langs().fromName(lang));
+            e.um.clear();
+            e.focusMe();
+          }
+        }.openVW(m.gc, m.ctx, m.gc.getProp("chat.pasteUI").gr(), true);
+        return;
+      }
     }
     
     m.gc.openLink(url);
+  }
+  public static final HashMap<String, String> pasteMap = new HashMap<>();
+  static {
+    pasteMap.put("APL", "APL");
+    pasteMap.put("APL18", "APL");
+    pasteMap.put("dAPL", "APL");
+    pasteMap.put("dAPL18", "APL");
+    pasteMap.put("BQN", "BQN");
+    pasteMap.put("BQN18", "BQN");
+    pasteMap.put("C", "C");
+    pasteMap.put("Java", "Java");
+    pasteMap.put("singeli", "Singeli");
+    // pasteMap.put("JS", "");
+    // pasteMap.put("asm", "");
+    // pasteMap.put("k", "");
+    // pasteMap.put("py", "");
+    // pasteMap.put("svg", "");
   }
 }
