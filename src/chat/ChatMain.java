@@ -550,6 +550,12 @@ public class ChatMain extends NodeWindow {
       switch (gc.keymap(key, a, "chat.autocomplete")) {
         case "prev": ((MenuNode) input.psP.node).focusPrev(); return true;
         case "next": ((MenuNode) input.psP.node).focusNext(); return true;
+        case "acceptOnly":
+          if (input.psP.node.ch.sz==1) {
+            ((MenuNode.MINode) input.psP.node.ch.get(0)).run();
+            return true;
+          }
+          break;
       }
     }
     

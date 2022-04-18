@@ -37,6 +37,7 @@ chat {
     prev = { "up" }
     next = { "down" }
     // once either of those is activated and the menu focused, regular menu keys will work (incl. menu.keys.accept for accepting an entry)
+    acceptOnly = { "tab" } // complete without selecting anything when there's only one user left
   }
   
   // syntax preview in message box
