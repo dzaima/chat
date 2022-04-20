@@ -32,9 +32,9 @@ public class ImageNode extends Node {
       
       int mw = gc.getProp("chat.image.maxW").len();
       int mh = gc.getProp("chat.image.maxH").len();
-  
+      
       float sc = fitScale(gc, iw, ih, mw, mh);
-    
+      
       aw = (int) (iw*sc);
       ah = (int) (ih*sc);
     }

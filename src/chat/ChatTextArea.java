@@ -2,7 +2,6 @@ package chat;
 
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Prop;
 import dzaima.ui.node.types.MenuNode;
@@ -93,9 +92,9 @@ public class ChatTextArea extends CodeAreaNode {
             protected void unfocused() { }
             protected XY pos(XY size, Rect bounds) { return ChatTextArea.this.p.relPos(null).add(0, -size.y-gc.em/3); }
             public void close() { psP=null; psV=null; super.close(); }
-  
+            
             protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
-  
+            
             public void menuItem(String id) {
               um.pushL("insert username");
               remove(toRemoveS, toRemoveY, toRemoveE, toRemoveY);
@@ -105,7 +104,7 @@ public class ChatTextArea extends CodeAreaNode {
               ChatTextArea.this.focusMe();
             }
           };
-  
+          
           psV = psP.openVW(gc, ctx, gc.getProp("chat.userAutocompleteUI").gr(), false);
           for (Chatroom.UserRes c : r) psP.node.add(new MenuNode.MINode(psP.node.ctx, c.disp, c.src));
           psV.resizeCanvas();

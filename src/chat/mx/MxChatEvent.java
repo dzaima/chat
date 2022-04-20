@@ -1,11 +1,9 @@
 package chat.mx;
 
 import chat.*;
-import dzaima.ui.apps.devtools.Devtools;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.gui.select.Selection;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
@@ -73,7 +71,7 @@ abstract class MxChatEvent extends ChatEvent {
       }
       if (code==null) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.text").gr().ch);
       else gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.code").gr().ch);
-  
+      
       gr.ch.add(n.gc.getProp("chat.mx.msgMenu.sep").gr());
       if (mine && !isDeleted()) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.mine").gr().ch);
     }

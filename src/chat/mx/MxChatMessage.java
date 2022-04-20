@@ -4,10 +4,8 @@ import chat.*;
 import chat.ui.MsgNode;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
-import dzaima.utils.*;
+import dzaima.utils.JSON;
 import libMx.*;
-
-import java.nio.charset.StandardCharsets;
 
 public class MxChatMessage extends MxChatEvent {
   public final MxMessage m0;

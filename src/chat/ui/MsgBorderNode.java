@@ -1,14 +1,12 @@
 package chat.ui;
 
-import chat.ChatMain;
-import dzaima.ui.eval.PNodeGroup;
-import dzaima.ui.gui.*;
+import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Prop;
 import dzaima.utils.Tools;
-import io.github.humbleui.skija.*;
+import io.github.humbleui.skija.Paint;
 
 public class MsgBorderNode extends Node {
   MsgNode n;

@@ -1,8 +1,8 @@
 package chat;
 
-import chat.ui.*;
-import dzaima.ui.gui.*;
-import dzaima.ui.gui.io.*;
+import chat.ui.EmptyNode;
+import dzaima.ui.gui.Window;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;

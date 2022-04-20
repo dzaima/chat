@@ -1,10 +1,9 @@
 package chat.mx;
 
-import chat.*;
+import chat.ChatEvent;
 import chat.ui.MsgNode;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.*;
-import dzaima.utils.JSON;
+import dzaima.ui.node.types.StringNode;
 import dzaima.utils.JSON.Obj;
 import libMx.MxEvent;
 

@@ -1,11 +1,10 @@
 package chat.ui;
 
 import dzaima.ui.gui.Graphics;
-import dzaima.ui.gui.io.*;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Prop;
-import io.github.humbleui.skija.Image;
 
 public class ImageViewerNode extends Node {
   public ImageViewerNode(Ctx ctx, String[] ks, Prop[] vs) {
@@ -64,7 +63,7 @@ public class ImageViewerNode extends Node {
     g.clip(0, 0, w, h);
     g.translateLocal((int)(drx*sc), (int)(dry*sc));
     if (sc!=1) g.scaleLocal(sc, sc);
-  
+    
     g.image(anim.frame(pFrame), 0, 0, anim.w, anim.h, sc<2? Graphics.Sampling.LINEAR_MIPMAP : Graphics.Sampling.NEAREST);
     g.pop();
     

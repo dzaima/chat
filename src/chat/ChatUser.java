@@ -2,8 +2,8 @@ package chat;
 
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.OverlapNode;
-import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
+import dzaima.utils.Vec;
 
 public abstract class ChatUser {
   public final ChatMain m;

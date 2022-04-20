@@ -461,7 +461,7 @@ public class ChatMain extends NodeWindow {
       LocalDate bdt = Time.localDateTime(bt.time).toLocalDate();
       if (!adt.equals(bdt)) newDate = bdt;
     }
-  
+    
     boolean merge = h<5f/60 && at.userEq(bt) && gc.getProp("chat.mergeMessages").b() && newDate==null;
     ((UserTagNode) b.ctx.id("user").ch.get(0)).setVis(!merge);
     Node padU = b.ctx.id("padU");
@@ -487,7 +487,7 @@ public class ChatMain extends NodeWindow {
     new Popup(this) {
       protected void unfocused() { close(); }
       protected Rect fullRect() { return centered(base.ctx.vw(), 0.8, 0.9); }
-  
+      
       ImageViewerNode img;
       protected void setup() {
         img = (ImageViewerNode) node.ctx.id("viewer");
@@ -495,7 +495,7 @@ public class ChatMain extends NodeWindow {
         img.ctx.focus(img);
         img.zoomToFit();
       }
-  
+      
       protected boolean key(Key key, KeyAction a) { img.mRedraw();
         switch (gc.keymap(key, a, "imageViewer")) { default: return false;
           case "exit": close(); return true;
@@ -518,7 +518,7 @@ public class ChatMain extends NodeWindow {
     }
     public void hoverS() { ctx.vw().pushCursor(CursorType.HAND); }
     public void hoverE() { ctx.vw().popCursor(); }
-  
+    
     public void mouseStart(int x, int y, Click c) {
       super.mouseStart(x, y, c);
       c.register(this, x, y);

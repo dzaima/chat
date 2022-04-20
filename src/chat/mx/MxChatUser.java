@@ -81,7 +81,7 @@ public class MxChatUser extends ChatUser {
       }
     });
     u = s.primaryLogin;
-  
+    
     node.ctx.id("name").replace(0, new StringNode(node.ctx, u.user().name()));
     node.ctx.id("server").replace(0, new StringNode(node.ctx, s.url.replaceFirst("^https?://", "")));
     roomList = new Vec<>();
@@ -93,7 +93,7 @@ public class MxChatUser extends ChatUser {
         roomMap.put(e.k, r);
         todoRooms.put(e.k, r);
       }
-
+      
       boolean updatedRooms = false;
       for (String o : data.arr("roomOrder", Arr.E).strs()) {
         MxChatroom r = todoRooms.get(o);
@@ -102,11 +102,11 @@ public class MxChatUser extends ChatUser {
           todoRooms.remove(o);
         } else updatedRooms = true;
       }
-
+      
       updatedRooms|= todoRooms.size()>0;
       if (updatedRooms) for (MxChatroom c : todoRooms.values()) roomList.add(c);
       roomOrderChanged(updatedRooms);
-
+      
       sync = new MxSync2(s, j.str("next_batch"));
       sync.start();
     });
@@ -303,7 +303,7 @@ public class MxChatUser extends ChatUser {
       protected void unfocused() { if (isVW) close(); }
       protected Rect fullRect() { return centered(m.ctx.vw(), 0.8, 0.8); }
       protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
-    
+      
       protected void setup() {
         CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
         e.append(text);

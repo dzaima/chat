@@ -2,7 +2,6 @@ package chat;
 
 import chat.ui.ImageNode;
 import dzaima.ui.eval.*;
-import dzaima.ui.gui.Font;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.gui.select.StringifiableNode;
@@ -261,16 +260,16 @@ public class HTMLParser {
       pbg(g, full);
       g.rrect(0, 0, w, h, rr, bg);
     }
-  
+    
     public void drawC(Graphics g) {
       Font f = gc.defFont;
       StringNode.text(g, text, f, col, l, f.asc);
     }
-  
+    
     public int minW() { return tw+l+r; }
     public int maxW() { return tw+l+r; }
     public int minH(int w) { return gc.defFont.hi; }
-  
+    
     public String asString() { return id; }
   }
   

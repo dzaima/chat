@@ -33,7 +33,7 @@ public class MxRoom {
     public final ArrayList<MxEvent> events;
     public final String sTok;
     public final String eTok; // token for next batch
-  
+    
     public Chunk(ArrayList<MxEvent> events, String sTok, String eTok) { this.events = events; this.sTok = sTok; this.eTok = eTok; }
   }
   public Chunk beforeTok(String from, int am) { return beforeTok(from, null, am); }
