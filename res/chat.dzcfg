@@ -27,7 +27,8 @@ chat {
     fontMinus = { "ctrl+minus" }
   }
   menuKeys {
-    copyLink = { "c" }
+    copyLink = { "l" }
+    copyText = { "c" }
     openExternal = { "o" }
     viewSource = { "s" }
     reply = { "r" }
@@ -170,8 +171,10 @@ chat {
       // mi { id=viewHistory "View edit history" }
       mi { id=replyTo "Reply to" key=chat.menuKeys.reply }
       mi { id=copyLink "Copy message link" key=chat.menuKeys.copyLink }
-      vsep{}
     }
+    text = { mi { id=copyText "Copy message text" key=chat.menuKeys.copyText } }
+    code = { mi { id=copyCode "Copy code block" key=chat.menuKeys.copyText } }
+    sep = vsep{}
     mine = {
       mi { id=edit "Edit" key=chat.menuKeys.edit }
       mi { id=delete "Delete" key=chat.keys.deleteMsg }
@@ -221,10 +224,10 @@ chat {
   info.titleP = h { alX=center text { id=body color=#AAA } }
   
   // message contents
-  code.inlineP = text { family=chat.code.family bg=chat.code.bgInline xpad=.2em }
+  code.inlineP = text { family=chat.code.family bg=chat.code.bgInline xpad=.2em class=inlineCode }
   code.blockP = pad { r=.6em y=.3em
     pad { all=.2em bg=chat.code.bgBlock
-      stext { family=chat.code.family id=body ibeam=true }
+      stext { family=chat.code.family id=body ibeam=true class=blockCode }
     }
   }
   msg.noticeP = text { id=ch italics=true color=#BBB } // X joined/left/etc

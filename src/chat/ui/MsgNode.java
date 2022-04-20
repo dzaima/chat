@@ -8,8 +8,8 @@ import dzaima.ui.node.types.WrapNode;
 public class MsgNode extends WrapNode {
   public final MsgType type;
   public final ChatEvent msg;
+  public final MsgBorderNode border;
   
-  private final MsgBorderNode border;
   private final int bgId;
   
   public MsgNode(Ctx pctx, MsgType type, ChatEvent msg) {

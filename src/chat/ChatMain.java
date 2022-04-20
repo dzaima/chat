@@ -397,7 +397,7 @@ public class ChatMain extends NodeWindow {
       nb.add(body);
     } else nb = body;
     nb.add(new InlineNode.LineEnd(ctx, false));
-    n.replace(1, nb);
+    n.replace(1, nb); // "1" also being a constant in MxChatEvent copyText impl
     if (end) toLast = Math.max(toLast, live? 1 : 2);
   }
   
@@ -621,6 +621,7 @@ public class ChatMain extends NodeWindow {
   
   public static void main(String[] args) {
     Windows.setManager(Windows.Manager.JWM);
+    // Windows.setManager(Windows.Manager.LWJGL);
     
     Windows.start(mgr -> {
       BaseCtx ctx = Ctx.newCtx();

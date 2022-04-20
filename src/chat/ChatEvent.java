@@ -55,5 +55,5 @@ public abstract class ChatEvent {
   
   public abstract String userString();
   
-  public abstract void rightClick(Click c);
+  public abstract void rightClick(Click c, int x, int y);
 }

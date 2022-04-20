@@ -1,10 +1,13 @@
 package chat.mx;
 
 import chat.*;
+import dzaima.ui.apps.devtools.Devtools;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.types.editable.EditNode;
+import dzaima.ui.gui.select.Selection;
+import dzaima.ui.node.Node;
+import dzaima.ui.node.types.StringNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 import libMx.MxEvent;
@@ -49,16 +52,43 @@ abstract class MxChatEvent extends ChatEvent {
     return e.uid;
   }
   
-  public void rightClick(Click c) {
+  public void rightClick(Click c, int x, int y) {
     PNodeGroup gr = n.gc.getProp("chat.mx.msgMenu.main").gr().copy();
+    Node code = null;
     if (this instanceof MxChatMessage) {
       gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.message").gr().ch);
+      
+      Node cn = n.border;
+      while (true) {
+        Node nn = cn.findCh(x, y);
+        if (nn==null) break;
+        int cid = nn.id("class");
+        if (cid!=-1) {
+          String v = nn.vs[cid].val();
+          if (v.equals("inlineCode") || v.equals("blockCode")) code = nn;
+        }
+        x-= nn.dx;
+        y-= nn.dy;
+        cn = nn;
+      }
+      if (code==null) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.text").gr().ch);
+      else gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.code").gr().ch);
+  
+      gr.ch.add(n.gc.getProp("chat.mx.msgMenu.sep").gr());
       if (mine && !isDeleted()) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.mine").gr().ch);
     }
     gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.dev").gr().ch);
     
+    Node finalCode = code;
     Popup.rightClickMenu(n.gc, n.ctx, gr, cmd -> {
       switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+        case "copyText":
+          Node nd = n.ctx.id("body").ch.get(1); // "1" also being a constant in ChatMain.updMessage replace call
+          r.m.copyString(StringNode.getNodeText(nd));
+          break;
+        case "copyCode":
+          r.m.copyString(StringNode.getNodeText(finalCode));
+          break;
         case "delete":
           r.delete(this);
           break;

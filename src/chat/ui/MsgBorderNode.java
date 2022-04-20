@@ -42,7 +42,7 @@ public class MsgBorderNode extends Node {
   }
   
   public void mouseDown(int x, int y, Click c) {
-    if (c.bR()) n.msg.rightClick(c);
+    if (c.bR()) n.msg.rightClick(c, x, y);
   }
   
   public void bg(Graphics g, boolean full) {
