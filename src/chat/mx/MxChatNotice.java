@@ -49,7 +49,7 @@ public class MxChatNotice extends MxChatEvent {
                   else msg+= " and ";
                   msg+= "changed their avatar";
                 }
-                if (msg.isEmpty()) msg = "did m.room.member";
+                if (msg.isEmpty()) msg = executer+" did m.room.member"; // TODO ignore if not developer mode or something, when that exists
               }
               break;
             case "invite": msg = executer+" invited "+member; break;

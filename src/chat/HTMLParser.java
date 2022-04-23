@@ -16,6 +16,7 @@ import java.net.*;
 import java.util.regex.*;
 
 public class HTMLParser {
+  
   public static Node parse(Chatroom r, String s) {
     int l = s.length();
     int ss = 0; while (ss<l && Character.isWhitespace(s.charAt(ss  ))) ss++;
