@@ -66,7 +66,10 @@ public class MxRoom {
   }
   
   
+  public String link() {
+    return "https://matrix.to/#/"+rid;
+  }
   public String linkMsg(String mid) {
-    return "https://matrix.to/#/"+rid+"/"+mid;
+    return link()+"/"+mid;
   }
 }

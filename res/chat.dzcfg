@@ -184,6 +184,12 @@ chat {
       mi { id=viewSource "View source" key=chat.menuKeys.viewSource }
     }
   }
+  mx.roomMenu {
+    main = menu {
+      mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
+      mi { id=copyID "Copy room ID" key=chat.menuKeys.copyText }
+    }
+  }
   linkMenu = menu {
     mi { id=copy "Copy link address" key=chat.menuKeys.copyLink }
     mi { id=openExt "Open externally" key=chat.menuKeys.openExternal }

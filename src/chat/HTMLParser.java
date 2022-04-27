@@ -321,6 +321,8 @@ public class HTMLParser {
     public void mouseTick(int x, int y, Click c) {
       if (c.bR()) Popup.rightClickMenu(gc, ctx, "chat.linkMenu", cmd -> {
         switch (cmd) { default: ChatMain.warn("bad cmd " + cmd); break;
+          case "(closed)":
+            break;
           case "copy":
             r.m.copyString(url);
             break;

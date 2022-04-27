@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.BtnNode;
@@ -406,5 +407,25 @@ public class MxChatroom extends Chatroom {
   }
   public void toTranscript(String highlightID, MxRoom.Chunk c) {
     m.toTranscript(new MxTranscriptView(this, highlightID, c));
+  }
+  
+  
+  protected void rightClick(Click c, int x, int y) {
+    PNodeGroup gr = node.gc.getProp("chat.mx.roomMenu.main").gr().copy();
+    node.openMenu(true);
+    
+    Popup.rightClickMenu(node.gc, node.ctx, gr, cmd -> {
+      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+        case "(closed)":
+          node.openMenu(false);
+          break;
+        case "copyLink":
+          m.copyString(r.link());
+          break;
+        case "copyID":
+          m.copyString(canonicalAlias==null? r.rid : canonicalAlias);
+          break;
+      }
+    }).takeClick(c);
   }
 }

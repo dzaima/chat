@@ -39,6 +39,8 @@ public abstract class Chatroom extends View {
       super(ch.ctx, ch);
       this.r = r;
     }
+    boolean openMenu;
+    public void openMenu(boolean v) { openMenu = v; updBg(); }
     boolean hovered;
     public void hoverS() { hovered=true;  updBg(); ctx.vw().pushCursor(Window.CursorType.HAND); }
     public void hoverE() { hovered=false; updBg(); ctx.vw().popCursor(); }
@@ -52,11 +54,12 @@ public abstract class Chatroom extends View {
     private boolean drSel; // whether to reorder
     
     public void mouseStart(int x, int y, Click c) {
-      c.register(this, x, y);
+      if (c.bL() || c.bR()) c.register(this, x, y);
     }
     
     public void mouseDown(int x, int y, Click c) {
-      drState = 0;
+      if (c.bL()) drState = 0;
+      if (c.bR()) rightClick(c, x, y);
     }
     
     public void mouseTick(int x, int y, Click c) {
@@ -129,10 +132,12 @@ public abstract class Chatroom extends View {
     
     public void updBg() {
       Node bg = node.ctx.id("bg");
-      boolean showHover = hovered && user().overlapNode.draw==null  ||  drState==1 && drSel;
+      boolean showHover = hovered && user().overlapNode.draw==null  ||  drState==1 && drSel  ||  openMenu;
       bg.set(bg.id("bg"), open? gc.getProp("chat.room.selected") : showHover? gc.getProp("chat.room.hovered") : TRANSPARENT); // TODO plain background when drag'n'dropping outside
     }
   }
+  
+  protected abstract void rightClick(Click c, int x, int y);
   
   public void viewTick() {
     if (m.toLast!=0) {

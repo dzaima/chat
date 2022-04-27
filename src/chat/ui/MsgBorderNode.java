@@ -28,11 +28,9 @@ public class MsgBorderNode extends Node {
   public void hoverS() { hover( true); n.msg.room().m.hovered(n); }
   public void hoverE() { hover(false); n.msg.room().m.hovered(null); }
   
-  public boolean on;
-  public void hover(boolean on) {
-    this.on = on;
-    mRedraw();
-  }
+  public boolean hovered, openMenu;
+  public void hover(boolean v) { this.hovered = v; mRedraw(); }
+  public void openMenu(boolean v) { this.openMenu = v; mRedraw(); }
   
   public void mouseStart(int x, int y, Click c) {
     super.mouseStart(x, y, c);
@@ -49,7 +47,7 @@ public class MsgBorderNode extends Node {
   }
   
   public void drawC(Graphics g) {
-    if (on) {
+    if (hovered || openMenu) {
       Paint p = n.msg.room().m.msgBorder;
       g.dashH(0, 0  , w, p);
       g.dashH(0, h-1, w, p);

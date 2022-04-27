@@ -91,7 +91,7 @@ public class ChatTextArea extends CodeAreaNode {
             protected void setup() { ((MenuNode) node).obj = this; }
             protected void unfocused() { }
             protected XY pos(XY size, Rect bounds) { return ChatTextArea.this.p.relPos(null).add(0, -size.y-gc.em/3); }
-            public void close() { psP=null; psV=null; super.close(); }
+            public void stopped() { psP=null; psV=null; }
             
             protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
             

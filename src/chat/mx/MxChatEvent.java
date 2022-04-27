@@ -52,6 +52,7 @@ abstract class MxChatEvent extends ChatEvent {
   
   public void rightClick(Click c, int x, int y) {
     PNodeGroup gr = n.gc.getProp("chat.mx.msgMenu.main").gr().copy();
+    n.border.openMenu(true);
     Node code = null;
     if (this instanceof MxChatMessage) {
       gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.message").gr().ch);
@@ -80,6 +81,9 @@ abstract class MxChatEvent extends ChatEvent {
     Node finalCode = code;
     Popup.rightClickMenu(n.gc, n.ctx, gr, cmd -> {
       switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+        case "(closed)":
+          if (n!=null) n.border.openMenu(false);
+          break;
         case "copyText":
           Node nd = n.ctx.id("body").ch.get(1); // "1" also being a constant in ChatMain.updMessage replace call
           r.m.copyString(StringNode.getNodeText(nd));
