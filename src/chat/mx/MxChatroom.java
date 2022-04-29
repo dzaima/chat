@@ -207,7 +207,7 @@ public class MxChatroom extends Chatroom {
           try {
             mimeType = Files.probeContentType(p);
           } catch (IOException e) {
-            e.printStackTrace();
+            Log.stacktrace("mx mime-type", e);
           }
           mime.removeAll();
           mime.append(mimeType!=null? mimeType : "application/octet-stream");
@@ -229,7 +229,7 @@ public class MxChatroom extends Chatroom {
             h = img.getHeight();
             img.close();
           } catch (Throwable e) {
-            e.printStackTrace();
+            Log.stacktrace("mx get image info", e);
           }
           
           MxSendMsg f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
@@ -243,7 +243,7 @@ public class MxChatroom extends Chatroom {
           data = Files.readAllBytes(Paths.get(path.getAll()));
           return upload(data, name.getAll(), mime.getAll());
         } catch (IOException e) {
-          e.printStackTrace();
+          Log.stacktrace("mx upload", e);
           return null;
         }
       }

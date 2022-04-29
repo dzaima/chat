@@ -26,7 +26,7 @@ public class CacheObj {
         if (d.toDays() > cacheDays) Files.deleteIfExists(p);
       }
     } catch (IOException e) {
-      e.printStackTrace();
+      Log.stacktrace("purgeOldCache", e);
     }
   }
   
@@ -56,7 +56,7 @@ public class CacheObj {
       } catch (IOException e) { Log.warn("cache", "Failed to update cache file last modified time"); }
       try {
         res = Files.readAllBytes(path);
-      } catch (IOException e) { Log.warn("cache", "Failed reading cache:"); e.printStackTrace(); }
+      } catch (IOException e) { Log.warn("cache", "Failed reading cache:"); Log.stacktrace("cache", e); }
     }
     purgeOldCache();
     return res;
@@ -68,7 +68,7 @@ public class CacheObj {
       Files.write(path, bytes);
     } catch (IOException e) {
       Log.warn("cache", "Failed to write file to cache");
-      e.printStackTrace();
+      Log.stacktrace("cache", e);
     }
   }
 }

@@ -49,7 +49,7 @@ public class MxChatUser extends ChatUser {
     queueNetwork(() -> {
       T r;
       try { r = network.get(); }
-      catch (Throwable e) { e.printStackTrace(); r = null; }
+      catch (Throwable e) { Log.stacktrace("mx queueRequest", e); r = null; }
       T finalR = r;
       this.primary.add(() -> { if (c==null || v==c.value) primary.accept(finalR); });
     });
@@ -62,7 +62,7 @@ public class MxChatUser extends ChatUser {
       } catch (InterruptedException e) {
         return;
       } catch (Throwable e) {
-        e.printStackTrace();
+        Log.stacktrace("mx networkThread", e);
       }
     }
   });
@@ -149,7 +149,7 @@ public class MxChatUser extends ChatUser {
       Runnable c = primary.poll(); if(c==null) break;
       try {
         c.run();
-      } catch (Throwable t) { t.printStackTrace(); }
+      } catch (Throwable t) { Log.stacktrace("mx primaryQueue", t); }
     }
     
     if (sync==null) return;
@@ -247,7 +247,7 @@ public class MxChatUser extends ChatUser {
               d = Tools.get(url);
             }
           } catch (Throwable e) {
-            e.printStackTrace();
+            Log.stacktrace("mx image type", e);
           }
         }
         if (d!=null) {
@@ -263,7 +263,7 @@ public class MxChatUser extends ChatUser {
         String[] ps;
         try {
           ps = Tools.split(new URI(HTMLParser.fixURL(url)).getFragment(), '#');
-        } catch (URISyntaxException e) { e.printStackTrace(); break paste; }
+        } catch (URISyntaxException e) { Log.stacktrace("paste URL", e); break paste; }
         if (ps.length!=1 && ps.length!=2) break paste;
         
         String lang = ps.length==1? "text" : pasteMap.get(ps[1]);
@@ -283,7 +283,7 @@ public class MxChatUser extends ChatUser {
             v.addAll(v.sz, buf, 0, l);
           }
           inflated = v.get(0, v.sz);
-        } catch (IllegalArgumentException | DataFormatException e) { e.printStackTrace(); break paste; }
+        } catch (IllegalArgumentException | DataFormatException e) { Log.stacktrace("paste decode", e); break paste; }
         
         openText(new String(inflated, StandardCharsets.UTF_8), m.gc.langs().fromName(lang));
         return;

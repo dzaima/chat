@@ -1,6 +1,7 @@
 package chat.ui;
 
 import chat.ChatMain;
+import dzaima.utils.Log;
 import io.github.humbleui.skija.*;
 
 public class Animation {
@@ -27,9 +28,9 @@ public class Animation {
       w0 = c0.getWidth();
       h0 = c0.getHeight();
       valid = true;
-    } catch (Exception ex) {
-      ChatMain.warn("Failed to load animation:");
-      ex.printStackTrace();
+    } catch (Throwable e) {
+      Log.warn("animation", "Failed to load animation:");
+      Log.stacktrace("animation", e);
       c0 = null;
     }
     if (starts==null || starts.length==0) starts = new int[]{0};
@@ -87,7 +88,7 @@ public class Animation {
         else c.readPixels(b, cFrame);
         pFrame = cFrame;
         pImage = Image.makeFromBitmap(b);
-      } catch (Exception ex) { ChatMain.warn("Failed to animate:"); ex.printStackTrace(); valid = false; }
+      } catch (Throwable e) { ChatMain.warn("Failed to animate:"); e.printStackTrace(); valid = false; }
     }
     return pImage;
   }

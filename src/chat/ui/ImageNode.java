@@ -15,7 +15,7 @@ public class ImageNode extends Node {
     this.data = data;
     try {
       f0 = Image.makeFromEncoded(data);
-    } catch (Exception e) {
+    } catch (Throwable e) {
       f0 = null;
     }
   }
