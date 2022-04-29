@@ -201,10 +201,10 @@ public class ChatMain extends NodeWindow {
     }
     infobar.replace(0, new StringNode(infobar.ctx, info.toString()));
   }
+  
   public void setCurrentName(String s) {
     base.ctx.id("roomName").replace(0, new StringNode(base.ctx, s));
     updateTitle();
-    
   }
   
   private boolean prevAtEnd;

@@ -86,18 +86,22 @@ public class MxChatMessage extends MxChatEvent {
           r.m.updMessage(n, this, tmpLink, live);
           
           r.u.queueRequest(updateBodyCtr,
-            () -> MxChatUser.get("Load image", loadUrl),
+            () -> HTMLParser.image(r, loadUrl, MxChatUser.get("Load image", loadUrl)), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
             data -> {
               if (visible) { // room may have changed by the time the image loads
-                r.m.updMessage(n, this, HTMLParser.image(r, loadUrl, data), false);
+                r.m.updMessage(n, this, data, false);
               }
             }
           );
         } else {
           String url = getURL(false);
-          TextNode link = HTMLParser.link(r, url, HTMLParser.Type.IMG);
-          link.add(new StringNode(n.ctx, url));
-          r.m.updMessage(n, this, link, live);
+          if (url==null) {
+            r.m.updMessage(n, this, new StringNode(n.ctx, "(no URL for image provided)"), live);
+          } else {
+            TextNode link = HTMLParser.link(r, url, HTMLParser.Type.IMG);
+            link.add(new StringNode(n.ctx, url));
+            r.m.updMessage(n, this, link, live);
+          }
         }
         break;
       case "m.file":
@@ -106,13 +110,17 @@ public class MxChatMessage extends MxChatEvent {
         if (!visible) return;
         
         String url = getURL(false);
-        String mime = m0.ct.obj("info", JSON.Obj.E).str("mimetype", "");
-        HTMLParser.Type t = HTMLParser.Type.UNK;
-        if (type.equals("m.file") && mime.startsWith("text/")) t = HTMLParser.Type.TEXT;
-        
-        TextNode link = HTMLParser.link(r, url, t);
-        link.add(new StringNode(n.ctx, url));
-        r.m.updMessage(n, this, link, live);
+        if (url==null) {
+          r.m.updMessage(n, this, new StringNode(n.ctx, "(no URL for file provided)"), live);
+        } else {
+          String mime = m0.ct.obj("info", JSON.Obj.E).str("mimetype", "");
+          HTMLParser.Type t = HTMLParser.Type.UNK;
+          if (type.equals("m.file") && mime.startsWith("text/")) t = HTMLParser.Type.TEXT;
+  
+          TextNode link = HTMLParser.link(r, url, t);
+          link.add(new StringNode(n.ctx, url));
+          r.m.updMessage(n, this, link, live);
+        }
         break;
       default:
         Node disp = HTMLParser.parse(r, body);

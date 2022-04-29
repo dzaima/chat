@@ -143,8 +143,12 @@ public class HTMLParser {
           case "img":
             TextNode base = new TextNode(p.ctx, Node.KS_NONE, Node.VS_NONE);
             String src = c.attr("src");
-            base.add(new StringNode(p.ctx, src));
-            p.add(link(r, src, Type.IMG));
+            if (src==null) {
+              base.add(new StringNode(p.ctx, "(no URL for image provided)"));
+            } else {
+              base.add(new StringNode(p.ctx, src));
+              p.add(link(r, src, Type.IMG));
+            }
             break;
           case "code":
             wrap(p, c, true, link, r, "chat.code.inlineP");
