@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.*;
-import dzaima.utils.Tools;
+import dzaima.utils.*;
 import libMx.MxRoom;
 
 public class MxTranscriptView extends TranscriptView {
@@ -44,7 +44,7 @@ public class MxTranscriptView extends TranscriptView {
       Tools.sleep(1000);
       return r.r.beforeTok(tok, 50);
     }, r -> {
-      System.out.println("adding older");
+      Log.fine("mx", "loading older transcript");
       if (r.events.size()==0) return;
       log.addEvents(r.events, false);
       tokB = r.eTok;
@@ -58,7 +58,7 @@ public class MxTranscriptView extends TranscriptView {
       Tools.sleep(1000);
       return r.r.afterTok(tok, 50);
     }, r -> {
-      System.out.println("adding newer");
+      Log.fine("mx", "loading newer transcript");
       if (r.events.size()==0) return;
       log.addEvents(r.events, true);
       tokF = r.eTok;

@@ -107,7 +107,7 @@ public class ChatTextArea extends CodeAreaNode {
           
           psV = psP.openVW(gc, ctx, gc.getProp("chat.userAutocompleteUI").gr(), false);
           for (Chatroom.UserRes c : r) psP.node.add(new MenuNode.MINode(psP.node.ctx, c.disp, c.src));
-          psV.resizeCanvas();
+          psV.newRect();
         }
       }
       prevSearch = newSearch;

@@ -1,6 +1,6 @@
 package chat;
 
-import dzaima.utils.Tools;
+import dzaima.utils.*;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -53,10 +53,10 @@ public class CacheObj {
     if (Files.exists(path)) {
       try {
         Files.setLastModifiedTime(path, FileTime.from(Instant.now()));
-      } catch (IOException e) { ChatMain.warn("Failed to update cache file last modified time"); }
+      } catch (IOException e) { Log.warn("cache", "Failed to update cache file last modified time"); }
       try {
         res = Files.readAllBytes(path);
-      } catch (IOException e) { System.out.println("Failed reading cache:"); e.printStackTrace(); }
+      } catch (IOException e) { Log.warn("cache", "Failed reading cache:"); e.printStackTrace(); }
     }
     purgeOldCache();
     return res;
@@ -67,7 +67,7 @@ public class CacheObj {
       Files.createDirectories(path.getParent());
       Files.write(path, bytes);
     } catch (IOException e) {
-      ChatMain.warn("Failed to write file to cache");
+      Log.warn("cache", "Failed to write file to cache");
       e.printStackTrace();
     }
   }

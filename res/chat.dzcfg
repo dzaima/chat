@@ -247,7 +247,9 @@ chat {
         text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=#666 id=server "…" family=chat.code.familyUI } }
       }
     }
-    overlap { id=overlap v { id=roomlist h { alX=center text{ italics=true color=str.colorDisabled "loading..." } } /* … rooms.roomP */ } }
+    roomList { dir=v mode=drag id=roomlist
+      h { alX=center text{ italics=true color=str.colorDisabled "loading..." } } // replaced with …rooms.roomP when loaded
+    }
   }
   rooms.accountSepP = vsep { x=.5em }
   rooms.roomP = pad { bg=#00000000 id=bg

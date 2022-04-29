@@ -45,94 +45,20 @@ public abstract class Chatroom extends View {
     public void hoverS() { hovered=true;  updBg(); ctx.vw().pushCursor(Window.CursorType.HAND); }
     public void hoverE() { hovered=false; updBg(); ctx.vw().popCursor(); }
     
-    
-    private int drState=2; // 0 - not started; 1 - dragging; 2 - canceled
-    private int drStartY; // my original index
-    private int drSelY; // current index of empty
-    private int drDrawY; // y position where to draw
-    private int drDY0; // thing for mouse y tracking
-    private boolean drSel; // whether to reorder
-    
     public void mouseStart(int x, int y, Click c) {
       if (c.bL() || c.bR()) c.register(this, x, y);
     }
     
     public void mouseDown(int x, int y, Click c) {
-      if (c.bL()) drState = 0;
+      if (c.bL()) c.register(this, x, y);
       if (c.bR()) rightClick(c, x, y);
     }
-    
-    public void mouseTick(int x, int y, Click c) {
-      ChatUser u = user();
-      if (drState==0 && !gc.isClick(c)) {
-        drState = 1;
-        drDY0 = dy;
-        // if (y<5  ) drDY0-= 5-y; // TODO maybe make this work properly
-        // if (y>h-5) drDY0+= y-(h-5);
-        
-        u.overlapNode.draw = (overlap, g) -> {
-          g.push();
-          g.translate(0, drDrawY);
-          bg(g, true);
-          drawCh(g, true);
-          g.pop();
-          
-        };
-        drStartY = drSelY = u.listNode.ch.indexOf(this);
-        u.listNode.replace(drSelY, n -> new EmptyNode(ctx, n));
-        for (Chatroom r : u.rooms()) r.node.updBg();
-      }
-      
-      if (drState==1) {
-        Vec<Node> lch = u.listNode.ch;
-        
-        drDrawY = drDY0 + c.cy-c.sy;
-        drDrawY = Math.max(drDrawY, 0);
-        drDrawY = Math.min(drDrawY, u.overlapNode.h-h);
-        boolean drSelN = x>=0 && x<w;
-        if (drSelN!=drSel) { drSel=drSelN; updBg(); }
-        
-        Node n;
-        if (drSelY>0 && drDrawY < (n=lch.get(drSelY-1)).dy+n.h/2) {
-          u.listNode.swap(drSelY, drSelY-1);
-          drSelY--;
-        } else if (drSelY<lch.sz-1 && drDrawY+h > (n=lch.get(drSelY+1)).dy+n.h/2) {
-          u.listNode.swap(drSelY, drSelY+1);
-          drSelY++;
-        }
-        
-        u.overlapNode.mRedraw();
-      }
-    }
-    
-    public void mouseUp(int x, int y, Click c) {
-      if (drState==0) {
-        m.toRoom(Chatroom.this);
-      } else if (drState==1) {
-        endDrag(x>=0 && x<w);
-      }
-    }
-    public void endDrag(boolean keep) {
-      if (drState!=1) return;
-      drState = 2;
-      ChatUser u = user();
-      u.overlapNode.draw = null;
-      u.listNode.replace(drSelY, n -> this);
-      if (keep) {
-        Vec<Chatroom> rs = new Vec<>();
-        for (Node c : u.listNode.ch) rs.add(((RNode) c).r);
-        u.reorderRooms(rs);
-      } else {
-        u.listNode.remove(drSelY, drSelY+1);
-        u.listNode.insert(drStartY, this);
-      }
-      for (Chatroom r : u.rooms()) r.node.updBg();
-    }
-    
+    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
+    public void mouseUp(int x, int y, Click c) { m.toRoom(Chatroom.this); }
     
     public void updBg() {
       Node bg = node.ctx.id("bg");
-      boolean showHover = hovered && user().overlapNode.draw==null  ||  drState==1 && drSel  ||  openMenu;
+      boolean showHover = hovered && !user().roomListNode.reordering()  ||  user().roomListNode.holding(this)  ||  openMenu;
       bg.set(bg.id("bg"), open? gc.getProp("chat.room.selected") : showHover? gc.getProp("chat.room.hovered") : TRANSPARENT); // TODO plain background when drag'n'dropping outside
     }
   }

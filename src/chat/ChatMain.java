@@ -96,13 +96,13 @@ public class ChatMain extends NodeWindow {
         } else throw new RuntimeException("Unknown account type '"+c.str("type")+"'");
       }
     } catch (IOException e) {
-      System.err.println("Failed to load profile");
+      Log.error("chat", "Failed to load profile");
       throw new RuntimeException(e);
     }
   }
   
-  public static void warn(String s) {
-    System.err.println("["+LocalDateTime.now()+" !!] "+s);
+  public static void warn(String s) { // TODO more properly replace logger
+    Log.warn(s);
   }
   
   public void send() {
@@ -628,6 +628,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("msgBorder", MsgBorderNode::new);
       ctx.put("hideOverflow", HideOverflowNode::new);
       ctx.put("imageViewer", ImageViewerNode::new);
+      ctx.put("roomList", ChatUser.RoomListNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));

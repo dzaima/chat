@@ -113,11 +113,11 @@ public class MxChatUser extends ChatUser {
   }
   public void roomOrderChanged(boolean save) {
     Val[] order = new Val[roomList.sz];
-    listNode.clearCh();
+    roomListNode.clearCh();
     for (int i = 0; i < order.length; i++) {
       MxChatroom c = roomList.get(i);
       order[i] = new JSON.Str(c.r.rid);
-      listNode.add(c.node);
+      roomListNode.add(c.node);
     }
     data.put("roomOrder", new Arr(order));
     if (save) m.requestSave();
