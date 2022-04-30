@@ -22,12 +22,12 @@ public class MxFmt extends MxSendMsg {
   public void reply(MxRoom r, String mid) {
     assert replyId==null;
     replyId = mid;
-    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+"> ↥ </a> </mx-reply>");
+    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+"> ↰ </a> </mx-reply>");
   }
   public void reply(MxRoom r, String mid, String uid, String username) {
     assert replyId==null;
     replyId = mid;
-    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+"> ↥ </a> "+userHTML(uid, username)+" </mx-reply>");
+    html.insert(0, "<mx-reply><a href="+r.linkMsg(mid)+"> ↰ </a> "+userHTML(uid, username)+" </mx-reply>");
   }
   
   public void txt(String text) {
