@@ -4,14 +4,16 @@ import chat.*;
 import chat.ui.MsgNode;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
-import dzaima.utils.JSON;
+import dzaima.utils.*;
 import libMx.*;
 
 public class MxChatMessage extends MxChatEvent {
   public final MxMessage m0;
+  private String bodyPrefix = ""; // from reply
+  private boolean replyRequested;
   
-  public MxChatMessage(MxMessage m0, MxEvent e, MxLog log, boolean isNew) {
-    super(log, e, m0.edit==1? m0.editsId : m0.id, m0.replyId);
+  public MxChatMessage(MxMessage m0, MxEvent e0, MxLog log, boolean isNew) {
+    super(log, e0, m0.edit==1? m0.editsId : m0.id, m0.replyId);
     this.m0 = m0;
     mine = m0.uid.equals(r.u.u.uid);
     username = r.getUsername(m0.uid);
@@ -19,45 +21,24 @@ public class MxChatMessage extends MxChatEvent {
     setBody(m0, isNew);
   }
   
-  public void edit(MxMessage nm, boolean live) {
+  public void edit(MxEvent ne, boolean live) {
+    MxMessage nm = ne.m;
+    Log.fine("mx", id+" has been edited to type "+nm.type);
+    lastEvent = ne;
     edited = true;
     setBody(nm, live);
   }
   
-  private final Counter setBodyCtr = new Counter();
   public void setBody(MxMessage nm, boolean isNew) {
     type = nm.type;
     body = nm.fmt.html;
     src = nm.fmt.body;
-    if (m0.replyId != null) {
-      MxChatEvent tg = log.get(m0.replyId);
-      if (tg!=null) {
-        String uid = tg.e.uid;
-        String name = tg.username;
-        if (name==null || name.isEmpty()) name = r.usernames.get(uid);
-        body = r.pill(tg.e, uid, name==null? uid : name) + " " + body;
-      } else {
-        r.u.queueRequest(setBodyCtr, m0::reply, rm -> {
-          if (rm==null) {
-            body = "[unknown reply] "+body;
-            updateBody(false);
-          } else {
-            String ruid = rm.uid;
-            String name = r.usernames.get(ruid);
-            if (name!=null) {
-              body = r.pill(rm.fakeEvent(), rm.uid, name) + " " + body;
-              updateBody(false);
-            } else ChatMain.warn("Unknown user "+ruid+" while getting reply");
-          }
-        });
-      }
-    }
     updateBody(isNew);
   }
   
   
   public boolean userEq(ChatEvent o) {
-    return o instanceof MxChatMessage && e.uid.equals(((MxChatEvent) o).e.uid);
+    return o instanceof MxChatMessage && e0.uid.equals(((MxChatEvent) o).e0.uid);
   }
   
   public void toTarget() {
@@ -68,6 +49,31 @@ public class MxChatMessage extends MxChatEvent {
   
   private final Counter updateBodyCtr = new Counter();
   public void updateBody(boolean live) {
+    if (visible && m0.replyId!=null && !replyRequested) {
+      replyRequested = true;
+      MxChatEvent tg = log.get(m0.replyId);
+      if (tg!=null) {
+        String uid = tg.e0.uid;
+        String name = tg.username;
+        if (name==null || name.isEmpty()) name = r.usernames.get(uid);
+        bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
+      } else {
+        Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
+        r.u.queueRequest(null, m0::reply, rm -> {
+          if (rm==null) {
+            bodyPrefix = "[unknown reply] ";
+            Log.warn("mx", "Unknown reply ID "+m0.replyId);
+            updateBody(false);
+          } else {
+            String ruid = rm.uid;
+            String name = r.usernames.get(ruid);
+            bodyPrefix = r.pill(rm.fakeEvent(), rm.uid, name!=null? name : ruid) + " ";
+            updateBody(false);
+          }
+        });
+      }
+    }
+    
     switch (type) {
       case "deleted":
         if (!visible) return;
@@ -123,7 +129,7 @@ public class MxChatMessage extends MxChatEvent {
         }
         break;
       default:
-        Node disp = HTMLParser.parse(r, body);
+        Node disp = HTMLParser.parse(r, bodyPrefix+body);
         if (type.equals("m.emote")) {
           Node n = new TextNode(disp.ctx, Node.KS_NONE, Node.VS_NONE);
           n.add(new StringNode(disp.ctx, "· "+username+" "));

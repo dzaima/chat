@@ -13,16 +13,18 @@ import libMx.MxEvent;
 abstract class MxChatEvent extends ChatEvent {
   public final MxChatroom r;
   public final MxLog log;
-  public final MxEvent e;
+  public final MxEvent e0;
+  public MxEvent lastEvent;
   public String src;
   public String type = "?";
   
-  public MxChatEvent(MxLog log, MxEvent e, String id, String target) {
+  public MxChatEvent(MxLog log, MxEvent e0, String id, String target) {
     super(id, target);
     this.log = log;
     this.r = log.r;
-    this.e = e;
-    time = e.time;
+    this.e0 = e0;
+    this.time = e0.time;
+    this.lastEvent = e0;
   }
   
   public Chatroom room() { return r; }
@@ -47,7 +49,7 @@ abstract class MxChatEvent extends ChatEvent {
   }
   
   public String userString() {
-    return e.uid;
+    return e0.uid;
   }
   
   public void rightClick(Click c, int x, int y) {
@@ -114,7 +116,7 @@ abstract class MxChatEvent extends ChatEvent {
             
             protected void setup() {
               CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
-              e.append(MxChatEvent.this.e.o.toString(2));
+              e.append(lastEvent.o.toString(2));
               e.setLang(n.gc.langs().fromName("java"));
               e.um.clear();
             }
@@ -122,5 +124,13 @@ abstract class MxChatEvent extends ChatEvent {
           break;
       }
     }).takeClick(c);
+  }
+  
+  public void delete(JSON.Obj ev) {
+    Log.fine("mx", id+" has been deleted");
+    type = "deleted";
+    target = null;
+    lastEvent = new MxEvent(r.r, ev);
+    updateBody(true);
   }
 }

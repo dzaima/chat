@@ -103,8 +103,7 @@ public class MxChatroom extends Chatroom {
           String e = ev.str("redacts", "");
           MxChatEvent m = log.get(e);
           if (m!=null) {
-            m.type = "deleted";
-            m.updateBody(true);
+            m.delete(ev);
           }
           break;
       }
@@ -175,7 +174,7 @@ public class MxChatroom extends Chatroom {
     
     if (target!=null) {
       MxChatEvent tce = log.msgMap.get(target);
-      if (tce!=null) f.reply(r, target, tce.e.uid, tce.username);
+      if (tce!=null) f.reply(r, target, tce.e0.uid, tce.username);
       else f.reply(r, target);
     }
     u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
@@ -355,6 +354,7 @@ public class MxChatroom extends Chatroom {
     if (msgLogToStart) return;
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
+    Log.fine("mx", "Loading older messages in room");
     u.queueNetwork(() -> {
       MxRoom.Chunk r = this.r.beforeTok(prevBatch, log.size()<50? 50 : 100);
       if (r==null) { ChatMain.warn("MxRoom::before failed on token "+prevBatch); return; }

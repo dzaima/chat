@@ -162,6 +162,7 @@ public class ChatMain extends NodeWindow {
     toRoom(c, null);
   }
   public void toRoom(Chatroom c, ChatEvent toHighlight) {
+    Log.fine("chat", "Moving to room "+c.name+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     hideCurrent();
     view = c;
     c.show();
@@ -170,6 +171,7 @@ public class ChatMain extends NodeWindow {
     this.toHighlight = toHighlight;
   }
   public void toTranscript(TranscriptView v) {
+    Log.fine("chat", "Moving to transcript of room "+v.room().name);
     hideCurrent();
     view = v;
     v.show();

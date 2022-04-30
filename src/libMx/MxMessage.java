@@ -11,7 +11,7 @@ public final class MxMessage {
   public final MxRoom r;
   public final Obj o;
   public final Obj ct;
-  public final String type;
+  public final String type; // "deleted" if this is a redaction
   public final Instant time;
   
   public final String id;

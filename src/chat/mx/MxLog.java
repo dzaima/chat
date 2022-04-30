@@ -49,7 +49,7 @@ public class MxLog {
     } else {
       if (e.m.edit==1) {
         MxChatEvent prev = msgMap.get(e.m.editsId);
-        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e.m, live);
+        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, live);
         // else, it's an edit of a message further back in the log
         return null;
       } else {
@@ -64,8 +64,8 @@ public class MxLog {
   
   private void putMsg(MxChatEvent m) {
     msgMap.put(m.id, m);
-    if (m.e.m!=null && m.e.m.replyId!=null) {
-      msgReplies.computeIfAbsent(m.e.m.replyId, k->new Vec<>(2)).add(m.id);
+    if (m.e0.m!=null && m.e0.m.replyId!=null) {
+      msgReplies.computeIfAbsent(m.e0.m.replyId, k->new Vec<>(2)).add(m.id);
     }
   }
   

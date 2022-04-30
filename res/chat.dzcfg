@@ -30,9 +30,10 @@ chat {
     copyLink = { "l" }
     copyText = { "c" }
     openExternal = { "o" }
-    viewSource = { "s" }
+    editHistory = { "h" }
     reply = { "r" }
     edit = { "e" }
+    viewSource = { "s" }
   }
   autocomplete.keys {
     prev = { "up" }
@@ -174,6 +175,7 @@ chat {
     }
     text = { mi { id=copyText "Copy message text" key=chat.menuKeys.copyText } }
     code = { mi { id=copyCode "Copy code block" key=chat.menuKeys.copyText } }
+    viewEdits = { mi { id=viewEdits "View edit history" key=chat.menuKeys.editHistory } }
     sep = vsep{}
     mine = {
       mi { id=edit "Edit" key=chat.menuKeys.edit }
