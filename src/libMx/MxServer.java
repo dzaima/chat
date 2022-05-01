@@ -50,17 +50,22 @@ public class MxServer {
     return l;
   }
   public MxLogin login(String uid, String passwd) {
-    Obj j = postJ("_matrix/client/r0/login",
-      "{" +
-        "\"user\":"+Utils.toJSON(uid)+"," +
-        "\"password\":"+Utils.toJSON(passwd)+"," +
-        "\"type\":\"m.login.password\"" +
-        "}");
-    if (j.has("errcode")) {
-      warn("failed to log in");
-      return null;
+    hide_data = true;
+    try {
+      Obj j = postJ("_matrix/client/r0/login",
+        "{" +
+          "\"user\":"+Utils.toJSON(uid)+"," +
+          "\"password\":"+Utils.toJSON(passwd)+"," +
+          "\"type\":\"m.login.password\"" +
+          "}");
+      if (j.has("errcode")) {
+        warn("failed to log in");
+        return null;
+      }
+      return new MxLogin(this, uid, j.str("access_token"));
+    } finally {
+      hide_data = false;
     }
-    return new MxLogin(this, uid, j.str("access_token"));
   }
   
   public static Obj parseObj(String s) {
@@ -206,9 +211,10 @@ public class MxServer {
   public static void log(String s) {
     log("mx", s);
   }
+  private static boolean hide_data = false;
   private void log(String method, String uri, String data) {
     if (uri.startsWith("/")) System.err.println("!!!!!!!!!!!!! STARTING SLASH !!!!!!!!!!!!!");
-    String df = data==null? "" : " "+(data.length()>100? "..." : data);
+    String df = data==null? "" : " "+(data.length()>100 || hide_data? "..." : data);
     log("mxq", method+" "+url+"/"+uri.replaceAll("access_token=[^&]+", "access_token=<redacted>")+df);
     // if (!uri.contains("_matrix/client/r0/sync?")) { // don't log sync spam
     //   log("mxq", method+" "+uri.replaceAll("access_token=[^&]+", "access_token=<redacted>")+df);

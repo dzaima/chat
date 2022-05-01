@@ -80,6 +80,7 @@ public class MxChatUser extends ChatUser {
         m.requestSave();
       }
     });
+    if (s==null) throw new RuntimeException("Failed to log in");
     u = s.primaryLogin;
     
     node.ctx.id("name").replace(0, new StringNode(node.ctx, u.user().name()));
