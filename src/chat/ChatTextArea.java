@@ -83,7 +83,7 @@ public class ChatTextArea extends CodeAreaNode {
     int toRemoveS = si-1;
     int toRemoveE = ei;
     if (!Objects.equals(prevSearch, newSearch)) {
-      if (psP!=null) psP.close();
+      if (psP!=null) { psP.close(); psP=null; psV=null; }
       if (newSearch!=null) {
         Vec<Chatroom.UserRes> r = m.view.room().autocompleteUsers(newSearch);
         if (r.sz>0) {
@@ -91,7 +91,7 @@ public class ChatTextArea extends CodeAreaNode {
             protected void setup() { ((MenuNode) node).obj = this; }
             protected void unfocused() { }
             protected XY pos(XY size, Rect bounds) { return ChatTextArea.this.p.relPos(null).add(0, -size.y-gc.em/3); }
-            public void stopped() { psP=null; psV=null; }
+            public void stopped() { if (psP==this) { psP=null; psV=null; } }
             
             protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
             
