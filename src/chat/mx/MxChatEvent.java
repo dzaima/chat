@@ -10,6 +10,8 @@ import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 import libMx.MxEvent;
 
+import java.util.*;
+
 abstract class MxChatEvent extends ChatEvent {
   public final MxChatroom r;
   public final MxLog log;
@@ -25,6 +27,11 @@ abstract class MxChatEvent extends ChatEvent {
     this.e0 = e0;
     this.time = e0.time;
     this.lastEvent = e0;
+  }
+  protected void loadReactions() {
+    for (JSON.Obj c : JSON.Obj.arrPath(e0.o, JSON.Arr.E, "unsigned", "m.relations", "m.annotation", "chunk").objs()) {
+      if ("m.reaction".equals(c.str("type",""))) addReaction(c.str("key", ""), c.getInt("count", 0));
+    }
   }
   
   public Chatroom room() { return r; }
@@ -132,5 +139,27 @@ abstract class MxChatEvent extends ChatEvent {
     target = null;
     lastEvent = new MxEvent(r.r, ev);
     updateBody(true);
+  }
+  
+  HashMap<String, Integer> reactions;
+  public void addReaction(String key, int d) {
+    if (d==0) return;
+    if (reactions==null) reactions = new HashMap<>();
+    int nv = reactions.getOrDefault(key, 0) + d;
+    if (nv!=0) reactions.put(key, nv);
+    else {
+      reactions.remove(key);
+      if (reactions.size()==0) reactions = null;
+    }
+    updateBody(false);
+  }
+  
+  public HashMap<String, Integer> getReactions() {
+    return reactions;
+  }
+  
+  public HashSet<String> receipts;
+  public HashSet<String> getReceipts() {
+    return receipts;
   }
 }

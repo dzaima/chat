@@ -1,15 +1,17 @@
 package chat.mx;
 
-import dzaima.utils.Vec;
+import dzaima.utils.*;
 import libMx.MxEvent;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class MxLog {
   public final MxChatroom r;
   public final Vec<MxChatEvent> list = new Vec<>();
   public final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
   public final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
+  public static class Reaction { MxChatEvent to; String key; }
+  public HashMap<String, Reaction> reactions = new HashMap<>();
   
   public MxLog(MxChatroom r) { this.r = r; }
   
@@ -40,6 +42,34 @@ public class MxLog {
     list.insert(i, msgs);
   }
   public MxChatEvent processMessage(MxEvent e, int pos, boolean live) { // returns message that would be shown, or null if it's an edit
+    if ("m.reaction".equals(e.type)) {
+      JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");
+      if (o.str("rel_type","").equals("m.annotation")) {
+        String key = o.str("key", "");
+        String r_id = o.str("event_id", "");
+        MxChatEvent r_ce = find(r_id);
+        Log.fine("mx", "Reaction "+key+" added to "+r_id);
+        
+        if (r_ce!=null) {
+          r_ce.addReaction(key, 1);
+          Reaction obj = new Reaction();
+          obj.to = r_ce;
+          obj.key = key;
+          reactions.put(e.id, obj);
+        } else Log.fine("mx", "Reaction was for unknown message");
+      } else if (o.size()!=0) {
+        Log.info("Bad content[\"m.relates_to\"].rel_type value");
+      }
+      return null;
+    } else if ("m.room.redaction".equals(e.type)) {
+      Reaction r = reactions.get(e.o.str("redacts", ""));
+      if (r!=null) {
+        Log.fine("mx", "Reaction "+r.key+" removed from "+r.to.id);
+        reactions.remove(e.id);
+        r.to.addReaction(r.key, -1);
+        return null;
+      }
+    }
     if (e.m==null) {
       MxChatNotice cm = new MxChatNotice(this, e);
       if (cm.ignore()) return null;

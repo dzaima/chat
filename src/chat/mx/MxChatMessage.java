@@ -19,6 +19,7 @@ public class MxChatMessage extends MxChatEvent {
     username = r.getUsername(m0.uid);
     edited = m0.edit != 0;
     setBody(m0, isNew);
+    loadReactions();
   }
   
   public void edit(MxEvent ne, boolean live) {
@@ -135,7 +136,7 @@ public class MxChatMessage extends MxChatEvent {
           n.add(new StringNode(disp.ctx, "· "+username+" "));
           n.add(disp);
           disp = n;
-        } else if (!type.equals("m.text") && !type.equals("m.notice")) ChatMain.warn("Message with type " + type);
+        } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
         if (live && containsPill(disp)) r.pinged();
         
         if (!visible) return;

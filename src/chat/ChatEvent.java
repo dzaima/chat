@@ -5,6 +5,7 @@ import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.types.ScrollNode;
 
 import java.time.Instant;
+import java.util.*;
 
 public abstract class ChatEvent {
   public final String id; // whatever form of unique identifier per message there exists
@@ -56,4 +57,7 @@ public abstract class ChatEvent {
   public abstract String userString();
   
   public abstract void rightClick(Click c, int x, int y);
+  
+  public abstract HashMap<String, Integer> getReactions();
+  public abstract HashSet<String> getReceipts();
 }

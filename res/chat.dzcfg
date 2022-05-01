@@ -85,6 +85,17 @@ chat {
   code.bgInline = #222
   code.bgBlock = #222
   
+  reaction.family = {
+    "Inter" "Open Sans Condensed" "Arial" "Helvetica" "Liberation Sans" // various non-emoji fonts for text
+    "Noto Color Emoji" "Noto Sans Symbols" "Noto Sans Symbols2" "Twemoji" "Apple Color Emoji" "Segoe UI Emoji" // and emoji fonts for the emoji
+  }
+  reaction.col = #999
+  reaction.size = 0.8em
+  receipt.family = str.defaultFont
+  receipt.size = 0.8em
+  receipt.col = #aaa
+  receipt.list = menu { }
+  
   spoiler.xpad = .2em // padding around content inside a spoiler
   spoiler.bg = #464B4D
   

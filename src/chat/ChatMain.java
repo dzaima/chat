@@ -41,6 +41,9 @@ public class ChatMain extends NodeWindow {
   
   public boolean globalHidden = false;
   
+  public MsgExtraNode msgExtra;
+  public MsgExtraNode.HoverPopup hoverPopup;
+  
   public Chatroom room() {
     return view==null? null : view.room();
   }
@@ -236,7 +239,8 @@ public class ChatMain extends NodeWindow {
     for (ChatUser c : users) c.tick();
     
     if (view!=null) view.viewTick();
-    
+    if (msgExtra!=null) msgExtra.tickExtra();
+    if (hoverPopup!=null && hoverPopup.shouldClose()) hoverPopup.close();
     
     if (gc.lastNs>nextTimeUpdate) {
       insertLastTime();
@@ -398,7 +402,13 @@ public class ChatMain extends NodeWindow {
       nb = new STextNode(ctx, true);
       nb.add(body);
     } else nb = body;
-    nb.add(new InlineNode.LineEnd(ctx, false));
+    HashMap<String, Integer> rs = cm.getReactions();
+    HashSet<String> vs = cm.getReceipts();
+    if (rs!=null || vs!=null) {
+      nb.add(new MsgExtraNode(ctx, cm.room(), rs, vs));
+    } else {
+      nb.add(new InlineNode.LineEnd(ctx, false));
+    }
     n.replace(1, nb); // "1" also being a constant in MxChatEvent copyText impl
     if (end) toLast = Math.max(toLast, live? 1 : 2);
   }
@@ -622,6 +632,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
+    // Log.level = Log.Level.FINE;
     Windows.setManager(Windows.Manager.JWM);
     // Windows.setManager(Windows.Manager.LWJGL);
     

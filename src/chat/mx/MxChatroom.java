@@ -31,6 +31,10 @@ public class MxChatroom extends Chatroom {
   public final HashMap<String, String> usernames = new HashMap<>();
   public final MxLog log;
   
+  private final HashMap<String, String> latestReceipts = new HashMap<>(); // map from user ID to ID of last message the user has a read receipt on
+  private final HashMap<String, String> toClosestVisible = new HashMap<>(); // map from any event ID to last visible message in the log before this
+  private String lastVisible;
+  
   public MxChatroom(MxChatUser u, String rid, Obj init) {
     super(u);
     this.log = new MxLog(this);
@@ -38,7 +42,6 @@ public class MxChatroom extends Chatroom {
     this.r = u.s.room(rid);
     update(init);
     prevBatch = init.obj("timeline").str("prev_batch");
-    // System.out.println(init.toString(2));
     if (nameState==0) {
       ArrayList<String> parts = new ArrayList<>();
       usernames.forEach((id, nick) -> {
@@ -93,7 +96,11 @@ public class MxChatroom extends Chatroom {
     
     for (Obj ev : sync.obj("timeline").arr("events").objs()) {
       Obj ct = ev.obj("content", null);
-      pushMsg(new MxEvent(r, ev));
+      MxEvent mxEv = new MxEvent(r, ev);
+      boolean newObj = pushMsg(mxEv);
+      if (newObj) lastVisible = mxEv.id;
+      toClosestVisible.put(mxEv.id, lastVisible);
+      if (ev.hasStr("sender")) setReceipt(ev.str("sender"), mxEv.id);
       //noinspection SwitchStatementWithTooFewBranches
       switch (ev.str("type")) {
         default:
@@ -110,8 +117,7 @@ public class MxChatroom extends Chatroom {
     }
     
     for (Obj ev : sync.obj("ephemeral").arr("events").objs()) {
-      Obj ct = ev.obj("content");
-      //noinspection SwitchStatementWithTooFewBranches
+      Obj ct = ev.obj("content", Obj.E);
       switch (ev.str("type", "")) {
         case "m.typing":
           Arr ids = ct.arr("user_ids");
@@ -125,10 +131,43 @@ public class MxChatroom extends Chatroom {
           this.typing = typing.toString();
           m.updActions();
           break;
+        case "m.receipt":
+          for (Entry msg : ct.entries()) {
+            String newID = msg.k;
+            for (Entry user : msg.v.obj().obj("m.read", Obj.E).entries()) {
+              setReceipt(user.k, newID);
+            }
+          }
+          break;
       }
     }
   }
   
+  public void setReceipt(String uid, String mid) {
+    String visID = toClosestVisible.get(mid);
+    if (visID==null) visID = mid;
+    
+    String prevID = latestReceipts.put(uid, visID);
+    ChatEvent prevMsg = prevID==null? null : find(prevID);
+    if (prevMsg!=null) {
+      MxChatEvent e = (MxChatEvent) prevMsg;
+      HashSet<String> rs = e.receipts;
+      if (rs!=null) {
+        rs.remove(uid);
+        if (rs.size()==0) e.receipts = null;
+      }
+      e.updateBody(false);
+    }
+    
+    ChatEvent newMsg = find(visID);
+    if (newMsg!=null) {
+      MxChatEvent e = (MxChatEvent) newMsg;
+      HashSet<String> rs = e.receipts;
+      if (rs==null) rs = e.receipts = new HashSet<>();
+      rs.add(uid);
+      e.updateBody(false);
+    }
+  }
   
   
   public MxFmt parse(String s) {
@@ -292,7 +331,7 @@ public class MxChatroom extends Chatroom {
   }
   
   
-  public void pushMsg(MxEvent e) {
+  public boolean pushMsg(MxEvent e) { // returns whether this created a new event on the log
     lastEvent = e;
     MxChatEvent cm = log.processMessage(e, log.size(), true);
     if (open && cm!=null) m.addMessage(cm, true);
@@ -303,6 +342,7 @@ public class MxChatroom extends Chatroom {
       unread++;
     }
     unreadChanged();
+    return cm!=null;
   }
   
   public void show() { super.show(); log.show(); }

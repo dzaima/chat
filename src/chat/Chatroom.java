@@ -1,6 +1,5 @@
 package chat;
 
-import chat.ui.EmptyNode;
 import dzaima.ui.gui.Window;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
@@ -26,6 +25,8 @@ public abstract class Chatroom extends View {
   private static final Prop TRANSPARENT = new ColProp(0);
   
   public abstract void upload();
+  
+  public abstract String getUsername(String uid);
   
   public static class UserRes {
     public final String disp, src;

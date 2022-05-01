@@ -18,6 +18,7 @@ public class MxChatNotice extends MxChatEvent {
     this.e = e;
     executer = r.getUsername(e.uid);
     username = "";
+    loadReactions();
   }
   
   public boolean userEq(ChatEvent o) { return false; }
@@ -28,6 +29,10 @@ public class MxChatNotice extends MxChatEvent {
     if (visible) {
       Node disp = n.ctx.make(n.gc.getProp("chat.msg.noticeP").gr());
       Node ch = disp.ctx.id("ch");
+      if ("deleted".equals(type)) {
+        r.m.updMessage(n, this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
+        return;
+      }
       switch (e.type) {
         case "m.room.member":
           String member = e.ct.str("displayname", null);
@@ -83,7 +88,7 @@ public class MxChatNotice extends MxChatEvent {
   }
   
   public boolean ignore() {
-    return e.type.equals("m.reaction") || e.type.equals("m.room.redaction");
+    return e.type.equals("m.room.redaction");
   }
   
   public boolean important() {
