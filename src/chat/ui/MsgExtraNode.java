@@ -75,7 +75,11 @@ public class MsgExtraNode extends InlineNode {
   
   protected void baseline(int asc, int dsc) { }
   protected void addInline(InlineSolver sv) {
-    if (sv.w-sv.x < wt) sv.nl();
+    if (sv.w-sv.x < wt) {
+      sv.nl();
+      sX = (short) sv.x;
+      sY1 = (short) sv.y;
+    }
     sv.h = Math.max(sv.h, th);
     sv.x = sv.w;
   }

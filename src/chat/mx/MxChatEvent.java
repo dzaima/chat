@@ -19,6 +19,7 @@ abstract class MxChatEvent extends ChatEvent {
   public MxEvent lastEvent;
   public String src;
   public String type = "?";
+  public int monotonicID;
   
   public MxChatEvent(MxLog log, MxEvent e0, String id, String target) {
     super(id, target);

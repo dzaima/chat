@@ -32,7 +32,8 @@ public class MxChatroom extends Chatroom {
   public final MxLog log;
   
   private final HashMap<String, String> latestReceipts = new HashMap<>(); // map from user ID to ID of last message the user has a read receipt on
-  private final HashMap<String, String> toClosestVisible = new HashMap<>(); // map from any event ID to last visible message in the log before this
+  private static class EventInfo { String closestVisible; int monotonicID; }
+  private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
   
   public MxChatroom(MxChatUser u, String rid, Obj init) {
@@ -83,6 +84,8 @@ public class MxChatroom extends Chatroom {
         break;
     }
   }
+  
+  private int monotonicCounter = 0;
   public void update(Obj sync) {
     for (Obj ev : sync.obj("state").arr("events").objs()) {
       Obj ct = ev.obj("content");
@@ -97,9 +100,13 @@ public class MxChatroom extends Chatroom {
     for (Obj ev : sync.obj("timeline").arr("events").objs()) {
       Obj ct = ev.obj("content", null);
       MxEvent mxEv = new MxEvent(r, ev);
-      boolean newObj = pushMsg(mxEv);
-      if (newObj) lastVisible = mxEv.id;
-      toClosestVisible.put(mxEv.id, lastVisible);
+      MxChatEvent newObj = pushMsg(mxEv);
+      if (newObj!=null) lastVisible = mxEv.id;
+      EventInfo ei = new EventInfo();
+      ei.closestVisible = lastVisible;
+      ei.monotonicID = monotonicCounter++;
+      if (newObj!=null) newObj.monotonicID = ei.monotonicID;
+      eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) setReceipt(ev.str("sender"), mxEv.id);
       //noinspection SwitchStatementWithTooFewBranches
       switch (ev.str("type")) {
@@ -144,28 +151,28 @@ public class MxChatroom extends Chatroom {
   }
   
   public void setReceipt(String uid, String mid) {
-    String visID = toClosestVisible.get(mid);
-    if (visID==null) visID = mid;
+    EventInfo ei = eventInfo.get(mid);
+    String visID = ei==null? mid : ei.closestVisible;
     
     String prevID = latestReceipts.put(uid, visID);
-    ChatEvent prevMsg = prevID==null? null : find(prevID);
+    MxChatEvent prevMsg = prevID==null? null : find(prevID);
+    if (ei!=null && prevMsg!=null && prevMsg.monotonicID>ei.monotonicID) return;
+    
     if (prevMsg!=null) {
-      MxChatEvent e = (MxChatEvent) prevMsg;
-      HashSet<String> rs = e.receipts;
+      HashSet<String> rs = prevMsg.receipts;
       if (rs!=null) {
         rs.remove(uid);
-        if (rs.size()==0) e.receipts = null;
+        if (rs.size()==0) prevMsg.receipts = null;
       }
-      e.updateBody(false);
+      prevMsg.updateBody(false);
     }
     
-    ChatEvent newMsg = find(visID);
+    MxChatEvent newMsg = find(visID);
     if (newMsg!=null) {
-      MxChatEvent e = (MxChatEvent) newMsg;
-      HashSet<String> rs = e.receipts;
-      if (rs==null) rs = e.receipts = new HashSet<>();
+      HashSet<String> rs = newMsg.receipts;
+      if (rs==null) rs = newMsg.receipts = new HashSet<>();
       rs.add(uid);
-      e.updateBody(false);
+      newMsg.updateBody(false);
     }
   }
   
@@ -312,7 +319,7 @@ public class MxChatroom extends Chatroom {
     return o.str("content_uri");
   }
   
-  public ChatEvent find(String id) { return log.find(id); }
+  public MxChatEvent find(String id) { return log.find(id); }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) {
     Vec<MxChatEvent> l = log.list;
@@ -331,7 +338,7 @@ public class MxChatroom extends Chatroom {
   }
   
   
-  public boolean pushMsg(MxEvent e) { // returns whether this created a new event on the log
+  public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
     lastEvent = e;
     MxChatEvent cm = log.processMessage(e, log.size(), true);
     if (open && cm!=null) m.addMessage(cm, true);
@@ -342,7 +349,7 @@ public class MxChatroom extends Chatroom {
       unread++;
     }
     unreadChanged();
-    return cm!=null;
+    return cm;
   }
   
   public void show() { super.show(); log.show(); }

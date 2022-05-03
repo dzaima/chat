@@ -410,7 +410,7 @@ public class ChatMain extends NodeWindow {
       nb.add(new InlineNode.LineEnd(ctx, false));
     }
     n.replace(1, nb); // "1" also being a constant in MxChatEvent copyText impl
-    if (end) toLast = Math.max(toLast, live? 1 : 2);
+    if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
   }
   
   public void unreadChanged() {
