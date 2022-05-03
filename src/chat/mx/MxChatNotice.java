@@ -30,7 +30,7 @@ public class MxChatNotice extends MxChatEvent {
       Node disp = n.ctx.make(n.gc.getProp("chat.msg.noticeP").gr());
       Node ch = disp.ctx.id("ch");
       if ("deleted".equals(type)) {
-        r.m.updMessage(n, this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
+        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
         return;
       }
       switch (e.type) {
@@ -77,7 +77,7 @@ public class MxChatNotice extends MxChatEvent {
         case "m.room.name": ch.add(new StringNode(n.ctx, executer+" set room name to "+e.ct.str("name", "undefined"))); break;
         default: ch.add(new StringNode(n.ctx, executer+" did "+e.type)); break;
       }
-      r.m.updMessage(n, this, disp, live);
+      r.m.updMessage(this, disp, live);
     }
   }
   

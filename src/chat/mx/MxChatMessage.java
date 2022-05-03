@@ -79,7 +79,7 @@ public class MxChatMessage extends MxChatEvent {
       case "deleted":
         if (!visible) return;
         
-        r.m.updMessage(n, this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
+        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
         break;
       case "m.image":
         if (!visible) return;
@@ -90,24 +90,24 @@ public class MxChatMessage extends MxChatEvent {
         if (s>0 && loadUrl!=null) {
           TextNode tmpLink = HTMLParser.link(r, getURL(false), HTMLParser.Type.IMG);
           tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
-          r.m.updMessage(n, this, tmpLink, live);
+          r.m.updMessage(this, tmpLink, live);
           
           r.u.queueRequest(updateBodyCtr,
             () -> HTMLParser.image(r, loadUrl, MxChatUser.get("Load image", loadUrl)), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
             data -> {
               if (visible) { // room may have changed by the time the image loads
-                r.m.updMessage(n, this, data, false);
+                r.m.updMessage(this, data, false);
               }
             }
           );
         } else {
           String url = getURL(false);
           if (url==null) {
-            r.m.updMessage(n, this, new StringNode(n.ctx, "(no URL for image provided)"), live);
+            r.m.updMessage(this, new StringNode(n.ctx, "(no URL for image provided)"), live);
           } else {
             TextNode link = HTMLParser.link(r, url, HTMLParser.Type.IMG);
             link.add(new StringNode(n.ctx, url));
-            r.m.updMessage(n, this, link, live);
+            r.m.updMessage(this, link, live);
           }
         }
         break;
@@ -118,7 +118,7 @@ public class MxChatMessage extends MxChatEvent {
         
         String url = getURL(false);
         if (url==null) {
-          r.m.updMessage(n, this, new StringNode(n.ctx, "(no URL for file provided)"), live);
+          r.m.updMessage(this, new StringNode(n.ctx, "(no URL for file provided)"), live);
         } else {
           String mime = m0.ct.obj("info", JSON.Obj.E).str("mimetype", "");
           HTMLParser.Type t = HTMLParser.Type.UNK;
@@ -126,7 +126,7 @@ public class MxChatMessage extends MxChatEvent {
   
           TextNode link = HTMLParser.link(r, url, t);
           link.add(new StringNode(n.ctx, url));
-          r.m.updMessage(n, this, link, live);
+          r.m.updMessage(this, link, live);
         }
         break;
       default:
@@ -140,7 +140,7 @@ public class MxChatMessage extends MxChatEvent {
         if (live && containsPill(disp)) r.pinged();
         
         if (!visible) return;
-        r.m.updMessage(n, this, disp, live);
+        r.m.updMessage(this, disp, live);
         break;
     }
   }

@@ -85,7 +85,7 @@ public class ChatMain extends NodeWindow {
     if (p.equals("none")) return 0;
     if (p.equals("safe")) return 1;
     if (p.equals("all")) return 2;
-    MxServer.warn("invalid chat.loadImgs value");
+    Log.warn("invalid chat.loadImgs value");
     return 2;
   }
   
@@ -330,6 +330,8 @@ public class ChatMain extends NodeWindow {
     }
   }
   
+  public boolean atEnd() { return msgsScroll.atEnd(5); }
+  
   public Node makeInfo(EnumProp type, String cfg, Node body) {
     Node n = ctx.make(gc.getProp(cfg).gr());
     n.ctx.id("body").add(body);
@@ -368,10 +370,9 @@ public class ChatMain extends NodeWindow {
     if ( atEnd) msgsScroll.ignoreEnd();
   }
   
+  public Node getMsgBody(Node n) { return   n.ctx.id("body").ch.get(1); }
+  public void setMsgBody(Node n, Node ct) { n.ctx.id("body").replace(1, ct); }
   
-  public boolean atEnd() {
-    return msgsScroll.atEnd(5);
-  }
   public void addMessage(ChatEvent cm, boolean live) {
     removeLastTime();
     newHover = true;
@@ -385,32 +386,36 @@ public class ChatMain extends NodeWindow {
     if (atEnd && toLast==0) toLast = 1;
     if (atEnd) msgsScroll.ignoreEnd();
   }
-  public void updMessage(Node msg, ChatEvent cm, Node body, boolean live) {
+  private Node makeExtra(ChatEvent ce) {
+    HashMap<String, Integer> rs = ce.getReactions();
+    HashSet<String> vs = ce.getReceipts();
+    return rs!=null || vs!=null? new MsgExtraNode(ctx, ce.room(), rs, vs) : new InlineNode.LineEnd(ctx, false);
+  }
+  public void updMessage(ChatEvent ce, Node body, boolean live) {
+    Node msg = ce.n;
     boolean end = atEnd();
     newHover = true;
-    if (cm.edited) {
+    if (ce.edited) {
       Node n = msg.ctx.id("edit");
       if (n.ch.sz==0) n.add(n.ctx.make(n.gc.getProp("chat.icon.editedP").gr()));
     }
-    Node n = msg.ctx.id("body");
     Node nb;
-    if (cm.target!=null) {
+    if (ce.target!=null) {
       nb = new STextNode(ctx, true);
-      nb.add(new LinkBtn(ctx, nb.ctx.makeHere(n.gc.getProp("chat.icon.replyP").gr()), cm));
+      nb.add(new LinkBtn(ctx, nb.ctx.makeHere(gc.getProp("chat.icon.replyP").gr()), ce));
       nb.add(body);
     } else if (body instanceof InlineNode) {
       nb = new STextNode(ctx, true);
       nb.add(body);
     } else nb = body;
-    HashMap<String, Integer> rs = cm.getReactions();
-    HashSet<String> vs = cm.getReceipts();
-    if (rs!=null || vs!=null) {
-      nb.add(new MsgExtraNode(ctx, cm.room(), rs, vs));
-    } else {
-      nb.add(new InlineNode.LineEnd(ctx, false));
-    }
-    n.replace(1, nb); // "1" also being a constant in MxChatEvent copyText impl
+    nb.add(makeExtra(ce));
+    setMsgBody(msg, nb);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
+  }
+  public void updateExtra(ChatEvent e) {
+    if (!e.visible) return;
+    Node b = getMsgBody(e.n);
+    b.replace(b.ch.sz-1, makeExtra(e));
   }
   
   public void unreadChanged() {

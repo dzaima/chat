@@ -155,24 +155,24 @@ public class MxChatroom extends Chatroom {
     String visID = ei==null? mid : ei.closestVisible;
     
     String prevID = latestReceipts.put(uid, visID);
-    MxChatEvent prevMsg = prevID==null? null : find(prevID);
-    if (ei!=null && prevMsg!=null && prevMsg.monotonicID>ei.monotonicID) return;
+    MxChatEvent pm = prevID==null? null : find(prevID);
+    if (ei!=null && pm!=null && pm.monotonicID>ei.monotonicID) return;
     
-    if (prevMsg!=null) {
-      HashSet<String> rs = prevMsg.receipts;
+    if (pm!=null) {
+      HashSet<String> rs = pm.receipts;
       if (rs!=null) {
         rs.remove(uid);
-        if (rs.size()==0) prevMsg.receipts = null;
+        if (rs.size()==0) pm.receipts = null;
       }
-      prevMsg.updateBody(false);
+      m.updateExtra(pm);
     }
     
-    MxChatEvent newMsg = find(visID);
-    if (newMsg!=null) {
-      HashSet<String> rs = newMsg.receipts;
-      if (rs==null) rs = newMsg.receipts = new HashSet<>();
+    MxChatEvent nm = find(visID);
+    if (nm!=null) {
+      HashSet<String> rs = nm.receipts;
+      if (rs==null) rs = nm.receipts = new HashSet<>();
       rs.add(uid);
-      newMsg.updateBody(false);
+      m.updateExtra(nm);
     }
   }
   

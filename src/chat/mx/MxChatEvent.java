@@ -95,7 +95,7 @@ abstract class MxChatEvent extends ChatEvent {
           if (n!=null) n.border.openMenu(false);
           break;
         case "copyText":
-          Node nd = n.ctx.id("body").ch.get(1); // "1" also being a constant in ChatMain.updMessage replace call
+          Node nd = r.m.getMsgBody(n);
           r.m.copyString(StringNode.getNodeText(nd));
           break;
         case "copyCode":
@@ -152,7 +152,7 @@ abstract class MxChatEvent extends ChatEvent {
       reactions.remove(key);
       if (reactions.size()==0) reactions = null;
     }
-    updateBody(false);
+    r.m.updateExtra(this);
   }
   
   public HashMap<String, Integer> getReactions() {
