@@ -154,9 +154,15 @@ public class MxChatroom extends Chatroom {
     EventInfo ei = eventInfo.get(mid);
     String visID = ei==null? mid : ei.closestVisible;
     
-    String prevID = latestReceipts.put(uid, visID);
+    String prevID = latestReceipts.get(uid);
     MxChatEvent pm = prevID==null? null : find(prevID);
-    if (ei!=null && pm!=null && pm.monotonicID>ei.monotonicID) return;
+    MxChatEvent nm = find(visID);
+    Log.fine("mx receipt", uid+": "+prevID+(pm==null? " (not in log)" : "")+" → "+mid+" / "+(ei==null? "unknown" : visID)+(nm==null? " (not in log)" : ""));
+    if (ei!=null && pm!=null && pm.monotonicID>ei.monotonicID) {
+      Log.fine("mx receipt", "cancelling read receipt update due to non-monotonic");
+      return;
+    }
+    latestReceipts.put(uid, visID);
     
     if (pm!=null) {
       HashSet<String> rs = pm.receipts;
@@ -167,7 +173,6 @@ public class MxChatroom extends Chatroom {
       m.updateExtra(pm);
     }
     
-    MxChatEvent nm = find(visID);
     if (nm!=null) {
       HashSet<String> rs = nm.receipts;
       if (rs==null) rs = nm.receipts = new HashSet<>();
