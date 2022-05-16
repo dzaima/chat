@@ -65,6 +65,15 @@ public class MxChatNotice extends MxChatEvent {
                 if (e.ct.hasStr("reason")) msg+= ": "+e.ct.str("reason");
               }
               break;
+            case "ban":
+              msg = executer+" banned "+member;
+              break;
+            case "knock":
+              if (!executer.equals(member)) {
+                msg = member+" is requesting access to room";
+                break;
+              }
+              /* fallthrough */
             default: msg = executer+" did "+e.ct.str("membership", "m.room.member")+" on "+member; break;
           }
           ch.add(new StringNode(n.ctx, msg));
