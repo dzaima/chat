@@ -217,7 +217,7 @@ public class HTMLParser {
             }
             break;
           case "blockquote":
-            TextNode n = new TextNode(p.ctx, new String[]{"color"}, new Prop[]{p.gc.getCfgProp("chat.quote.color")});
+            STextNode n = new STextNode(p.ctx, new String[]{"color"}, new Prop[]{p.gc.getCfgProp("chat.quote.color")});
             wrap(n, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
             p.add(InlineNode.FullBlock.wrap(new QuoteNode(n)));
             break;
