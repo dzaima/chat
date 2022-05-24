@@ -34,7 +34,7 @@ btn {
 chat {
   preview.escape = #779
   preview.codeBg = #63000000
-  preview.spoilerBg = #20000000
+  preview.spoilerBg = #60000000
   
   link.col = #1A8A18
   
