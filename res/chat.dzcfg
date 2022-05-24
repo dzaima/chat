@@ -61,7 +61,9 @@ chat {
   msg.edit = #444444 // currently edited message bg
   msg.reply = #555565 // currently replying to bg
   msg.highlight = #9D7650 // temporary highlight bg
-  msg.notice = #0000 // notice message bg
+  msg.noticeBg = #0000 // notice message (user joining/leaving etc)
+  msg.noticeCol = #BBB // notice message (user joining/leaving etc)
+  msg.removedCol = #5FFF // color of the "(removed)" text of removed messages
   msg.border = #888 // dashed border color
   quote.line  = #999 // color of line left of a quote
   quote.color = #999 // text color in quote
@@ -70,7 +72,7 @@ chat {
   
   userCols.myNick = #D2D2D2
   userCols.myPill = chat.userCols.myNick
-  userCols.otherNicks = { "#54a7f0" "#ea6ee6" "#24d7a4" "#f28c8f" "#ff9047" "#3fbdbf" "#a1d37a" } // can be set to just a single color if not wanted
+  userCols.otherNicks = { "#54A7F0" "#EA6EE6" "#24D7A4" "#F28C8F" "#FF9047" "#3FBDBF" "#A1D37A" } // can be set to just a single color if not wanted
   userCols.otherPills = chat.userCols.otherNicks // can be a separate list, or just a single color
   pill.padL = 0em
   pill.padR = 0em
@@ -99,17 +101,36 @@ chat {
   spoiler.xpad = .2em // padding around content inside a spoiler
   spoiler.bg = #464B4D
   
+  room.listBg = #26272A
   room.selected = #373C44
   room.hovered = #2D3237
+  room.colServer = #666 // color of the server indicator in user list
   
   // layouts
+  ly.bgRoomTitle = #191A1A
+  ly.bgTranscript = #383838
+  ly.bgInputBar = #222
+  ly.bgInput = #383838
+  
+  ly.colActions = #888 // typing list, hovered message date/time
+  ly.colInfo = #AAA // active action, link, etc
+  ly.bgUploadField = #383838
+  
+  ly.colInfoText = #999
+  ly.colInfoTitle = #AAA
+  
+  ly.bgUnread = #7666
+  ly.bgHidden = #BBB
+  
+  ly.iconEdit = #999
+  ly.iconReply = #AAA
   
   // main
   ui = h {
     scroll { x=off y=hidden tempOverlap=true
       weight=.3
       w=10em:20em
-      bg=#26272A
+      bg=chat.room.listBg
       v {
         id=accounts
         pad=.9em
@@ -121,10 +142,10 @@ chat {
         pad { l=4em
           text { tsz=1.3em "" id=roomName }
         }
-        bg=#191A1A
+        bg=chat.ly.bgRoomTitle
       }
       scroll { x=off id=msgsScroll
-        bg=#383838
+        bg=chat.ly.bgTranscript
         h {
           pad { x=.3em u=5em d=.3em
             v { h=min id=msgs
@@ -135,9 +156,9 @@ chat {
           id=bc
         }
       }
-      pad { all=.5em l=2em bg=#222
+      pad { all=.5em l=2em bg=chat.ly.bgInputBar
         h { h=min pad=.5em
-          scroll { h=6.2em w=10em:40em bg=#383838 x=off
+          scroll { h=6.2em w=10em:40em bg=chat.ly.bgInput x=off
             pad { all=.3em id=inputPlace }
           }
           v { pad=.2em weight=.2 w=10em:99em // todo figure out why this breaks with weight=.1
@@ -147,11 +168,11 @@ chat {
             }
             v {
               hideOverflow { alX=left
-                text { id=actionbar "" color=#888 } // typing list, hovered message date/time
+                text { id=actionbar "" color=chat.ly.colActions } // typing list, hovered message date/time
               }
               h { h=max alY=bottom alX=right
                 hideOverflow { alX=right h=min
-                  text { id=infobar "" color=#AAA } // active action, link, etc
+                  text { id=infobar "" color=chat.ly.colInfo } // active action, link, etc
                 }
               }
             }
@@ -220,9 +241,9 @@ chat {
   mxUpload = pad { bg=bg.middle all=1em
     v { pad=.4em w=30em h=7em
       h { pad=.4em btn { "Choose File" style=rect id=choose }
-                                scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=path } } }
-      h { pad=.4em "File name:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=name } } }
-      h { pad=.4em "MIME type:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=#383838 id=mime } } }
+                                scroll { y=off x=hidden textfield { family=str.defaultFont bg=chat.ly.bgUploadField id=path } } }
+      h { pad=.4em "File name:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=chat.ly.bgUploadField id=name } } }
+      h { pad=.4em "MIME type:" scroll { y=off x=hidden textfield { family=str.defaultFont bg=chat.ly.bgUploadField id=mime } } }
       pad { u=1em
         h { alX=right pad=0.4em
           btn { "Get link" style=rect id=getLink }
@@ -239,8 +260,8 @@ chat {
       pad { y=.3em l=1.5em id=body }
     }
   }
-  info.textP = text { id=body color=#999 }
-  info.titleP = h { alX=center text { id=body color=#AAA } }
+  info.textP = text { id=body color=chat.ly.colInfoText } // e.g. "X time later...", "Last message was posted X ago"
+  info.titleP = h { alX=center text { id=body color=chat.ly.colInfoTitle } } // e.g. inline message date
   
   // message contents
   code.inlineP = text { family=chat.code.family bg=chat.code.bgInline xpad=.2em class=inlineCode }
@@ -249,15 +270,15 @@ chat {
       stext { family=chat.code.family id=body ibeam=true class=blockCode }
     }
   }
-  msg.noticeP = text { id=ch italics=true color=#BBB } // X joined/left/etc
-  msg.removedP = text { "(removed)" color=#5FFF }
+  msg.noticeP = text { id=ch italics=true color=chat.msg.noticeCol } // X joined/left/etc
+  msg.removedP = text { "(removed)" color=chat.msg.removedCol }
   msg.imageLoadingP = text { "(image loading…)" }
   
   // general UI
   rooms.accountP = v { h=min
     pad { all=.5em x=.5em
       h {
-        text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=#666 id=server "…" family=chat.code.familyUI } }
+        text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=chat.room.colServer id=server "…" family=chat.code.familyUI } }
       }
     }
     roomList { dir=v mode=drag id=roomlist
@@ -274,13 +295,13 @@ chat {
       }
     }
   }
-  rooms.unreadP = text { " " text { bg=#7666 id=num } }
-  rooms.unreadHiddenP = text { color=#BBB " (h)" }
+  rooms.unreadP = text { " " text { bg=chat.ly.bgUnread id=num } }
+  rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }
   
   // icons
   // https://github.com/Templarian/MaterialDesign/blob/master/LICENSE https://www.apache.org/licenses/LICENSE-2.0
-  icon.editedP = pad { u=.1em svgicon { w=24 h=24 sz=6 color=#999 src="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" } }
-  icon.replyP = svgicon { w=24 h=24 sz=6 color=#AAA src="M11 17v-5h5v8h5V7H11V2l-7 7.5z" }
+  icon.editedP = pad { u=.1em svgicon { w=24 h=24 sz=6 color=chat.ly.iconEdit src="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" } }
+  icon.replyP = svgicon { w=24 h=24 sz=6 color=chat.ly.iconReply src="M11 17v-5h5v8h5V7H11V2l-7 7.5z" }
 }
 
 

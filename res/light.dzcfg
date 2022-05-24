@@ -1,0 +1,91 @@
+str.color = #000
+text.bgSel = #df2F90FB
+bg.sel = #df2F90FB
+bg.selU = #888
+
+scroll.barCol   = #F0F0F0
+scroll.thumbCol = #B9B9B9
+
+bg.middle = #EEE
+bg.back = #FFF
+
+
+menu {
+  bg = #EEE
+  hover = #df2F90FB
+}
+
+textarea { bgSel = bg.sel bgSelU = bg.selU } // TODO remove after proper dependency system
+
+btn {
+  rect.bg = #ccc
+  rect.borderL = #eee
+  rect.borderD = #bbb
+  
+  round.bgOff = #fff
+  round.bgHover = #3C3C3E
+  round.bgOn = #4F4F50
+  round.radius = .2em
+  
+  padX = .3em
+  padY = .1em
+}
+
+chat {
+  preview.escape = #779
+  preview.codeBg = #63000000
+  preview.spoilerBg = #20000000
+  
+  link.col = #1A8A18
+  
+  msg.my = #EBFFE9
+  msg.other = #F5F5F5
+  msg.sel = #BBB
+  msg.edit = #ACA
+  msg.reply = #555565
+  msg.highlight = #fB7
+  msg.noticeBg = #fff
+  msg.noticeCol = #666
+  msg.removedCol = #888
+  msg.border = #888
+  quote.line  = #666
+  quote.color = #333
+  
+  userCols.myNick = #000
+  userCols.myPill = chat.userCols.myNick
+  userCols.otherNicks = { "#0D5DA3" "#AA1BA6" "#169974" "#C41319" "#C66727" "#229C9E" "#5DA526" }
+  userCols.otherPills = chat.userCols.otherNicks // TODO remove after proper dependency system
+  
+  pill.bg = #0000
+  pill.bgMine = #EDBE90
+  
+  code.bgInline = #BBB
+  code.bgBlock = #BBB
+  
+  reaction.col = #666
+  receipt.col = #777
+  
+  spoiler.bg = #464B4D
+  
+  room.listBg = #EEE
+  room.selected = #CCC
+  room.hovered = #DDD
+  
+  ly.bgRoomTitle = #DDD
+  ly.bgTranscript = #FFF
+  ly.bgInputBar = #DDD
+  ly.bgInput = #FFF
+  
+  ly.colActions = #444
+  ly.colInfo = #222
+  ly.bgUploadField = #FFF
+  
+  ly.colInfoText = #666
+  ly.colInfoTitle = #666
+  
+  ly.bgUnread = #7666
+  ly.bgHidden = #CCC
+  
+  ly.iconEdit = #777
+  ly.iconReply = #AAA
+}

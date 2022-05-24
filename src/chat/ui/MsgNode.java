@@ -31,7 +31,7 @@ public class MsgNode extends WrapNode {
       abg = "chat.msg.highlight";
     } else if (mode==0) {
       if (type==MsgType.MSG) abg = on? "chat.msg.sel" : msg.mine? "chat.msg.my" : "chat.msg.other";
-      else                   abg = "chat.msg.notice";
+      else                   abg = "chat.msg.noticeBg";
     } else if (mode==2) {
       abg = "chat.msg.reply";
     } else if (mode==1) {
