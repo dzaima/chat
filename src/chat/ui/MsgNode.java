@@ -24,6 +24,8 @@ public class MsgNode extends WrapNode {
   
   public enum MsgType { MSG, NOTICE }
   
+  public void propsUpd() { super.propsUpd(); setBG(); }
+  
   private boolean on, hl;
   private void setBG() {
     String abg;

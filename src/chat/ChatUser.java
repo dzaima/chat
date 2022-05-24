@@ -50,11 +50,11 @@ public abstract class ChatUser {
     }
   
     public void reorderStarted(Node n) {
-      ((Chatroom.RNode) n).updBg();
+      ((Chatroom.RNode) n).setBG();
     }
     
     public void reorderEnded(int oldIdx, int newIdx, Node n) {
-      ((Chatroom.RNode) n).updBg();
+      ((Chatroom.RNode) n).setBG();
       if (oldIdx!=newIdx) {
         Vec<Chatroom> rs = new Vec<>();
         for (Node c : ch) rs.add(((Chatroom.RNode) c).r);

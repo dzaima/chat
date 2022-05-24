@@ -40,11 +40,14 @@ public abstract class Chatroom extends View {
       super(ch.ctx, ch);
       this.r = r;
     }
+    
+    public void propsUpd() { super.propsUpd(); setBG(); }
+    
     boolean openMenu;
-    public void openMenu(boolean v) { openMenu = v; updBg(); }
+    public void openMenu(boolean v) { openMenu = v; setBG(); }
     boolean hovered;
-    public void hoverS() { hovered=true;  updBg(); ctx.vw().pushCursor(Window.CursorType.HAND); }
-    public void hoverE() { hovered=false; updBg(); ctx.vw().popCursor(); }
+    public void hoverS() { hovered=true;  setBG(); ctx.vw().pushCursor(Window.CursorType.HAND); }
+    public void hoverE() { hovered=false; setBG(); ctx.vw().popCursor(); }
     
     public void mouseStart(int x, int y, Click c) {
       if (c.bL() || c.bR()) c.register(this, x, y);
@@ -57,7 +60,7 @@ public abstract class Chatroom extends View {
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
     public void mouseUp(int x, int y, Click c) { m.toRoom(Chatroom.this); }
     
-    public void updBg() {
+    public void setBG() {
       Node bg = node.ctx.id("bg");
       boolean showHover = hovered && !user().roomListNode.reordering()  ||  user().roomListNode.holding(this)  ||  openMenu;
       bg.set(bg.id("bg"), open? gc.getProp("chat.room.selected") : showHover? gc.getProp("chat.room.hovered") : TRANSPARENT); // TODO plain background when drag'n'dropping outside
@@ -91,8 +94,8 @@ public abstract class Chatroom extends View {
   public Chatroom room() { return this; }
   
   protected boolean open;
-  public /*open*/ void show() { open=true; node.updBg(); unreadChanged(); m.setCurrentName(name); }
-  public /*open*/ void hide() { open=false;node.updBg(); }
+  public /*open*/ void show() { open=true; node.setBG(); unreadChanged(); m.setCurrentName(name); }
+  public /*open*/ void hide() { open=false;node.setBG(); }
   
   public abstract void readAll();
   public abstract void older();
