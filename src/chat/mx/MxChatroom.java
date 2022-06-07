@@ -212,6 +212,9 @@ public class MxChatroom extends Chatroom {
         case "text": case "plain":
           f = new MxFmt(left, Utils.toHTML(left, true));
           break;
+        case "html":
+          f = new MxFmt(left, left);
+          break;
         case "me":
           MxFmt f2 = parse(left);
           f2.type = MxFmt.Type.EMOTE;

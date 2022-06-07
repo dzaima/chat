@@ -37,11 +37,11 @@
 |              <kbd>alt+r</kbd> | hide/unhide unread count for current room      |
 |         <kbd>ctrl+alt+r</kbd> | hide/unhide unread count for all rooms         |
 
-Most of those (along with some other things) are options in `res/chat.dzcfg`.
+Most of those (along with some other things) are configurable.
 
-While `res/chat.dzcfg` can be directly modified, it is preferred to make a file `local.dzcfg` in the root folder of the project and copy the necessary fields in.
+`res/chat.dzcfg` contains the defaults, and while it can be directly modified, it is preferred to make a file `local.dzcfg` in the root folder of the project and copy the necessary fields in.
 
-You can reload the config with <kbd>f5</kbd>, though you may need to reload the corresponding object (by e.g. clicking a room to refresh message list), or restart the app completely.
+You can reload the config with <kbd>f5</kbd> (some things may not update (instead requiring a restart), but most things reload live fine).
 
 
 
@@ -52,7 +52,8 @@ by default, messages are interpreted as a markdown-ish thing. This default can b
 /md forced *markdown*
 /text forced plain text (also "/plain ..." works)
 /me does something
-file uploading is a very temporary & unfinished thing and just gives you a link
+/html <p>manually enter HTML</p>
+File uploading kind of works (untested for non-images); the client can display images & gifs inline, but videos will open externally. Right click on an image gives more options.
 
 _italics_
 *bold*

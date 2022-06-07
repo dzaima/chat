@@ -101,6 +101,6 @@ public class MxChatNotice extends MxChatEvent {
   }
   
   public boolean important() {
-    return !e.type.equals("m.room.member") && !ignore();
+    return false; // maybe have some setting to set this to true for rooms you're a mod/admin in?
   }
 }
