@@ -32,10 +32,10 @@ public class MsgExtraNode extends InlineNode {
   private Paragraph pr, pv;
   public static int maxReactions = 3;
   public void propsUpd() { super.propsUpd();
-    StringBuilder b = new StringBuilder();
     int h = 0;
   
     if (reactions!=null) {
+      StringBuilder b = new StringBuilder();
       if (reactions.size()>maxReactions) b.append(reactions.size()-maxReactions).append(" + ");
       for (int i = reactions.size()-Math.min(reactions.size(), maxReactions); i < reactions.size(); i++) {
         Map.Entry<String, Integer> e = reactions.get(i);
@@ -50,6 +50,7 @@ public class MsgExtraNode extends InlineNode {
         if (cl>4) k = "……";
         b.append(k).append(v==1? " " : "×"+v+" ");
       }
+      if (b.length()>0 && b.charAt(b.length()-1)==' ') b.deleteCharAt(b.length()-1);
       
       pr = Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.reaction.family"), gc.getProp("chat.reaction.col").col(), gc.getProp("chat.reaction.size").lenF()), b.toString());
       wr = Tools.ceil(pr.getMaxIntrinsicWidth());
@@ -61,7 +62,7 @@ public class MsgExtraNode extends InlineNode {
   
     int wv;
     if (receipts!=null) {
-      pv = Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.receipt.family"), gc.getProp("chat.receipt.col").col(), gc.getProp("chat.receipt.size").lenF()), "⦿ "+receipts.size());
+      pv = Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.receipt.family"), gc.getProp("chat.receipt.col").col(), gc.getProp("chat.receipt.size").lenF()), " ⦿ "+receipts.size());
       wv = Tools.ceil(pv.getMaxIntrinsicWidth());
       h = Math.max(Tools.ceil(pv.getHeight()), h);
     } else {
