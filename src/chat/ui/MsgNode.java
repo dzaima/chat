@@ -67,7 +67,7 @@ public class MsgNode extends WrapNode {
   }
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    msg.room().m.markReply(msg);
+    msg.room().input.markReply(msg);
   }
   
   public void tickC() {

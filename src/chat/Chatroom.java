@@ -1,5 +1,6 @@
 package chat;
 
+import chat.ui.*;
 import dzaima.ui.gui.Window;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
@@ -15,12 +16,24 @@ public abstract class Chatroom extends View {
   public String typing = "";
   public boolean ping;
   
+  public final ChatTextArea input;
   protected Chatroom(ChatUser u) {
     this.m = u.m;
     node = new RNode(this, u.node.ctx.make(u.m.gc.getProp("chat.rooms.roomP").gr()));
     setName("Unnamed room");
+    input = new ChatTextArea(this, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE});
+    input.wrap = true;
+    input.setFn(mod -> {
+      if (mod==0) { m.send(); return true; }
+      return false;
+    });
+    cfgUpdated();
   }
   
+  public void cfgUpdated() {
+    if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));
+    else input.setLang(m.gc.langs().defLang);
+  }
   
   private static final Prop TRANSPARENT = new ColProp(0);
   
@@ -94,8 +107,8 @@ public abstract class Chatroom extends View {
   public Chatroom room() { return this; }
   
   protected boolean open;
-  public /*open*/ void show() { open=true; node.setBG(); unreadChanged(); m.setCurrentName(name); }
-  public /*open*/ void hide() { open=false;node.setBG(); }
+  public /*open*/ void show() { open=true; node.setBG(); unreadChanged(); m.setCurrentName(name); input.roomShown(); }
+  public /*open*/ void hide() { open=false;node.setBG(); input.roomHidden(); }
   
   public abstract void readAll();
   public abstract void older();

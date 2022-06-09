@@ -42,6 +42,7 @@ chat {
     acceptOnly = { "tab" } // complete without selecting anything when there's only one user left
   }
   
+  inputWidth = 10em:50em // width of the input field
   // syntax preview in message box
   preview.enabled = true
   preview.defFamily = str.defaultFont
@@ -126,10 +127,10 @@ chat {
   ly.iconReply = #AAA
   
   // main
-  ui = h {
+  ui = weighed { dir=h
+    weight=.16
     scroll { x=off y=hidden tempOverlap=true
-      weight=.3
-      w=10em:20em
+      w=10em
       bg=chat.room.listBg
       v {
         id=accounts
@@ -158,8 +159,8 @@ chat {
       }
       pad { all=.5em l=2em bg=chat.ly.bgInputBar
         h { h=min pad=.5em
-          scroll { h=6.2em w=10em:40em bg=chat.ly.bgInput x=off
-            pad { all=.3em id=inputPlace }
+          scroll { h=6.2em w=chat.inputWidth bg=chat.ly.bgInput x=off
+            pad { all=.3em id=inputPlace "" }
           }
           v { pad=.2em weight=.2 w=10em:99em // todo figure out why this breaks with weight=.1
             h { h=min pad=.5em

@@ -31,13 +31,11 @@ public class ChatMain extends NodeWindow {
   public Path profilePath;
   private final Node msgs;
   public final ScrollNode msgsScroll;
-  public final ChatTextArea input;
+  public final Node inputPlace;
   public final Vec<ChatUser> users = new Vec<>();
   public final Node accountNode;
   public final Node actionbar, infobar;
   public View view;
-  public ChatEvent editing;
-  public ChatEvent replying;
   
   public boolean globalHidden = false;
   
@@ -46,6 +44,10 @@ public class ChatMain extends NodeWindow {
   
   public Chatroom room() {
     return view==null? null : view.room();
+  }
+  public ChatTextArea input() {
+    Chatroom r = room();
+    return r==null? null : r.input;
   }
   
   public ChatMain(GConfig gc, Ctx pctx, String profilePath, PNodeGroup g) {
@@ -56,14 +58,7 @@ public class ChatMain extends NodeWindow {
     actionbar = base.ctx.id("actionbar");
     infobar = base.ctx.id("infobar");
     msgsScroll = (ScrollNode) base.ctx.id("msgsScroll");
-    Node inputPlace = base.ctx.id("inputPlace");
-    input = new ChatTextArea(this, inputPlace.ctx, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE});
-    input.wrap = true;
-    inputPlace.add(input);
-    input.setFn(mod -> {
-      if (mod==0) { send(); return true; }
-      return false;
-    });
+    inputPlace = base.ctx.id("inputPlace");
     ((BtnNode) base.ctx.id("send")).setFn(c -> send());
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
       if (view!=null) view.room().upload();
@@ -109,39 +104,9 @@ public class ChatMain extends NodeWindow {
   }
   
   public void send() {
-    Chatroom r = room();
-    if (r!=null) {
-      String s = input.getAll();
-      if (s.length()>0) {
-        if (editing!=null) r.edit(editing, s);
-        else r.post(s, replying==null? null : replying.id);
-        markEdit(null);
-        markReply(null);
-        input.removeAll();
-        input.um.clear();
-      }
-    }
-  }
-  public void setEdit(ChatEvent m) {
-    if (!markEdit(m)) return;
-    input.removeAll();
-    if (editing!=null) {
-      input.append(editing.getSrc());
-      input.um.clear();
-    }
-  }
-  private boolean markEdit(ChatEvent m) {
-    if (replying!=null) return false;
-    if (editing!=null) editing.mark(0);
-    editing = m;
-    if (editing!=null) editing.mark(1);
-    return true;
-  }
-  public void markReply(ChatEvent m) {
-    if (editing!=null) return;
-    if (replying!=null) replying.mark(0);
-    replying = m;
-    if (replying!=null) replying.mark(2);
+    ChatTextArea input = input();
+    if (input==null) return;
+    input.send();
   }
   
   public void addUser(ChatUser u) {
@@ -153,11 +118,10 @@ public class ChatMain extends NodeWindow {
   public int toLast; // 0-no; 1-smooth; 2-instant; 3-to highlighted
   public ChatEvent toHighlight;
   public void hideCurrent() {
-    setEdit(null);
-    markReply(null);
     if (view!=null) view.hide();
     view = null;
     cHover = null;
+    inputPlace.replace(0, new StringNode(ctx, ""));
     removeAllMessages();
     lastTimeStr = null;
   }
@@ -168,6 +132,7 @@ public class ChatMain extends NodeWindow {
     Log.fine("chat", "Moving to room "+c.name+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     hideCurrent();
     view = c;
+    inputPlace.replace(0, c.input);
     c.show();
     updActions();
     toLast = toHighlight!=null? 3 : 2;
@@ -177,16 +142,23 @@ public class ChatMain extends NodeWindow {
     Log.fine("chat", "Moving to transcript of room "+v.room().name);
     hideCurrent();
     view = v;
+    inputPlace.replace(0, v.room().input);
     v.show();
     updActions();
     toLast = 0;
   }
   public void updActions() {
     String info = "";
+    ChatTextArea input = input();
     if (cHover!=null) info+= Time.localNearTimeStr(cHover.msg.time);
     info+= "\n";
+    if (input!=null) {
+      if (input.editing!=null) info+= "editing message";
+      else if (input.replying!=null) info+= "replying to "+(input.replying.username);
+    }
     Chatroom room = room();
     if (room!=null && room.typing.length()>0) {
+      if (!info.endsWith("\n")) info+= "; ";
       info+= room.typing;
     }
     actionbar.replace(0, new StringNode(actionbar.ctx, info));
@@ -563,18 +535,8 @@ public class ChatMain extends NodeWindow {
   }
   
   public boolean key(Key key, int scancode, KeyAction a) {
-    if (input.psP!=null) {
-      switch (gc.keymap(key, a, "chat.autocomplete")) {
-        case "prev": ((MenuNode) input.psP.node).focusPrev(); return true;
-        case "next": ((MenuNode) input.psP.node).focusNext(); return true;
-        case "acceptOnly":
-          if (input.psP.node.ch.sz==1) {
-            ((MenuNode.MINode) input.psP.node.ch.get(0)).run();
-            return true;
-          }
-          break;
-      }
-    }
+    ChatTextArea input = input();
+    if (input!=null && input.globalKey(key, a)) return true;
     
     String name = gc.keymap(key, a, "chat");
     switch (name) {
@@ -684,8 +646,10 @@ public class ChatMain extends NodeWindow {
     colOtherPills = colorList(gc.getProp("chat.userCols.otherPills"));
     
     msgBorder = new Paint().setColor(gc.getProp("chat.msg.border").col()).setPathEffect(PathEffect.makeDash(new float[]{1, 1}, 0));
-    if (gc.getProp("chat.preview.enabled").b()) {
-      input.setLang(MDLang.makeLanguage(this, input));
-    } else input.setLang(gc.langs().defLang);
+    for (ChatUser u : users) {
+      for (Chatroom r : u.rooms()) {
+        r.cfgUpdated();
+      }
+    }
   }
 }

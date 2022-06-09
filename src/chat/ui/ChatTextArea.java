@@ -1,8 +1,8 @@
-package chat;
+package chat.ui;
 
+import chat.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Prop;
 import dzaima.ui.node.types.MenuNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
@@ -12,35 +12,38 @@ import java.util.Objects;
 
 public class ChatTextArea extends CodeAreaNode {
   public final ChatMain m;
+  public final Chatroom r;
+  public ChatEvent editing;
+  public ChatEvent replying;
   
-  public ChatTextArea(ChatMain m, Ctx ctx, String[] ks, Prop[] vs) {
-    super(ctx, ks, vs);
-    this.m = m;
+  public ChatTextArea(Chatroom r, String[] ks, Prop[] vs) {
+    super(r.m.ctx, ks, vs);
+    this.r = r;
+    this.m = r.m;
   }
   
   public boolean keyF2(Key key, int scancode, KeyAction a) {
     String name = gc.keymap(key, a, "chat");
     switch (name) {
       case "editUp": case "editDn":
-        if (m.view instanceof Chatroom && (m.editing==null? getAll().length()==0 : getAll().equals(m.editing.getSrc())&&um.us.sz==0)) {
+        if (m.view instanceof Chatroom && (editing==null? getAll().length()==0 : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
           Chatroom room = (Chatroom) m.view;
-          m.setEdit(name.equals("editUp")? room.prevMsg(m.editing, true) : room.nextMsg(m.editing, true));
+          setEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
           return true;
         }
         break;
       case "replyUp": case "replyDn":
-        if (m.view instanceof Chatroom && m.editing==null) {
+        if (m.view instanceof Chatroom && editing==null) {
           Chatroom room = (Chatroom) m.view;
-          m.markReply(name.equals("replyUp")? room.prevMsg(m.replying, false) : room.nextMsg(m.replying, false));
+          markReply(name.equals("replyUp")? room.prevMsg(replying, false) : room.nextMsg(replying, false));
           return true;
         }
         break;
       case "deleteMsg":
-        Chatroom room = m.room();
-        if (room!=null && m.editing!=null) {
-          ChatEvent toDel = m.editing;
-          m.setEdit(null);
-          room.delete(toDel);
+        if (editing!=null) {
+          ChatEvent toDel = editing;
+          setEdit(null);
+          r.delete(toDel);
           removeAll(); um.clear();
         }
         return true;
@@ -53,18 +56,19 @@ public class ChatTextArea extends CodeAreaNode {
     super.typed(codepoint);
   }
   
-  String prevSearch;
   Popup psP;
   NodeVW psV;
+  String prevSearch;
   public void tickC() {
     super.tickC();
-    
-    
+    userSearch(true);
+  }
+  public void userSearch(boolean visible) {
     // TODO move to some "on modified" method
     String newSearch = null;
     int si=-1, ei=-1;
     int y0=-1;
-    if (m.view!=null && (m.focusedVW==psV || m.focusNode==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
+    if (m.view!=null && visible && (m.focusedVW==psV || m.focusNode==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
       y0 = cs.get(0).sy;
       ei = cs.get(0).sx;
       si = ei;
@@ -119,10 +123,72 @@ public class ChatTextArea extends CodeAreaNode {
     int r0 = super.action(key, a);
     if (r0==1) return r0;
     if (a.press && key.k_esc()) {
-      if (m.editing !=null) { m.setEdit  (null);                return 1; }
-      if (m.replying!=null) { m.markReply(null);                return 1; }
-      if (getAll().length() != 0)                { removeAll(); return 1; }
+      if (editing !=null) { setEdit  (null);     return 1; }
+      if (replying!=null) { markReply(null);     return 1; }
+      if (getAll().length() != 0) { removeAll(); return 1; }
     }
     return r0;
+  }
+  
+  
+  
+  public void setEdit(ChatEvent m) {
+    if (!markEdit(m)) return;
+    removeAll();
+    if (editing!=null) {
+      append(editing.getSrc());
+      um.clear();
+    }
+  }
+  private boolean markEdit(ChatEvent m) {
+    if (replying!=null) return false;
+    if (editing!=null && editing.n!=null) editing.mark(0);
+    editing = m;
+    if (editing!=null && editing.n!=null) editing.mark(1);
+    this.m.updActions();
+    return true;
+  }
+  public void markReply(ChatEvent m) {
+    if (editing!=null) return;
+    if (replying!=null && replying.n!=null) replying.mark(0);
+    replying = m;
+    if (replying!=null && replying.n!=null) replying.mark(2);
+    this.m.updActions();
+  }
+  
+  public void send() {
+    String s = getAll();
+    if (s.length() <= 0) return;
+    
+    if (editing!=null) r.edit(editing, s);
+    else r.post(s, replying==null? null : replying.id);
+    
+    markEdit(null);
+    markReply(null);
+    removeAll();
+    um.clear();
+  }
+  
+  public boolean globalKey(Key key, KeyAction a) {
+    if (psP==null) return false;
+    switch (gc.keymap(key, a, "chat.autocomplete")) {
+      case "prev": ((MenuNode) psP.node).focusPrev(); return true;
+      case "next": ((MenuNode) psP.node).focusNext(); return true;
+      case "acceptOnly":
+        if (psP.node.ch.sz==1) {
+          ((MenuNode.MINode) psP.node.ch.get(0)).run();
+          return true;
+        }
+        break;
+    }
+    return false;
+  }
+  
+  public void roomHidden() {
+    userSearch(false);
+  }
+  public void roomShown() {
+    if (replying!=null) markReply(replying);
+    if (editing!=null) markEdit(editing);
   }
 }

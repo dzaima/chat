@@ -268,7 +268,7 @@ public class MxChatroom extends Chatroom {
         ((BtnNode) node.ctx.id("getLink")).setFn(c -> {
           String l = getUpload();
           if (l==null) return;
-          m.input.append(u.s.mxcToURL(l));
+          input.append(u.s.mxcToURL(l));
           close();
         });
         ((BtnNode) node.ctx.id("sendMessage")).setFn(c -> {
@@ -360,7 +360,7 @@ public class MxChatroom extends Chatroom {
     return cm;
   }
   
-  public void show() { super.show(); log.show(); }
+  public void show() { log.show(); super.show(); }
   public void hide() { super.hide(); log.hide(); }
   
   
@@ -374,10 +374,10 @@ public class MxChatroom extends Chatroom {
   }
   
   public boolean typed(int codepoint) {
-    if (codepoint=='`' && m.input.anySel()) {
-      m.input.um.pushL("backtick code");
-      for (Cursor c : m.input.cs) {
-        String s = m.input.getByCursor(c);
+    if (codepoint=='`' && input.anySel()) {
+      input.um.pushL("backtick code");
+      for (Cursor c : input.cs) {
+        String s = input.getByCursor(c);
         if ((s.contains("\\") || s.contains("`")) && !(s.startsWith(" ") || s.endsWith(" "))) {
           int l = 1;
           int cl = 0;
@@ -393,9 +393,9 @@ public class MxChatroom extends Chatroom {
           s = "`"+s.replace("\\", "\\\\").replace("`", "\\`")+"`";
         }
         c.clearSel();
-        m.input.insert(c.sx, c.sy, s);
+        input.insert(c.sx, c.sy, s);
       }
-      m.input.um.pop();
+      input.um.pop();
       return true;
     }
     return false;

@@ -8,7 +8,7 @@ import dzaima.ui.node.types.*;
 
 public class UserTagNode extends TextNode {
   private final ChatMain m;
-  private final ChatUser u;
+  private final Chatroom r;
   private final String userString;
   private boolean mine;
   public boolean vis = true;
@@ -16,7 +16,7 @@ public class UserTagNode extends TextNode {
   public UserTagNode(ChatMain m, ChatEvent ev) {
     super(m.ctx, KS_NONE, VS_NONE);
     this.m = m;
-    this.u = ev.room().user();
+    this.r = ev.room();
     this.userString = ev.userString();
     mine = ev.mine;
     add(new StringNode(ctx, ev.username));
@@ -31,9 +31,9 @@ public class UserTagNode extends TextNode {
   }
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    m.input.um.pushL("tag user");
-    m.input.pasteText(userString+" ");
-    m.input.um.pop();
+    r.input.um.pushL("tag user");
+    r.input.pasteText(userString+" ");
+    r.input.um.pop();
   }
   
   public void drawCh(Graphics g, boolean full) {
@@ -54,7 +54,7 @@ public class UserTagNode extends TextNode {
     }
     int pFG = sv.tcol;
     
-    sv.tcol = u.userCol(userString, mine, false);
+    sv.tcol = r.user().userCol(userString, mine, false);
     
     for (Node c : ch) sv.add(c);
     sv.tcol = pFG;
