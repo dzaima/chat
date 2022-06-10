@@ -46,7 +46,7 @@ public class MxChatNotice extends MxChatEvent {
               } else {
                 msg = "";
                 String prevName = prev.str("displayname", null);
-                if (!prevName.equals(member)) msg+= prevName+" changed their display name to "+member;
+                if (!Objects.equals(prevName, member)) msg+= (prevName==null? e.uid : prevName)+(member==null? " unset their username" : " changed their display name to "+member);
                 String prevAvatar = prev.str("avatar_url", null);
                 String currAvatar = e.ct.str("avatar_url", null);
                 if (!Objects.equals(prevAvatar, currAvatar)) {
