@@ -42,7 +42,7 @@ public class MxLog {
     list.insert(i, msgs);
   }
   public MxChatEvent processMessage(MxEvent e, int pos, boolean live) { // returns message that would be shown, or null if it's an edit
-    if ("m.reaction".equals(e.type)) {
+    if ("m.reaction".equals(e.type) && live) {
       JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");
       if (o.str("rel_type","").equals("m.annotation")) {
         String key = o.str("key", "");
