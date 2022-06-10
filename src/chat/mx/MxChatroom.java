@@ -406,7 +406,7 @@ public class MxChatroom extends Chatroom {
   public volatile MxRoom.Chunk olderRes; // TODO move to queueRequest? (or atomic at least idk)
   public long nextOlder;
   public void older() {
-    if (msgLogToStart) return;
+    if (msgLogToStart || prevBatch==null) return;
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");

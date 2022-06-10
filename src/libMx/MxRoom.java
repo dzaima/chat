@@ -47,7 +47,7 @@ public class MxRoom {
       res.add(new MxEvent(this, c));
     }
     if (d=='b') Collections.reverse(res);
-    return new Chunk(res, o.str("start"), o.str("end"));
+    return new Chunk(res, o.str("start"), o.str("end", null));
   }
   
   public Chunk msgContext(String id, int am) {
