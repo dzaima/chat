@@ -48,7 +48,7 @@ public class MxLog {
         String key = o.str("key", "");
         String r_id = o.str("event_id", "");
         MxChatEvent r_ce = find(r_id);
-        Log.fine("mx", "Reaction "+key+" added to "+r_id);
+        Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
         
         if (r_ce!=null) {
           r_ce.addReaction(key, 1);
@@ -56,7 +56,7 @@ public class MxLog {
           obj.to = r_ce;
           obj.key = key;
           reactions.put(e.id, obj);
-        } else Log.fine("mx", "Reaction was for unknown message");
+        } else Log.fine("mx reaction", "Reaction was for unknown message");
       } else if (o.size()!=0) {
         Log.info("Bad content[\"m.relates_to\"].rel_type value");
       }
@@ -64,14 +64,14 @@ public class MxLog {
     } else if ("m.room.redaction".equals(e.type)) {
       Reaction r = reactions.get(e.o.str("redacts", ""));
       if (r!=null) {
-        Log.fine("mx", "Reaction "+r.key+" removed from "+r.to.id);
+        Log.fine("mx reaction", "Reaction "+r.key+" removed from "+r.to.id);
         reactions.remove(e.id);
         r.to.addReaction(r.key, -1);
         return null;
       }
     }
     if (e.m==null) {
-      MxChatNotice cm = new MxChatNotice(this, e);
+      MxChatNotice cm = new MxChatNotice(this, e, live);
       if (cm.ignore()) return null;
       putMsg(cm);
       if (pos>=0) list.insert(pos, cm);

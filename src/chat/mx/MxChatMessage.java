@@ -19,7 +19,7 @@ public class MxChatMessage extends MxChatEvent {
     username = r.getUsername(m0.uid);
     edited = m0.edit != 0;
     setBody(m0, isNew);
-    loadReactions();
+    if (!isNew) loadReactions();
   }
   
   public void edit(MxEvent ne, boolean live) {

@@ -31,7 +31,12 @@ abstract class MxChatEvent extends ChatEvent {
   }
   protected void loadReactions() {
     for (JSON.Obj c : JSON.Obj.arrPath(e0.o, JSON.Arr.E, "unsigned", "m.relations", "m.annotation", "chunk").objs()) {
-      if ("m.reaction".equals(c.str("type",""))) addReaction(c.str("key", ""), c.getInt("count", 0));
+      if ("m.reaction".equals(c.str("type",""))) {
+        int count = c.getInt("count", 0);
+        String key = c.str("key", "");
+        Log.fine("mx reaction", "Loading initial reaction "+key+"×"+count+" for "+id);
+        addReaction(key, count);
+      }
     }
   }
   

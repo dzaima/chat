@@ -13,12 +13,12 @@ public class MxChatNotice extends MxChatEvent {
   public final MxEvent e;
   public final String executer;
   
-  public MxChatNotice(MxLog log, MxEvent e) {
+  public MxChatNotice(MxLog log, MxEvent e, boolean live) {
     super(log, e, e.id, null);
     this.e = e;
     executer = r.getUsername(e.uid);
     username = "";
-    loadReactions();
+    if (!live) loadReactions();
   }
   
   public boolean userEq(ChatEvent o) { return false; }
