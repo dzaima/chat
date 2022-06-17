@@ -311,7 +311,7 @@ public class MxChatroom extends Chatroom {
       String src = k.substring(1).toLowerCase();
       String disp = v.toLowerCase();
       if (src.startsWith(term) || disp.startsWith(term)) {
-        if (src.equals(term) || disp.equals(term)) complete[0] = true;
+        if (src.equals(term)) complete[0] = true;
         res.add(new UserRes(disp, k));
       }
     });
