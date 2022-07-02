@@ -65,7 +65,7 @@ public class MDParser {
       else if (c=='-' && ifTag(r, "---", '-', "del", SD_ST)) { }
       else if (c=='~' && ifTag(r, "~~", '~', "del", SD_ST)) { }
       else if (c=='|' && ifTag(r, "||", '|', "span", " data-mx-spoiler", SD_SP)) { }
-      else if (c=='_' && border(s, i-2) && ifTag(r, "_", '_', "i", SD_I)) { }
+      else if (c=='_' && border(s, i-2) && i<s.length() && s.charAt(i)!=' ' && s.charAt(i)!='_' && ifTag(r, "_", '_', "i", SD_I)) { }
       else if (c=='\\' && i<s.length() && ESCAPABLE.indexOf(s.charAt(i))!=-1) {
         ss(i-1, i, S_DEF_ESC);
         addText(r, s.charAt(i++));
