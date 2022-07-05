@@ -4,12 +4,14 @@ import chat.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.types.BtnNode;
 import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import io.github.humbleui.skija.Image;
 import libMx.*;
+import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -439,6 +441,19 @@ public class MxChatroom extends Chatroom {
     String s = usernames.get(uid);
     if (s==null) return uid.split(":")[0].substring(1);
     return s;
+  }
+  
+  public URLRes parseURL(String src) {
+    int safety = m.imageSafety();
+    if (src.startsWith("mxc://")) {
+      return new URLRes(r.s.mxcToURL(src), safety>0);
+    }
+    return new URLRes(src, safety>1);
+  }
+  public void loadImg(Element e, String url, Consumer<Node> loaded) {
+    u.queueRequest(null,
+      () -> HTMLParser.image(this, url, MxChatUser.get("Load image", url), e.hasAttr("data-mx-emoticon")),
+      loaded);
   }
   
   public String toString() { return name; }

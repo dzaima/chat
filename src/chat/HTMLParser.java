@@ -9,6 +9,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
+import dzaima.utils.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
@@ -29,11 +30,11 @@ public class HTMLParser {
     return base;
   }
   
-  public static Node image(Chatroom r, String link, byte[] data) {
+  public static Node image(Chatroom r, String link, byte[] data, boolean emoji) {
     Ctx ctx = r.m.base.ctx;
     TextNode l = new LinkNode(r, link, Type.IMG, data);
     VNode v = new VNode(ctx, new String[]{"h"}, new Prop[]{new EnumProp("min")});
-    v.add(new ImageNode(ctx, data));
+    v.add(new ImageNode(ctx, data, emoji));
     l.add(v);
     return l;
   }
@@ -141,13 +142,19 @@ public class HTMLParser {
             }
             break;
           case "img":
-            TextNode base = new TextNode(p.ctx, Node.KS_NONE, Node.VS_NONE);
-            String src = c.attr("src");
-            if (src==null) {
-              base.add(new StringNode(p.ctx, "(no URL for image provided)"));
+            if (c.hasAttr("src")) {
+              Chatroom.URLRes src = r.parseURL(c.attr("src"));
+              TextNode l = link(r, src.url, Type.IMG);
+              l.add(new StringNode(p.ctx, c.hasAttr("alt")? c.attr("alt")
+                                        : c.hasAttr("title")? c.attr("title")
+                                        : src.safe? "(image loading)" : "image"));
+              if (src.safe) r.loadImg(c, src.url, img -> {
+                l.clearCh();
+                l.add(img);
+              });
+              p.add(l);
             } else {
-              base.add(new StringNode(p.ctx, src));
-              p.add(link(r, src, Type.IMG));
+              p.add(new StringNode(p.ctx, "(<img> without URL)"));
             }
             break;
           case "code":

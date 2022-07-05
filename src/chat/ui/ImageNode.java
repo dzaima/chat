@@ -8,11 +8,13 @@ import io.github.humbleui.skija.Image;
 
 public class ImageNode extends Node {
   byte[] data;
+  private final boolean emoji;
   Image f0;
   
-  public ImageNode(Ctx ctx, byte[] data) {
+  public ImageNode(Ctx ctx, byte[] data, boolean emoji) {
     super(ctx, KS_NONE, VS_NONE);
     this.data = data;
+    this.emoji = emoji;
     try {
       f0 = Image.makeFromEncoded(data);
     } catch (Throwable e) {
@@ -30,8 +32,8 @@ public class ImageNode extends Node {
       int iw = f0.getWidth();
       int ih = f0.getHeight();
       
-      int mw = gc.getProp("chat.image.maxW").len();
-      int mh = gc.getProp("chat.image.maxH").len();
+      int mw = emoji? gc.em*2 : gc.getProp("chat.image.maxW").len();
+      int mh = emoji? gc.em : gc.getProp("chat.image.maxH").len();
       
       float sc = fitScale(gc, iw, ih, mw, mh);
       

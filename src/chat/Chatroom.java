@@ -7,6 +7,10 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 import dzaima.utils.Vec;
+import io.github.humbleui.skija.Image;
+import org.jsoup.nodes.Element;
+
+import java.util.function.Consumer;
 
 public abstract class Chatroom extends View {
   public final ChatMain m;
@@ -40,6 +44,14 @@ public abstract class Chatroom extends View {
   public abstract void upload();
   
   public abstract String getUsername(String uid);
+  
+  public static class URLRes {
+    public final String url;
+    public final boolean safe;
+    public URLRes(String url, boolean safe) { this.url = url; this.safe = safe; }
+  }
+  public abstract URLRes parseURL(String src);
+  public abstract void loadImg(Element e, String url, Consumer<Node> loaded);
   
   public static class UserRes {
     public final String disp, src;
