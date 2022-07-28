@@ -7,7 +7,6 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 import dzaima.utils.Vec;
-import io.github.humbleui.skija.Image;
 import org.jsoup.nodes.Element;
 
 import java.util.function.Consumer;

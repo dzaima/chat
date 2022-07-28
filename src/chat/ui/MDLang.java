@@ -15,7 +15,7 @@ public class MDLang extends Lang {
   
   public MDLang(Font f, ChatMain m, ChatTextArea ta) {
     super(new MDState(m, ta));
-    styles = new TextStyle[36];
+    styles = new TextStyle[38];
     int defTextCol = m.gc.getProp("str.color").col();
     int spoilerCol = m.gc.getProp("chat.preview.spoilerBg").col();
     int codeCol = m.gc.getProp("chat.preview.codeBg").col(); // TODO separate bgInline and bgBlock
@@ -38,6 +38,11 @@ public class MDLang extends Lang {
         }
         if (i==MDParser.S_CODE_ESC || i==MDParser.S_DEF_ESC) col = escCol;
         if (i==MDParser.S_LINK) col = m.gc.getProp("chat.link.col").col();
+        if (i==MDParser.S_QUOTE) col = m.gc.getProp("chat.preview.quoteCol").col();
+        if (i==MDParser.S_QUOTE_LEAD) {
+          bgCol = m.gc.getProp("chat.preview.quoteLeadBg").col();
+          col = m.gc.getProp("chat.preview.quoteLeadCol").col();
+        }
       }
       if (bgCol!=0) s.setBackground(new Paint().setColor(bgCol));
       s.setFontFamily(family);

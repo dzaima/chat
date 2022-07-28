@@ -19,6 +19,8 @@ public class MDParser {
   public static final int S_CODE_ESC = 33;
   public static final int S_LINK = 34;
   public static final int S_DEF_ESC = 35;
+  public static final int S_QUOTE = 36;
+  public static final int S_QUOTE_LEAD = 37;
   public static final int S_MASK = ~31;
   
   public static final int SD_I  = 1; // italics
@@ -83,6 +85,27 @@ public class MDParser {
           ss(colon==-1? j : Math.min(j, colon), j, S_DEF_ESC);
           i = j;
         }
+      }
+      else if (c=='>' && (i==1 || s.charAt(i-2)=='\n') && i<s.length() && s.charAt(i)==' ') {
+        i--;
+        int j = 0;
+        boolean first = true;
+        r.append("<blockquote>");
+        while (i+1 < s.length() && s.charAt(i)=='>' && s.charAt(i+1)==' ') {
+          ss(i, i+1, S_QUOTE_LEAD);
+          if (first) first = false;
+          else r.append("<br>");
+          i+= 2;
+          int i1 = i;
+          r.append(run('\n'));
+          if (i1==i || i>=s.length()) break;
+          if (s.charAt(i)=='\n') i++;
+        }
+        while (j<i && j<s.length()) {
+          if (styles[j]==S_DEF) styles[j] = S_QUOTE;
+          j++;
+        }
+        r.append("</blockquote>");
       }
       else if (c=='[') {
         int li = i;
@@ -160,6 +183,7 @@ public class MDParser {
             r.append('>');
             r.append(libMx.Utils.toHTML(cont, false));
             r.append("</code></pre>");
+            if (i-1<s.length() && s.charAt(i-1)=='\n') return r.toString();
           } else { // `` code with `backticks` ``
             int cend = s.indexOf(Tools.repeat('`', am), i);
             if (cend==-1) {

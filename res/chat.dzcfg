@@ -49,6 +49,9 @@ chat {
   preview.escape = #779 // color of escape characters
   preview.codeBg = #63000000 // weird colors & alpha because this will be drawn over the selection tinting, but we want that to be at least somewhat visible
   preview.spoilerBg = #20A9D0E0
+  preview.quoteLeadBg = #4999 // background color of leading ">"
+  preview.quoteLeadCol = str.color // text color of leading ">"
+  preview.quoteCol = chat.quote.color // quote text color
   preview.codeFamily = chat.code.family
   
   link.col = #A7DBC6 // #7cacff - a blue alternative
