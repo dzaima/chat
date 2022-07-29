@@ -183,7 +183,7 @@ public class MDParser {
             r.append('>');
             r.append(libMx.Utils.toHTML(cont, false));
             r.append("</code></pre>");
-            if (i-1<s.length() && s.charAt(i-1)=='\n') return r.toString();
+            if (i-1<s.length() && s.charAt(i-1)=='\n' && end=='\n') return r.toString();
           } else { // `` code with `backticks` ``
             int cend = s.indexOf(Tools.repeat('`', am), i);
             if (cend==-1) {
