@@ -88,7 +88,7 @@ public class MDParser {
       }
       else if (c=='>' && (i==1 || s.charAt(i-2)=='\n') && i<s.length() && s.charAt(i)==' ') {
         i--;
-        int j = 0;
+        int j = i;
         boolean first = true;
         r.append("<blockquote>");
         while (i+1 < s.length() && s.charAt(i)=='>' && s.charAt(i+1)==' ') {
