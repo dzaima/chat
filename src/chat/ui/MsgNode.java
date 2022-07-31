@@ -63,7 +63,7 @@ public class MsgNode extends WrapNode {
   
   public void mouseStart(int x, int y, Click c) {
     super.mouseStart(x, y, c);
-    if (Key.alt(c.mod)) c.register(this, x, y);
+    if (Key.alt(c.mod0)) c.register(this, x, y);
   }
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {

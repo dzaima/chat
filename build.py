@@ -12,6 +12,6 @@ uiPath = git_lib("UI")
 b = importlib.import_module(uiPath+".build")
 
 cp = b.build_ui_lib(uiPath)
-cp+= ":"+b.maven_lib("org/jsoup", "jsoup", "1.14.3", "lib")
+cp+= [b.maven_lib("org/jsoup", "jsoup", "1.14.3", "lib")]
 b.jar("chat.jar", cp)
-b.make_run("run", cp+":chat.jar", "chat.ChatMain", "-ea")
+b.make_run("run", cp+["chat.jar"], "chat.ChatMain", "-ea")

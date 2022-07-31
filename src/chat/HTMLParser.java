@@ -183,13 +183,13 @@ public class HTMLParser {
             if (tag.equals("font") && c.hasAttr("color")) colTxt = c.attr("color");
             else if (c.hasAttr("data-mx-color")) colTxt = c.attr("data-mx-color");
             if (colTxt!=null) {
-              Integer col = Token.ColorTok.parsePrefixed(colTxt);
+              Integer col = ColorUtils.parsePrefixed(colTxt);
               if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, new String[]{"color"}, new Prop[]{new ColProp(col)}));
             }
             
             if (c.hasAttr("data-mx-bg-color")) {
               String bgTxt = c.attr("data-mx-bg-color");
-              Integer col = Token.ColorTok.parsePrefixed(bgTxt);
+              Integer col = ColorUtils.parsePrefixed(bgTxt);
               if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, new String[]{"bg"}, new Prop[]{new ColProp(col)}));
             }
             

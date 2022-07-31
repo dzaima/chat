@@ -633,7 +633,7 @@ public class ChatMain extends NodeWindow {
       Vec<PNode> l = p.gr().ch;
       int[] res = new int[l.sz];
       for (int i = 0; i < res.length; i++) {
-        int c = Token.ColorTok.parsePrefixed(((PNodeStr) l.get(i)).s);
+        int c = ColorUtils.parsePrefixed(((PNodeStr) l.get(i)).s);
         res[i] = c;
       }
       return res;
