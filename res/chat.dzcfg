@@ -157,7 +157,6 @@ chat {
             }
           }
           h { w=0em:5em weight=.05 }
-          id=bc
         }
       }
       pad { all=.5em l=2em bg=chat.ly.bgInputBar
