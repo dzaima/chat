@@ -585,7 +585,11 @@ public class ChatMain extends NodeWindow {
     
     if (a.typed) {
       if (key.k_f5()) {
-        gc.reloadCfg();
+        try { gc.reloadCfg(); }
+        catch (Throwable e) {
+          Log.error("config reload", "Failed to load config:");
+          Window.onError(this, e, "config reload", null);
+        }
         return true;
       }
     }
