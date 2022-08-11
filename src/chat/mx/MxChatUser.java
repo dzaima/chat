@@ -22,14 +22,13 @@ import java.util.zip.*;
 import static chat.mx.MxChatroom.DEFAULT_MSGS;
 
 public class MxChatUser extends ChatUser {
-  
   public final Obj data;
-  public final MxServer s;
-  public final MxLogin u;
+  public MxServer s = null;
+  public MxLogin u = null;
   
   public MxSync2 sync;
   
-  public Vec<MxChatroom> roomList;
+  public Vec<MxChatroom> roomList = new Vec<>();
   public HashMap<String, MxChatroom> roomMap = new HashMap<>();
   
   private final ConcurrentLinkedQueue<Runnable> primary = new ConcurrentLinkedQueue<>();
@@ -72,7 +71,7 @@ public class MxChatUser extends ChatUser {
   public MxChatUser(ChatMain m, Obj dataIn) {
     super(m);
     this.data = dataIn;
-    s = MxServer.of(new MxLoginMgr() {
+    MxLoginMgr login = new MxLoginMgr() {
       public String getServer()   { return data.str("server"); }
       public String getUserID()   { return data.str("userid"); }
       public String getPassword() { return data.str("password"); }
@@ -81,36 +80,48 @@ public class MxChatUser extends ChatUser {
         data.put("token", new JSON.Str(token));
         m.requestSave();
       }
-    });
-    if (s==null) throw new RuntimeException("Failed to log in");
-    u = s.primaryLogin;
-    
-    node.ctx.id("name").replace(0, new StringNode(node.ctx, u.user().name()));
-    node.ctx.id("server").replace(0, new StringNode(node.ctx, s.url.replaceFirst("^https?://", "")));
-    roomList = new Vec<>();
-    
-    queueRequest(null, () -> u.s.getJ("_matrix/client/r0/sync?filter={\"room\":{\"timeline\":{\"limit\":"+DEFAULT_MSGS+"}}}&access_token=" + u.token), j -> {
-      HashMap<String, MxChatroom> todoRooms = new HashMap<>();
-      for (Entry e : j.obj("rooms", Obj.E).obj("join", Obj.E).entries()) {
-        MxChatroom r = new MxChatroom(this, e.k, e.v.obj());
-        roomMap.put(e.k, r);
-        todoRooms.put(e.k, r);
+    };
+    node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
+    queueNetwork(() -> {
+      MxServer s0 = MxServer.of(login);
+      if (s0==null) {
+        Log.error("mx", "Failed to log in");
+        return;
       }
+      MxLogin u0 = s0.primaryLogin;
       
-      boolean updatedRooms = false;
-      for (String o : data.arr("roomOrder", Arr.E).strs()) {
-        MxChatroom r = todoRooms.get(o);
-        if (r!=null) {
-          roomList.add(r);
-          todoRooms.remove(o);
-        } else updatedRooms = true;
-      }
+      String name = u0.user().name();
+      primary.add(() -> {
+        s = s0;
+        u = u0;
+        node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
+      });
       
-      updatedRooms|= todoRooms.size()>0;
-      if (updatedRooms) for (MxChatroom c : todoRooms.values()) roomList.add(c);
-      roomOrderChanged(updatedRooms);
+      Obj j = u0.s.getJ("_matrix/client/r0/sync?filter={\"room\":{\"timeline\":{\"limit\":" + DEFAULT_MSGS + "}}}&access_token=" + u0.token);
       
-      sync = new MxSync2(s, j.str("next_batch"));
+      primary.add(() -> {
+        HashMap<String, MxChatroom> todoRooms = new HashMap<>();
+        for (Entry e : j.obj("rooms", Obj.E).obj("join", Obj.E).entries()) {
+          MxChatroom r = new MxChatroom(this, e.k, e.v.obj());
+          roomMap.put(e.k, r);
+          todoRooms.put(e.k, r);
+        }
+  
+        boolean updatedRooms = false;
+        for (String o : data.arr("roomOrder", Arr.E).strs()) {
+          MxChatroom r = todoRooms.get(o);
+          if (r!=null) {
+            roomList.add(r);
+            todoRooms.remove(o);
+          } else updatedRooms = true;
+        }
+  
+        updatedRooms|= todoRooms.size()>0;
+        if (updatedRooms) for (MxChatroom c : todoRooms.values()) roomList.add(c);
+        roomOrderChanged(updatedRooms);
+      });
+      
+      sync = new MxSync2(s0, j.str("next_batch"));
       sync.start();
     });
   }
