@@ -44,9 +44,7 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   public void toTarget() {
-    MxChatEvent m = log.get(target);
-    if (m!=null) m.highlight(false);
-    else r.openTranscript(target, v -> {});
+    r.openTranscript(target, v -> {}, false);
   }
   
   private final Counter updateBodyCtr = new Counter();
@@ -57,7 +55,7 @@ public class MxChatMessage extends MxChatEvent {
       if (tg!=null) {
         String uid = tg.e0.uid;
         String name = tg.username;
-        if (name==null || name.isEmpty()) name = r.usernames.get(uid);
+        if (name==null || name.isEmpty()) name = r.getUsername(uid);
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
         Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
@@ -67,9 +65,7 @@ public class MxChatMessage extends MxChatEvent {
             Log.warn("mx", "Unknown reply ID "+m0.replyId);
             updateBody(false);
           } else {
-            String ruid = rm.uid;
-            String name = r.usernames.get(ruid);
-            bodyPrefix = r.pill(rm.fakeEvent(), rm.uid, name!=null? name : ruid) + " ";
+            bodyPrefix = r.pill(rm.fakeEvent(), rm.uid, r.getUsername(rm.uid)) + " ";
             updateBody(false);
           }
         });
@@ -94,7 +90,7 @@ public class MxChatMessage extends MxChatEvent {
           r.m.updMessage(this, tmpLink, live);
           
           r.u.queueRequest(updateBodyCtr,
-            () -> HTMLParser.inlineImage(r.u, loadUrl, MxChatUser.get("Load image", loadUrl), false), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
+            () -> HTMLParser.inlineImage(r.u, loadUrl, MxChatUser.get("Load image", loadUrl), ImageNode.InlineImageNode::new), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
             data -> {
               if (visible) { // room may have changed by the time the image loads
                 r.m.updMessage(this, data, false);

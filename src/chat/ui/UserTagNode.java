@@ -7,18 +7,18 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
 
 public class UserTagNode extends TextNode {
-  private final ChatMain m;
   private final Chatroom r;
   private final String userString;
-  private boolean mine;
+  private final boolean mine;
+  private final ChatEvent ev;
   public boolean vis = true;
   
   public UserTagNode(ChatMain m, ChatEvent ev) {
     super(m.ctx, KS_NONE, VS_NONE);
-    this.m = m;
     this.r = ev.room();
     this.userString = ev.userString();
     mine = ev.mine;
+    this.ev = ev;
     add(new StringNode(ctx, ev.username));
   }
   
@@ -27,8 +27,19 @@ public class UserTagNode extends TextNode {
   public void hoverE() { if (cursorPushed) ctx.vw().popCursor(); }
   
   public void mouseStart(int x, int y, Click c) {
-    if (vis) c.register(this, x, y);
+    if (vis && (c.bL() || c.bR())) c.register(this, x, y);
   }
+  
+  public void mouseDown(int x, int y, Click c) {
+    if (c.bR()) Popup.rightClickMenu(gc, ctx, "chat.profile.menu", cmd -> {
+      switch (cmd) {
+        case "view": ev.viewProfile(); break;
+        case "copyID": ctx.win().copyString(ev.userString()); break;
+        case "copyLink": r.m.copyString(ev.userURL()); break;
+      }
+    }).takeClick(c);
+  }
+  
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
     r.input.um.pushL("tag user");

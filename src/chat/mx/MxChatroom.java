@@ -4,7 +4,6 @@ import chat.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.Node;
 import dzaima.ui.node.types.BtnNode;
 import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
@@ -29,10 +28,12 @@ public class MxChatroom extends Chatroom {
   public boolean msgLogToStart = false;
   public String prevBatch;
   public MxEvent lastEvent;
-  public final HashMap<String, String> usernames = new HashMap<>();
   public final MxLog log;
   
-  private final HashMap<String, String> latestReceipts = new HashMap<>(); // map from user ID to ID of last message the user has a read receipt on
+  public static class UserData { public String username, avatar; }
+  public final HashMap<String, UserData> userData = new HashMap<>();
+  
+  public final HashMap<String, String> latestReceipts = new HashMap<>(); // map from user ID to ID of last message the user has a read receipt on
   private static class EventInfo { String closestVisible; int monotonicID; }
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
@@ -46,8 +47,8 @@ public class MxChatroom extends Chatroom {
     prevBatch = init.obj("timeline").str("prev_batch");
     if (nameState==0) {
       ArrayList<String> parts = new ArrayList<>();
-      usernames.forEach((id, nick) -> {
-        if (!id.equals(u.u.uid)) parts.add(nick);
+      userData.forEach((id, d) -> {
+        if (!id.equals(u.u.uid)) parts.add(d.username==null? id : d.username);
       });
       if (parts.size()>0) {
         StringBuilder n = new StringBuilder();
@@ -65,10 +66,11 @@ public class MxChatroom extends Chatroom {
   public void anyEvent(Obj ev, Obj ct) {
     switch (ev.str("type")) {
       case "m.room.member":
-        String dn = ct.str("displayname", null);
-        String sender = ev.str("sender");
-        if (!ct.str("membership").equals("join") && usernames.containsKey(sender)) dn = null;
-        if (dn!=null) usernames.put(sender, dn);
+        UserData d = this.userData.computeIfAbsent(ev.str("sender"), (s) -> new UserData());
+        if (ct.str("membership", "").equals("join")) {
+          d.username = ct.str("displayname", null);
+          d.avatar = ct.str("avatar_url", null);
+        }
         break;
       case "m.room.canonical_alias":
         if (nameState>2) break; nameState = 2;
@@ -182,9 +184,8 @@ public class MxChatroom extends Chatroom {
     }
   }
   
-  
   public MxFmt parse(String s) {
-    if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, usernames::get));
+    if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, this::onlyDisplayname));
     else return new MxFmt(s, Utils.toHTML(s, true));
   }
   private String[] command(String s) {
@@ -208,7 +209,7 @@ public class MxChatroom extends Chatroom {
       String left = cmd[1];
       switch (cmd[0]) {
         case "md":
-          f = new MxFmt(left, MDParser.toHTML(left, usernames::get));
+          f = new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname));
           break;
         case "text": case "plain":
           f = new MxFmt(left, Utils.toHTML(left, true));
@@ -308,10 +309,11 @@ public class MxChatroom extends Chatroom {
     String term = prefix.toLowerCase();
     Vec<UserRes> res = new Vec<>();
     boolean[] complete = new boolean[1];
-    usernames.forEach((k, v) -> {
+    userData.forEach((k, v) -> {
       String src = k.substring(1).toLowerCase();
-      String disp = v.toLowerCase();
-      if (src.startsWith(term) || disp.startsWith(term)) {
+      String username = v.username;
+      String disp = username==null? src : username.toLowerCase();
+      if (src.startsWith(term) || (username!=null && username.startsWith(term))) {
         if (src.equals(term)) complete[0] = true;
         res.add(new UserRes(disp, k));
       }
@@ -437,9 +439,13 @@ public class MxChatroom extends Chatroom {
   }
   
   public String getUsername(String uid) {
-    String s = usernames.get(uid);
-    if (s==null) return uid.split(":")[0].substring(1);
-    return s;
+    UserData d = userData.get(uid);
+    if (d==null || d.username==null) return uid.split(":")[0].substring(1);
+    return d.username;
+  }
+  public String onlyDisplayname(String uid) {
+    UserData d = userData.get(uid);
+    return d==null? null : d.username;
   }
   
   public URLRes parseURL(String src) {
@@ -459,7 +465,15 @@ public class MxChatroom extends Chatroom {
   }
   
   public static final Counter changeWindowCounter = new Counter();
-  public void openTranscript(String msgId, Consumer<Boolean> callback) {
+  public void openTranscript(String msgId, Consumer<Boolean> callback, boolean force) {
+    if (!force) {
+      MxChatEvent m = log.get(msgId);
+      if (m!=null) {
+        m.highlight(false);
+        callback.accept(true);
+        return;
+      }
+    }
     m.currentAction = "loading message context...";
     m.updInfo();
     u.queueRequest(changeWindowCounter, () -> r.msgContext(msgId, 100), c -> {

@@ -6,6 +6,7 @@ import chat.ui.Extras.LinkType;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
+import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.types.StringNode;
 import dzaima.ui.node.types.editable.code.*;
 import dzaima.utils.*;
@@ -16,7 +17,7 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.Consumer;
+import java.util.function.*;
 import java.util.zip.*;
 
 import static chat.mx.MxChatroom.DEFAULT_MSGS;
@@ -37,7 +38,8 @@ public class MxChatUser extends ChatUser {
   public static byte[] get(String logText, String url) {
     return CacheObj.compute(url, () -> {
       MxServer.log("file", logText+" "+url);
-      return Tools.get(url);
+      try { return Tools.get(url); }
+      catch (RuntimeException e) { Log.warn(logText, "Failed to load "+url); return null; }
     });
   }
   
@@ -204,8 +206,8 @@ public class MxChatUser extends ChatUser {
   public void queueGet(String msg, String url, Consumer<byte[]> loaded) {
     queueRequest(null, () -> MxChatUser.get(msg, url), loaded);
   }
-  public void loadImg(String url, Consumer<Node> loaded, boolean emoji) {
-    queueGet("Load image", url, d -> loaded.accept(HTMLParser.inlineImage(this, url, d, emoji)));
+  public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor) {
+    queueGet("Load image", url, d -> loaded.accept(HTMLParser.inlineImage(this, url, d, ctor)));
   }
   
   public MxChatroom findRoom(String name) {
@@ -246,7 +248,7 @@ public class MxChatUser extends ChatUser {
               }
               r.openTranscript(msgId, v -> {
                 if (!v) m.gc.openLink(url);
-              });
+              }, false);
               return;
             }
           }
@@ -313,8 +315,10 @@ public class MxChatUser extends ChatUser {
       
       if (type==LinkType.TEXT) {
         byte[] bs = get("Load text", url);
-        openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
-        return;
+        if (bs!=null) {
+          openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
+          return;
+        }
       }
     }
     

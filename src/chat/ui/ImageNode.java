@@ -15,7 +15,7 @@ public abstract class ImageNode extends Node {
     super(ctx, KS_NONE, VS_NONE);
     this.data = data;
     try {
-      f0 = Image.makeFromEncoded(data);
+      if (data!=null) f0 = Image.makeFromEncoded(data);
     } catch (Throwable e) {
       f0 = null;
     }
@@ -69,7 +69,7 @@ public abstract class ImageNode extends Node {
   boolean animInitiated;
   Animation anim;
   public void drawC(Graphics g) {
-    if (hovered) {
+    if (hovered && data!=null) {
       if (!animInitiated) {
         animInitiated = true;
         anim = new Animation(data);
@@ -114,5 +114,12 @@ public abstract class ImageNode extends Node {
     public int minTotH() { return gc.len(this, "minH", "chat.image.minH"); }
     public int maxTotW() { return gc.len(this, "maxW", "chat.image.maxW"); }
     public int maxTotH() { return gc.len(this, "maxH", "chat.image.maxH"); }
+  }
+  public static class ProfilePictureNode extends ImageNode {
+    public ProfilePictureNode(Ctx ctx, byte[] data) { super(ctx, data); }
+    public int minTotW() { return gc.len(this, "minW", "chat.profile.minW"); }
+    public int minTotH() { return gc.len(this, "minH", "chat.profile.minH"); }
+    public int maxTotW() { return gc.len(this, "maxW", "chat.profile.maxW"); }
+    public int maxTotH() { return gc.len(this, "maxH", "chat.profile.maxH"); }
   }
 }

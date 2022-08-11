@@ -15,6 +15,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 
 import java.net.*;
+import java.util.function.BiFunction;
 import java.util.regex.*;
 
 public class HTMLParser {
@@ -31,11 +32,11 @@ public class HTMLParser {
     return base;
   }
   
-  public static Node inlineImage(ChatUser u, String link, byte[] data, boolean emoji) {
+  public static Node inlineImage(ChatUser u, String link, byte[] data, BiFunction<Ctx, byte[], Node> ctor) {
     Ctx ctx = u.m.base.ctx;
     TextNode l = Extras.textLink(u, link, LinkType.IMG, data);
     InlineNode.TANode v = new InlineNode.TANode(ctx, new String[]{"width"}, new Prop[]{new EnumProp("max")});
-    v.add(emoji? new ImageNode.EmojiImageNode(ctx, data) : new ImageNode.InlineImageNode(ctx, data));
+    v.add(ctor.apply(ctx, data));
     l.add(v);
     return l;
   }
@@ -152,7 +153,7 @@ public class HTMLParser {
               if (src.safe) r.user().loadImg(src.url, img -> {
                 l.clearCh();
                 l.add(img);
-              }, c.hasAttr("data-mx-emoticon"));
+              }, c.hasAttr("data-mx-emoticon")? ImageNode.EmojiImageNode::new : ImageNode.InlineImageNode::new);
               p.add(l);
             } else {
               p.add(new StringNode(p.ctx, "(<img> without URL)"));

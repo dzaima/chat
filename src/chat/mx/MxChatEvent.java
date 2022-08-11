@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.ui.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
@@ -8,7 +9,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
-import libMx.MxEvent;
+import libMx.*;
 
 import java.util.*;
 
@@ -61,8 +62,29 @@ abstract class MxChatEvent extends ChatEvent {
     }
   }
   
-  public String userString() {
-    return e0.uid;
+  public String userString() { return e0.uid; }
+  public String userURL() { return MxFmt.userURL(e0.uid); }
+  
+  public void viewProfile() {
+    ChatMain m = room().m;
+    Node c = m.ctx.make(m.gc.getProp("chat.profile.ui").gr());
+    m.rightPanel.make(null).add(c);
+    String uid = e0.uid;
+    MxChatroom.UserData d = r.userData.get(uid);
+    
+    c.ctx.id("name").add(new StringNode(m.ctx, d==null? username : d.username==null? uid : d.username));
+    c.ctx.id("server").add(new StringNode(m.ctx, uid));
+    
+    if (d!=null && d.avatar!=null) {
+      Chatroom.URLRes url = room().parseURL(d.avatar);
+      if (url.safe) r.user().loadImg(url.url, n -> c.ctx.id("image").add(n), ImageNode.ProfilePictureNode::new);
+    }
+    
+    ((Extras.ClickableTextNode) c.ctx.id("toReadReceipt")).fn = () -> {
+      MxChatroom r = (MxChatroom) room();
+      String id = r.latestReceipts.get(uid);
+      if (id!=null) r.openTranscript(id, b -> {}, false);
+    };
   }
   
   public void rightClick(Click c, int x, int y) {

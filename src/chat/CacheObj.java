@@ -44,7 +44,7 @@ public class CacheObj {
     if (p!=null) return p;
     
     p = compute.get();
-    v.store(p);
+    if (p!=null) v.store(p);
     return p;
   }
   

@@ -30,6 +30,7 @@ public class ChatMain extends NodeWindow {
   
   public Path profilePath;
   private final Node msgs;
+  public final RightPanel rightPanel;
   public final ScrollNode msgsScroll;
   public final Node inputPlace;
   public final Vec<ChatUser> users = new Vec<>();
@@ -63,6 +64,8 @@ public class ChatMain extends NodeWindow {
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
       if (view!=null) view.room().upload();
     });
+  
+    rightPanel = new RightPanel(this);
     
     this.profilePath = Paths.get(profilePath);
     cfgUpdated();
@@ -598,6 +601,7 @@ public class ChatMain extends NodeWindow {
       if (key.k_f2()) { StringNode.PARAGRAPH_TEXT^= true; gc.cfgUpdated(); return true; }
     }
     if (super.key(key, scancode, a)) return true;
+    if (rightPanel.key(key, a)) return true;
     if (a.press && !key.isModifier()) focus(input);
     return super.key(key, scancode, a);
   }
@@ -613,6 +617,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("hideOverflow", HideOverflowNode::new);
       ctx.put("imageViewer", ImageViewerNode::new);
       ctx.put("roomList", ChatUser.RoomListNode::new);
+      ctx.put("clickableText", Extras.ClickableTextNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));

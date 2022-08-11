@@ -8,7 +8,7 @@ import dzaima.ui.node.types.ReorderableNode;
 import dzaima.utils.JSON.Obj;
 import dzaima.utils.Vec;
 
-import java.util.function.Consumer;
+import java.util.function.*;
 
 public abstract class ChatUser {
   public final ChatMain m;
@@ -34,7 +34,7 @@ public abstract class ChatUser {
   public abstract Obj data();
   
   public abstract void openLink(String url, Extras.LinkType type, byte[] data);
-  public abstract void loadImg(String url, Consumer<Node> loaded, boolean emoji);
+  public abstract void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor);
   
   public int userCol(String name, boolean mine, boolean pill) {
     if (mine) return pill? m.colMyPill : m.colMyNick;

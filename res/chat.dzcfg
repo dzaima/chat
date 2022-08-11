@@ -34,6 +34,7 @@ chat {
     reply = { "r" }
     edit = { "e" }
     viewSource = { "s" }
+    viewProfile = { "v" }
   }
   autocomplete.keys {
     prev = { "up" }
@@ -110,7 +111,7 @@ chat {
   room.listBg = #26272A
   room.selected = #373C44
   room.hovered = #2D3237
-  room.colServer = #666 // color of the server indicator in user list
+  room.colServer = #777 // color of the server indicator in user list
   
   // layouts
   ly.bgRoomTitle = #191A1A
@@ -143,48 +144,94 @@ chat {
         // rooms.accountP / rooms.accountSepP
       }
     }
-    v {
-      h { h=3.3em alY=center
-        pad { l=4em
-          text { tsz=1.3em "" id=roomName }
-        }
-        bg=chat.ly.bgRoomTitle
-      }
-      scroll { x=off id=msgsScroll
-        bg=chat.ly.bgTranscript
-        h {
-          pad { x=.3em u=5em d=.3em
-            v { h=min id=msgs
-              // actual message list
-            }
+    weighed { dir=h weight=1 id=panelWeight enabled=false
+      v { // message list
+        h { h=3.3em alY=center
+          pad { l=4em
+            text { tsz=1.3em "" id=roomName }
           }
-          h { w=0em:5em weight=.05 }
+          bg=chat.ly.bgRoomTitle
         }
-      }
-      pad { all=.5em l=2em bg=chat.ly.bgInputBar
-        h { h=min pad=.5em
-          scroll { h=6.2em w=chat.inputWidth bg=chat.ly.bgInput x=off
-            pad { all=.3em id=inputPlace "" }
-          }
-          v { pad=.2em weight=.2 w=10em:99em // todo figure out why this breaks with weight=.1
-            h { h=min pad=.5em
-              btn { style=rect id=send "send" padX=.5em padY=.3em }
-              btn { style=rect id=upload "upload" padX=.5em padY=.3em }
-            }
-            v {
-              hideOverflow { alX=left
-                text { id=actionbar "" color=chat.ly.colActions } // typing list, hovered message date/time
+        scroll { x=off id=msgsScroll
+          bg=chat.ly.bgTranscript
+          h {
+            pad { x=.3em u=5em d=.3em
+              v { h=min id=msgs
+                // actual message list
               }
-              h { h=max alY=bottom alX=right
-                hideOverflow { alX=right h=min
-                  text { id=infobar "" color=chat.ly.colInfo } // active action, link, etc
+            }
+            h { w=0em:5em weight=.05 }
+          }
+        }
+        pad { all=.5em l=2em bg=chat.ly.bgInputBar
+          h { h=min pad=.5em
+            scroll { h=6.2em w=chat.inputWidth bg=chat.ly.bgInput x=off
+              pad { all=.3em id=inputPlace "" }
+            }
+            v { pad=.2em weight=.2 w=10em:99em // todo figure out why this breaks with weight=.1
+              h { h=min pad=.5em
+                btn { style=rect id=send "send" padX=.5em padY=.3em }
+                btn { style=rect id=upload "upload" padX=.5em padY=.3em }
+              }
+              v {
+                hideOverflow { alX=left
+                  text { id=actionbar "" color=chat.ly.colActions } // typing list, hovered message date/time
+                }
+                h { h=max alY=bottom alX=right
+                  hideOverflow { alX=right h=min
+                    text { id=infobar "" color=chat.ly.colInfo } // active action, link, etc
+                  }
                 }
               }
             }
           }
         }
       }
+      v { id=rightPanelPlace bg=#f0f }
     }
+  }
+  
+  // right panel (room info, profile view)
+  rightPanel {
+    weight = 0.3 // initial width fraction
+    ui = pad { bg = #282828 all=.4em
+      v {
+        h { h=min
+          h { alX=left id=backBtnPlace }
+          h { alX=right btn { padX=.5em padY=.5em bgOff=#444 bgHover=#484848 radius=.6em maxWidth=true pad { id=closeIcon } id=closeBtn } }
+        }
+        id=content
+      }
+    }
+    backBtn = btn { padX=.4em padY=.35em bgOff=#444 bgHover=#484848 radius=.6em maxWidth=true
+      text {
+        ta { mode=above id=backIcon }
+        text { id=text }
+      }
+    }
+    keys {
+      close = { "esc" }
+      back = { }
+    }
+  }
+  profile {
+    menu = menu {
+      mi { id=view "View profile" key=chat.menuKeys.viewProfile }
+      mi { id=copyID "Copy ID" key=chat.menuKeys.copyText }
+      mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
+    }
+    ui = pad { x=0.5em
+      v { pad=.2em
+        h { h=min alX=center text { tsz=1.05em id=name } }
+        h { h=min alX=center text { tsz=1.05em id=server color=chat.room.colServer family=chat.code.familyUI } }
+        h { h=min alX=center id=image }
+        vsep { y=.5em }
+        clickableText { hover=true color=chat.link.col id=toReadReceipt "Jump to read receipt" }
+        id = more
+      }
+    }
+    minW=10em maxW=20em
+    minH=10em maxH=20em
   }
   
   // messages
@@ -283,7 +330,7 @@ chat {
   rooms.accountP = v { h=min
     pad { all=.5em x=.5em
       h {
-        text { text { tsz=1.05em id=name "…" } " " text { tsz=1.05em color=chat.room.colServer id=server "…" family=chat.code.familyUI } }
+        text { tsz=1.05em text { id=name "(loading)" } " " text { id=server color=chat.room.colServer family=chat.code.familyUI "??" } }
       }
     }
     roomList { dir=v mode=drag id=roomlist
@@ -304,6 +351,8 @@ chat {
   rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }
   
   // icons
+  icon.backP = svgicon { w=8 h=8 sz=15 src="M5.5 0l1 1-3 3 3 3-1 1-4-4Z" }
+  icon.closeP = svgicon { w=8 h=8 sz=15 src="M7 0 8 1 5 4 8 7 7 8 4 5 1 8 0 7 3 4 0 1 1 0 4 3Z" }
   // https://github.com/Templarian/MaterialDesign/blob/master/LICENSE https://www.apache.org/licenses/LICENSE-2.0
   icon.editedP = pad { u=.1em svgicon { w=24 h=24 sz=6 color=chat.ly.iconEdit src="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" } }
   icon.replyP = svgicon { w=24 h=24 sz=6 color=chat.ly.iconReply src="M11 17v-5h5v8h5V7H11V2l-7 7.5z" }

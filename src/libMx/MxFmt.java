@@ -55,8 +55,11 @@ public class MxFmt extends MxSendMsg {
     body.append("[").append(text).append("](").append(href).append(")");
     html.append("<a href=\"").append(Utils.toHTML(href)).append("\">").append(Utils.toHTML(text)).append("</a>");
   }
+  public static String userURL(String uid) {
+    return "https://matrix.to/#/"+Utils.toHTML(uid);
+  }
   public static String userHTML(String uid, String nick) {
-    return "<a href=\"https://matrix.to/#/"+Utils.toHTML(uid)+"\">"+Utils.toHTML(nick)+"</a>";
+    return "<a href=\""+userURL(uid)+"\">"+Utils.toHTML(nick)+"</a>";
   }
   public void user(String uid, String nick) {
     body.append(nick);
