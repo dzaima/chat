@@ -11,7 +11,6 @@ import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import io.github.humbleui.skija.Image;
 import libMx.*;
-import org.jsoup.nodes.Element;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -248,7 +247,7 @@ public class MxChatroom extends Chatroom {
     new Popup(m) {
       protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
       protected void unfocused() { close(); }
-      protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
+      protected boolean key(Key key, KeyAction a) { defaultKeys(key, a); return true; } // don't return keyboard control back to chat text input
       EditNode name, mime, path;
       protected void setup() {
         name = (EditNode) node.ctx.id("name");
@@ -449,11 +448,6 @@ public class MxChatroom extends Chatroom {
       return new URLRes(r.s.mxcToURL(src), safety>0);
     }
     return new URLRes(src, safety>1);
-  }
-  public void loadImg(Element e, String url, Consumer<Node> loaded) {
-    u.queueRequest(null,
-      () -> HTMLParser.image(this, url, MxChatUser.get("Load image", url), e.hasAttr("data-mx-emoticon")),
-      loaded);
   }
   
   public String toString() { return name; }

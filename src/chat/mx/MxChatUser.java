@@ -1,9 +1,11 @@
 package chat.mx;
 
 import chat.*;
-import chat.ui.Animation;
+import chat.ui.*;
+import chat.ui.Extras.LinkType;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 import dzaima.ui.node.types.editable.code.*;
 import dzaima.utils.*;
@@ -187,6 +189,14 @@ public class MxChatUser extends ChatUser {
     return data;
   }
   
+  
+  public void queueGet(String msg, String url, Consumer<byte[]> loaded) {
+    queueRequest(null, () -> MxChatUser.get(msg, url), loaded);
+  }
+  public void loadImg(String url, Consumer<Node> loaded, boolean emoji) {
+    queueGet("Load image", url, d -> loaded.accept(HTMLParser.inlineImage(this, url, d, emoji)));
+  }
+  
   public MxChatroom findRoom(String name) {
     if (name.startsWith("!")) {
       for (MxChatroom c : roomList) if (c.r.rid.equals(name)) return c;
@@ -196,8 +206,8 @@ public class MxChatUser extends ChatUser {
     }
     return null;
   }
-  public void openLink(String url, HTMLParser.Type type, byte[] data) {
-    if (type!=HTMLParser.Type.EXT) {
+  public void openLink(String url, LinkType type, byte[] data) {
+    if (type!=LinkType.EXT) {
       if (url.startsWith("https://matrix.to/#/")) {
         try {
           URI u = new URI(url);
@@ -232,7 +242,7 @@ public class MxChatUser extends ChatUser {
         } catch (URISyntaxException ignored) { }
       }
       
-      if (m.gc.getProp("chat.internalImageViewer").b() && (type==HTMLParser.Type.IMG || url.contains("/_matrix/media/"))) {
+      if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || url.contains("/_matrix/media/"))) {
         byte[] d = data;
         if (d==null) {
           try {
@@ -290,7 +300,7 @@ public class MxChatUser extends ChatUser {
         return;
       }
       
-      if (type==HTMLParser.Type.TEXT) {
+      if (type==LinkType.TEXT) {
         byte[] bs = get("Load text", url);
         openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
         return;

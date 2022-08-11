@@ -4,17 +4,16 @@ import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
+import dzaima.utils.Tools;
 import io.github.humbleui.skija.Image;
 
-public class ImageNode extends Node {
+public abstract class ImageNode extends Node {
   byte[] data;
-  private final boolean emoji;
   Image f0;
   
-  public ImageNode(Ctx ctx, byte[] data, boolean emoji) {
+  public ImageNode(Ctx ctx, byte[] data) {
     super(ctx, KS_NONE, VS_NONE);
     this.data = data;
-    this.emoji = emoji;
     try {
       f0 = Image.makeFromEncoded(data);
     } catch (Throwable e) {
@@ -22,24 +21,49 @@ public class ImageNode extends Node {
     }
   }
   
-  public static float fitScale(GConfig gc, int iw, int ih, int mw, int mh) {
-    return Math.min(Math.min(mw*1f/iw, mh*1f/ih), gc.imgScale);
-  }
+  public static float scaleMax(GConfig gc, int iw, int ih, int maxW, int maxH) { return Math.min(Math.min(maxW*1f/iw, maxH*1f/ih), gc.imgScale); }
+  public static float scaleMin(GConfig gc, int iw, int ih, int minW, int minH) { return Math.max(Math.max(minW*1f/iw, minH*1f/ih), gc.imgScale); }
   
-  int aw, ah;
+  // maximum image size; either being hit will limit the size
+  public abstract int maxTotW();
+  public abstract int maxTotH();
+  // minimum bounding box of the image; if smaller than that on one axis (or both in the case of a 0×0 image), will be padded to be at least that
+  // if greater than corresponding maxTot*, assumed to be that instead
+  public abstract int minTotW();
+  public abstract int minTotH();
+  
+  float scale, aspect;
+  int iw, ih, wMin, hMin, wMax, hMax;
   public void propsUpd() {
     if (f0!=null) {
-      int iw = f0.getWidth();
-      int ih = f0.getHeight();
-      
-      int mw = emoji? gc.em*2 : gc.getProp("chat.image.maxW").len();
-      int mh = emoji? gc.em : gc.getProp("chat.image.maxH").len();
-      
-      float sc = fitScale(gc, iw, ih, mw, mh);
-      
-      aw = (int) (iw*sc);
-      ah = (int) (ih*sc);
+      iw = f0.getWidth();
+      ih = f0.getHeight();
+    } else iw=ih=0;
+    
+    wMax = maxTotW();
+    hMax = maxTotH();
+    wMin = Math.min(minTotW(), wMax);
+    hMin = Math.min(minTotH(), hMax);
+    scale = gc.imgScale;
+    if (iw>0 && ih>0) {
+      aspect = iw*1f/ih;
+      wMax = Tools.constrain((int) Math.min(hMax*aspect, iw*scale), wMin, wMax);
+    } else {
+      aspect = 1f;
+      wMax = wMin;
+      hMax = hMin;
     }
+  }
+  
+  public int minW() { return wMin; }
+  public int maxW() { return wMax; }
+  
+  public int minH(int w) {
+    w = Math.min(w, wMax);
+    return Tools.constrain((int) (w/aspect), hMin, hMax);
+  }
+  public int maxH(int w) {
+    return minH(w);
   }
   
   boolean animInitiated;
@@ -66,14 +90,29 @@ public class ImageNode extends Node {
   }
   
   private void drawImg(Graphics g, Image i) {
-    if (i!=null) g.image(i, 0, 0, aw, ah, Graphics.Sampling.LINEAR_MIPMAP);
+    float sc = Math.min(w*1f/iw,
+                        h*1f/ih);
+    if (i!=null) g.image(i, 0, 0, (int) (iw*sc), (int) (ih*sc), Graphics.Sampling.LINEAR_MIPMAP);
   }
-  
-  public int minW() { return aw; }
-  public int minH(int w) { return ah; }
   
   boolean hovered = false;
   long animStart;
   public void hoverS() { mRedraw(); hovered = true; animStart = System.currentTimeMillis(); }
   public void hoverE() { mRedraw(); hovered = false; if (anim!=null) anim.hidden(); }
+  
+  
+  public static class EmojiImageNode extends ImageNode {
+    public EmojiImageNode(Ctx ctx, byte[] data) { super(ctx, data); }
+    public int minTotW() { return gc.em; }
+    public int minTotH() { return gc.em; }
+    public int maxTotW() { return gc.em*4; }
+    public int maxTotH() { return gc.em; }
+  }
+  public static class InlineImageNode extends ImageNode {
+    public InlineImageNode(Ctx ctx, byte[] data) { super(ctx, data); }
+    public int minTotW() { return gc.len(this, "minW", "chat.image.minW"); }
+    public int minTotH() { return gc.len(this, "minH", "chat.image.minH"); }
+    public int maxTotW() { return gc.len(this, "maxW", "chat.image.maxW"); }
+    public int maxTotH() { return gc.len(this, "maxH", "chat.image.maxH"); }
+  }
 }

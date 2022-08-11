@@ -71,8 +71,10 @@ chat {
   msg.border = #888 // dashed border color
   quote.line  = #999 // color of line left of a quote
   quote.color = #999 // text color in quote
-  image.maxW = 25em // maximum size of inline images
-  image.maxH = 25em
+  image.maxW = 40em // maximum size of inline images (whichever is hit first will limit the scale)
+  image.maxH = 20em
+  image.minW = 5em // and minimum size (touch area will always be at least this big, and the image will be as big as it can within it and/or the max size)
+  image.minH = 3em
   
   userCols.myNick = #D2D2D2
   userCols.myPill = chat.userCols.myNick
@@ -132,7 +134,7 @@ chat {
   // main
   ui = weighed { dir=h
     weight=.16
-    scroll { x=off y=hidden tempOverlap=true
+    scroll { x=off y=hidden tempOverlap=true // room list
       w=10em
       bg=chat.room.listBg
       v {

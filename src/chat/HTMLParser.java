@@ -1,6 +1,7 @@
 package chat;
 
-import chat.ui.ImageNode;
+import chat.ui.*;
+import chat.ui.Extras.LinkType;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
@@ -30,11 +31,11 @@ public class HTMLParser {
     return base;
   }
   
-  public static Node image(Chatroom r, String link, byte[] data, boolean emoji) {
-    Ctx ctx = r.m.base.ctx;
-    TextNode l = new LinkNode(r, link, Type.IMG, data);
-    VNode v = new VNode(ctx, new String[]{"h"}, new Prop[]{new EnumProp("min")});
-    v.add(new ImageNode(ctx, data, emoji));
+  public static Node inlineImage(ChatUser u, String link, byte[] data, boolean emoji) {
+    Ctx ctx = u.m.base.ctx;
+    TextNode l = Extras.textLink(u, link, LinkType.IMG, data);
+    InlineNode.TANode v = new InlineNode.TANode(ctx, new String[]{"width"}, new Prop[]{new EnumProp("max")});
+    v.add(emoji? new ImageNode.EmojiImageNode(ctx, data) : new ImageNode.InlineImageNode(ctx, data));
     l.add(v);
     return l;
   }
@@ -89,7 +90,7 @@ public class HTMLParser {
                 URI uri = new URI(url);
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
                 Node inner = p;
-                if (link==null) p.add(inner = link(r, url, Type.UNK));
+                if (link==null) p.add(inner = link(r, url, LinkType.UNK));
                 String txt = uri.getHost()+"/";
                 trunc: { int L = 50;
                   if (!uri.getScheme().equals("https")) txt = uri.getScheme()+"://"+txt;
@@ -136,7 +137,7 @@ public class HTMLParser {
               String id = url.substring(20);
               pill(r, p, c.text(), id, id.equals(r.user().id()));
             } else {
-              TextNode t = link(r, url, Type.UNK);
+              TextNode t = link(r, url, LinkType.UNK);
               rec(c, t, mono, url, r);
               p.add(t);
             }
@@ -144,14 +145,14 @@ public class HTMLParser {
           case "img":
             if (c.hasAttr("src")) {
               Chatroom.URLRes src = r.parseURL(c.attr("src"));
-              TextNode l = link(r, src.url, Type.IMG);
+              TextNode l = link(r, src.url, LinkType.IMG);
               l.add(new StringNode(p.ctx, c.hasAttr("alt")? c.attr("alt")
                                         : c.hasAttr("title")? c.attr("title")
                                         : src.safe? "(image loading)" : "image"));
-              if (src.safe) r.loadImg(c, src.url, img -> {
+              if (src.safe) r.user().loadImg(src.url, img -> {
                 l.clearCh();
                 l.add(img);
-              });
+              }, c.hasAttr("data-mx-emoticon"));
               p.add(l);
             } else {
               p.add(new StringNode(p.ctx, "(<img> without URL)"));
@@ -309,48 +310,10 @@ public class HTMLParser {
   
   
   
-  public enum Type { EXT, UNK, IMG, TEXT }
-  public static TextNode link(Chatroom r, String url, Type img) {
-    return new LinkNode(r, url, img, null);
-  }
-  private static class LinkNode extends TextNode {
-    private final Chatroom r;
-    private final String url;
-    private final Type type;
-    private final byte[] data;
-    public LinkNode(Chatroom r, String url, Type type, byte[] data) {
-      super(r.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{r.m.gc.getProp("chat.link.col"), EnumProp.TRUE});
-      this.r = r;
-      this.url = url;
-      this.type = type;
-      this.data = data;
-    }
-    public void mouseStart(int x, int y, Click c) {
-      super.mouseStart(x, y, c);
-      c.register(this, x, y);
-    }
-    public void mouseTick(int x, int y, Click c) {
-      if (c.bR()) Popup.rightClickMenu(gc, ctx, "chat.linkMenu", cmd -> {
-        switch (cmd) { default: ChatMain.warn("bad cmd " + cmd); break;
-          case "(closed)":
-            break;
-          case "copy":
-            r.m.copyString(url);
-            break;
-          case "openExt":
-            r.user().openLink(url, Type.EXT, null);
-        }
-      }).takeClick(c);
-      c.onClickEnd();
-    }
-    public void mouseUp(int x, int y, Click c) {
-      if (c.bL()) r.user().openLink(url, type, data);
-    }
-    public void hoverS() { super.hoverS(); r.m.hoverURL=url;  r.m.updInfo(); }
-    public void hoverE() { super.hoverE(); r.m.hoverURL=null; r.m.updInfo(); }
-  }
   
-  
+  public static TextNode link(Chatroom r, String url, LinkType img) {
+    return Extras.textLink(r.user(), url, img);
+  }
   
   private static TextNode spoiler(Ctx ctx) {
     return new SpoilerNode(ctx);

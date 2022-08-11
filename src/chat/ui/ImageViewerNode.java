@@ -24,7 +24,7 @@ public class ImageViewerNode extends Node {
   
   public void zoomToFit() {
     int h = gh();
-    zoom(w/2, h/2, ImageNode.fitScale(gc, anim.w, anim.h, w, h));
+    zoom(w/2, h/2, ImageNode.scaleMax(gc, anim.w, anim.h, w, h));
     move(w/2, h/2);
   }
   

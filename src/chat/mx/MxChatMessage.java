@@ -1,7 +1,8 @@
 package chat.mx;
 
 import chat.*;
-import chat.ui.MsgNode;
+import chat.ui.*;
+import chat.ui.Extras.LinkType;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
 import dzaima.utils.*;
@@ -88,12 +89,12 @@ public class MxChatMessage extends MxChatEvent {
         String loadUrl = getURL(s<=1);
         
         if (s>0 && loadUrl!=null) {
-          TextNode tmpLink = HTMLParser.link(r, getURL(false), HTMLParser.Type.IMG);
+          TextNode tmpLink = HTMLParser.link(r, getURL(false), LinkType.IMG);
           tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           r.m.updMessage(this, tmpLink, live);
           
           r.u.queueRequest(updateBodyCtr,
-            () -> HTMLParser.image(r, loadUrl, MxChatUser.get("Load image", loadUrl), false), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
+            () -> HTMLParser.inlineImage(r.u, loadUrl, MxChatUser.get("Load image", loadUrl), false), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
             data -> {
               if (visible) { // room may have changed by the time the image loads
                 r.m.updMessage(this, data, false);
@@ -105,7 +106,7 @@ public class MxChatMessage extends MxChatEvent {
           if (url==null) {
             r.m.updMessage(this, new StringNode(n.ctx, "(no URL for image provided)"), live);
           } else {
-            TextNode link = HTMLParser.link(r, url, HTMLParser.Type.IMG);
+            TextNode link = HTMLParser.link(r, url, LinkType.IMG);
             link.add(new StringNode(n.ctx, url));
             r.m.updMessage(this, link, live);
           }
@@ -121,9 +122,9 @@ public class MxChatMessage extends MxChatEvent {
           r.m.updMessage(this, new StringNode(n.ctx, "(no URL for file provided)"), live);
         } else {
           String mime = m0.ct.obj("info", JSON.Obj.E).str("mimetype", "");
-          HTMLParser.Type t = HTMLParser.Type.UNK;
-          if (type.equals("m.file") && mime.startsWith("text/")) t = HTMLParser.Type.TEXT;
-  
+          LinkType t = LinkType.UNK;
+          if (type.equals("m.file") && mime.startsWith("text/")) t = LinkType.TEXT;
+          
           TextNode link = HTMLParser.link(r, url, t);
           link.add(new StringNode(n.ctx, url));
           r.m.updMessage(this, link, live);

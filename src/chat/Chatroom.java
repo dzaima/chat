@@ -50,7 +50,6 @@ public abstract class Chatroom extends View {
     public URLRes(String url, boolean safe) { this.url = url; this.safe = safe; }
   }
   public abstract URLRes parseURL(String src);
-  public abstract void loadImg(Element e, String url, Consumer<Node> loaded);
   
   public static class UserRes {
     public final String disp, src;
