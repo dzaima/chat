@@ -187,21 +187,21 @@ chat {
           }
         }
       }
-      v { id=rightPanelPlace bg=#f0f }
+      v { id=rightPanelPlace }
     }
   }
   
   // right panel (room info, profile view)
   rightPanel {
     weight = 0.3 // initial width fraction
-    ui = pad { bg = #282828 all=.4em
-      v {
+    ui = v { bg = #282828
+      pad { all=.4em
         h { h=min
           h { alX=left id=backBtnPlace }
           h { alX=right btn { padX=.5em padY=.5em bgOff=#444 bgHover=#484848 radius=.6em maxWidth=true pad { id=closeIcon } id=closeBtn } }
         }
-        id=content
       }
+      scroll { pad { x=.4em bottom=.4em id=content } }
     }
     backBtn = btn { padX=.4em padY=.35em bgOff=#444 bgHover=#484848 radius=.6em maxWidth=true
       text {
@@ -221,16 +221,43 @@ chat {
       mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
     }
     ui = pad { x=0.5em
-      v { pad=.2em
+      v { pad=.5em
         h { h=min alX=center text { tsz=1.05em id=name } }
         h { h=min alX=center text { tsz=1.05em id=server color=chat.room.colServer family=chat.code.familyUI } }
         h { h=min alX=center id=image }
-        vsep { y=.5em }
-        clickableText { hover=true color=chat.link.col id=toReadReceipt "Jump to read receipt" }
+        vsep { y=.2em }
+        text { "General" tsz=1.05em }
+        clickableText { hover=true color=chat.link.col id=toReadReceipt "  Jump to read receipt" }
         id = more
       }
     }
-    minW=10em maxW=20em
+    adminUI = v { pad=.5em h=min
+      vsep { y=.2em }
+      text { "Admin" tsz=1.05em }
+    }
+    kickUI         = clickableText { hover=true color=chat.link.col id=run "  Kick" }
+    removeRecentUI = clickableText { hover=true color=chat.link.col id=run "  Remove recent messages" }
+    banUI          = clickableText { hover=true color=chat.link.col id=run text { "  " text { id=text "" } } }
+//    advancedBanUI  = clickableText { hover=true color=chat.link.col id=run "  Advanced ban" }
+    banMsg="Ban" unbanMsg="Unban"
+    
+    confirmUI = pad { bg=bg.middle all=1.2em
+      v { h=min w=50em pad=1em
+        text { text { id=msg } " \"" text { id=username } "\" from the room \"" text { id=room } "\"?" }
+        h { id=reasonPlace }
+        h { alX=right btn { "cancel" id=cancel style=rect padX=.5em padY=.3em } btn { id=run style=rect padX=.5em padY=.3em } pad=1em }
+      }
+    }
+    reasonField = h { alY=center text { "reason: " } scroll { y=off x=hidden textfield { family=str.defaultFont bg=chat.ly.bgUploadField id=reason } } }
+    removeRecentConfirmUI = pad { bg=bg.middle all=1.2em
+      v { h=min w=50em pad=1em
+        text { "Remove recent messages from \"" text { id=username } "\" within the room \"" text { id=room } "\"?" }
+        text { "This will remove " text { "n" id=num } " messages." }
+        h { alX=right btn { "cancel" id=cancel style=rect padX=.5em padY=.3em } btn { id=run style=rect padX=.5em padY=.3em "remove" } pad=1em }
+      }
+    }
+    
+    minW=10em maxW=20em // profile avatar image size
     minH=10em maxH=20em
   }
   

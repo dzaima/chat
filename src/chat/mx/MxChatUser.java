@@ -122,9 +122,10 @@ public class MxChatUser extends ChatUser {
         if (updatedRooms) for (MxChatroom c : todoRooms.values()) roomList.add(c);
         roomOrderChanged(updatedRooms);
       });
-      
-      sync = new MxSync2(s0, j.str("next_batch"));
-      sync.start();
+  
+      MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"));
+      sync0.start();
+      sync = sync0;
     });
   }
   public void roomOrderChanged(boolean save) {

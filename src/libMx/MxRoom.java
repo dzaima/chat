@@ -1,5 +1,7 @@
 package libMx;
 
+import dzaima.utils.JSON;
+
 import java.util.*;
 
 import static dzaima.utils.JSON.Obj;
@@ -65,6 +67,16 @@ public class MxRoom {
     s.postJ("_matrix/client/r0/rooms/"+rid+"/receipt/m.read/"+id+"?access_token="+s.gToken, "{}");
   }
   
+  public void kick(String uid, String reason) { kickBan("kick", uid, reason); }
+  public void ban(String uid, String reason) { kickBan("ban", uid, reason); }
+  public void unban(String uid) { kickBan("unban", uid, null); }
+  
+  void kickBan(String mode, String uid, String reason) {
+    HashMap<String, JSON.Val> map = new HashMap<>();
+    map.put("user_id", new JSON.Str(uid));
+    if (reason!=null) map.put("reason", new JSON.Str(reason));
+    s.postJ("_matrix/client/v3/rooms/"+rid+"/"+mode+"?access_token="+s.gToken, new JSON.Obj(map).toString());
+  }
   
   public String link() {
     return "https://matrix.to/#/"+rid;

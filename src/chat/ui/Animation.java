@@ -29,8 +29,7 @@ public class Animation {
       h0 = c0.getHeight();
       valid = true;
     } catch (Throwable e) {
-      Log.warn("animation", "Failed to load animation:");
-      Log.stacktrace("animation", e);
+      Log.warn("animation", "Failed to load animation");
       c0 = null;
     }
     if (starts==null || starts.length==0) starts = new int[]{0};

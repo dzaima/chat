@@ -30,8 +30,11 @@ public class MxChatroom extends Chatroom {
   public MxEvent lastEvent;
   public final MxLog log;
   
-  public static class UserData { public String username, avatar; }
+  public enum UserStatus { LEFT, INVITED, JOINED, BANNED, KNOCKING; }
+  public static class UserData { public String username, avatar; UserStatus s = UserStatus.LEFT; }
   public final HashMap<String, UserData> userData = new HashMap<>();
+  
+  public final PowerLevelManager powerLevels = new PowerLevelManager();
   
   public final HashMap<String, String> latestReceipts = new HashMap<>(); // map from user ID to ID of last message the user has a read receipt on
   private static class EventInfo { String closestVisible; int monotonicID; }
@@ -66,10 +69,18 @@ public class MxChatroom extends Chatroom {
   public void anyEvent(Obj ev, Obj ct) {
     switch (ev.str("type")) {
       case "m.room.member":
-        UserData d = this.userData.computeIfAbsent(ev.str("sender"), (s) -> new UserData());
-        if (ct.str("membership", "").equals("join")) {
+        UserData d = this.userData.computeIfAbsent(ev.str(ev.hasStr("state_key")? "state_key" : "sender"), (s) -> new UserData());
+        String m = ct.str("membership", "");
+        if (m.equals("join")) {
           d.username = ct.str("displayname", null);
           d.avatar = ct.str("avatar_url", null);
+        }
+        switch (m) {
+          case "invite": d.s = UserStatus.INVITED; break;
+          case "join": d.s = UserStatus.JOINED; break;
+          case "leave": d.s = UserStatus.LEFT; break;
+          case "ban": d.s = UserStatus.BANNED; break;
+          case "knock": d.s = UserStatus.KNOCKING; break;
         }
         break;
       case "m.room.canonical_alias":
@@ -85,6 +96,9 @@ public class MxChatroom extends Chatroom {
         nameState = 3;
         if (ct.hasStr("name")) setName(ct.str("name"));
         break;
+      case "m.room.power_levels":
+        powerLevels.update(ct);
+        break;
     }
   }
   
@@ -96,7 +110,7 @@ public class MxChatroom extends Chatroom {
         default:
           anyEvent(ev, ct);
           break;
-        case "m.room.history_visibility": case "m.room.power_levels": case "m.room.join_rules": case "m.room.create": case "m.room.guest_access": break;
+        case "m.room.history_visibility": case "m.room.join_rules": case "m.room.create": case "m.room.guest_access": break;
       }
     }
     

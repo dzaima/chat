@@ -38,10 +38,11 @@ public class MxChatNotice extends MxChatEvent {
           String member = e.ct.str("displayname", null);
           if (member==null) member = r.getUsername(e.o.str("state_key", ""));
           String msg;
+          Obj prev = Obj.path(e.o, Obj.E, "unsigned", "prev_content").obj();
+          String prevMembership = prev.str("membership", "");
           switch (e.ct.str("membership", "")) {
             case "join":
-              Obj prev = Obj.path(e.o, Obj.E, "unsigned", "prev_content").obj();
-              if (!prev.str("membership","").equals("join")) {
+              if (!prevMembership.equals("join")) {
                 msg = member+" joined";
               } else {
                 msg = "";
@@ -61,16 +62,17 @@ public class MxChatNotice extends MxChatEvent {
             case "leave":
               if (executer.equals(member)) msg = member+" left";
               else {
-                msg = executer+" kicked "+member;
+                msg = prevMembership.equals("ban")? executer+" unbanned "+member : executer+" kicked "+member;
                 if (e.ct.hasStr("reason")) msg+= ": "+e.ct.str("reason");
               }
               break;
             case "ban":
               msg = executer+" banned "+member;
+              if (e.ct.hasStr("reason")) msg+= ": "+e.ct.str("reason");
               break;
             case "knock":
               if (!executer.equals(member)) {
-                msg = member+" is requesting access to room";
+                msg = member+" requested access to this room";
                 break;
               }
               /* fallthrough */
