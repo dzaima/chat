@@ -27,7 +27,6 @@ public class ViewProfile {
     this.data = r.userData.get(uid);
     this.username = data==null? username0 : data.username==null? uid : data.username;
     this.uid = uid;
-    m.rightPanel.make(null).add(base);
   }
   
   public static void viewProfile(String uid, String username0, MxChatroom r) {
@@ -83,6 +82,7 @@ public class ViewProfile {
   
   Node banRow;
   public void run() {
+    m.rightPanel.make("users", r::viewUsers).add(base);
     base.ctx.id("name").add(new StringNode(m.ctx, username));
     base.ctx.id("server").add(new StringNode(m.ctx, uid));
     

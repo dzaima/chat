@@ -7,9 +7,6 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 import dzaima.utils.Vec;
-import org.jsoup.nodes.Element;
-
-import java.util.function.Consumer;
 
 public abstract class Chatroom extends View {
   public final ChatMain m;
@@ -109,9 +106,8 @@ public abstract class Chatroom extends View {
     if (open) m.setCurrentName(name);
   }
   
-  public String title() {
-    return name;
-  }
+  public String title() { return name; }
+  public abstract void viewRoomInfo();
   
   public abstract ChatUser user();
   public Chatroom room() { return this; }

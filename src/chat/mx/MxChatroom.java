@@ -464,7 +464,7 @@ public class MxChatroom extends Chatroom {
   
   public URLRes parseURL(String src) {
     int safety = m.imageSafety();
-    if (src.startsWith("mxc://")) {
+    if (MxServer.isMxc(src)) {
       return new URLRes(r.s.mxcToURL(src), safety>0);
     }
     return new URLRes(src, safety>1);
@@ -501,6 +501,12 @@ public class MxChatroom extends Chatroom {
     m.toTranscript(new MxTranscriptView(this, highlightID, c));
   }
   
+  public void viewRoomInfo() {
+    viewUsers();
+  }
+  public void viewUsers() {
+    ViewUsers.viewUsers(this);
+  }
   
   protected void rightClick(Click c, int x, int y) {
     PNodeGroup gr = node.gc.getProp("chat.mx.roomMenu.main").gr().copy();

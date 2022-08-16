@@ -1,6 +1,6 @@
 package chat;
 
-import chat.mx.MxChatUser;
+import chat.mx.*;
 import chat.ui.*;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
@@ -64,6 +64,10 @@ public class ChatMain extends NodeWindow {
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
       if (view!=null) view.room().upload();
     });
+    // ((BtnNode) base.ctx.id("roomInfo")).setFn(c -> {
+    //   Chatroom r = room();
+    //   if (r!=null) r.viewRoomInfo();
+    // });
   
     rightPanel = new RightPanel(this);
     

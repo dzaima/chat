@@ -210,6 +210,9 @@ public class MxChatUser extends ChatUser {
   public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor) {
     queueGet("Load image", url, d -> loaded.accept(HTMLParser.inlineImage(this, url, d, ctor)));
   }
+  public void loadImg(String mxc, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, int w, int h, MxServer.ThumbnailMode mode) {
+    loadImg(s.mxgToThumbnailURL(mxc, w, h, mode), loaded, ctor);
+  }
   
   public MxChatroom findRoom(String name) {
     if (name.startsWith("!")) {

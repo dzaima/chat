@@ -122,4 +122,11 @@ public abstract class ImageNode extends Node {
     public int maxTotW() { return gc.len(this, "maxW", "chat.profile.maxW"); }
     public int maxTotH() { return gc.len(this, "maxH", "chat.profile.maxH"); }
   }
+  public static class UserListAvatarNode extends ImageNode {
+    public UserListAvatarNode(Ctx ctx, byte[] data) { super(ctx, data); }
+    public int minTotW() { return gc.len(this, "minW", "chat.userList.avatarSz"); }
+    public int minTotH() { return gc.len(this, "minH", "chat.userList.avatarSz"); }
+    public int maxTotW() { return gc.len(this, "maxW", "chat.userList.avatarSz"); }
+    public int maxTotH() { return gc.len(this, "maxH", "chat.userList.avatarSz"); }
+  }
 }
