@@ -327,7 +327,7 @@ public class MxChatroom extends Chatroom {
       String src = k.substring(1).toLowerCase();
       String username = v.username;
       String disp = username==null? src : username.toLowerCase();
-      if (src.startsWith(term) || (username!=null && username.startsWith(term))) {
+      if (src.startsWith(term) || (username!=null && disp.startsWith(term))) {
         if (src.equals(term)) complete[0] = true;
         res.add(new UserRes(disp, k));
       }
