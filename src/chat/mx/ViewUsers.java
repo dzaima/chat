@@ -53,7 +53,7 @@ public class ViewUsers {
     public void drawC(Graphics g) {
       if (!loaded) {
         loaded = true;
-        r.u.loadImg(mxc, this::add, ImageNode.UserListAvatarNode::new, w, h, MxServer.ThumbnailMode.CROP, () -> true);
+        r.u.loadMxcImg(mxc, this::add, ImageNode.UserListAvatarNode::new, w, h, MxServer.ThumbnailMode.CROP, () -> true);
       }
     }
     

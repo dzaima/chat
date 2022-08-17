@@ -69,8 +69,8 @@ public abstract class ImageNode extends Node {
   boolean animInitiated;
   Animation anim;
   public void drawC(Graphics g) {
-    if (hovered && data!=null) {
-      if (!animInitiated) {
+    if (hovered) {
+      if (data!=null && !animInitiated) {
         animInitiated = true;
         anim = new Animation(data);
         if (anim.frameCount()<=1) {

@@ -8,6 +8,8 @@ import dzaima.ui.node.types.*;
 import dzaima.utils.*;
 import libMx.*;
 
+import java.util.function.Consumer;
+
 public class MxChatMessage extends MxChatEvent {
   public final MxMessage m0;
   private String bodyPrefix = ""; // from reply
@@ -47,8 +49,10 @@ public class MxChatMessage extends MxChatEvent {
     r.openTranscript(target, v -> {}, false);
   }
   
-  private final Counter updateBodyCtr = new Counter();
+  private int bodyUpdateCtr = 0;
   public void updateBody(boolean live) {
+    bodyUpdateCtr++;
+    
     if (visible && m0.replyId!=null && !replyRequested) {
       replyRequested = true;
       MxChatEvent tg = log.get(m0.replyId);
@@ -82,21 +86,22 @@ public class MxChatMessage extends MxChatEvent {
         if (!visible) return;
         
         int s = r.m.imageSafety();
-        String loadUrl = getURL(s<=1);
+        String safeURL = getURL(s<=1);
         
-        if (s>0 && loadUrl!=null) {
+        if (s>0 && safeURL!=null) {
           TextNode tmpLink = HTMLParser.link(r, getURL(false), LinkType.IMG);
           tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           r.m.updMessage(this, tmpLink, live);
-          
-          r.u.queueRequest(updateBodyCtr,
-            () -> HTMLParser.inlineImage(r.u, loadUrl, true, MxChatUser.get("Load image", loadUrl), ImageNode.InlineImageNode::new), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
-            data -> {
-              if (visible) { // room may have changed by the time the image loads
-                r.m.updMessage(this, data, false);
-              }
-            }
-          );
+  
+          String rawURL = getRawURL();
+          int expect = bodyUpdateCtr;
+          Consumer<Node> got = n -> { if (visible && expect==bodyUpdateCtr) r.m.updMessage(this, n, false); };
+  
+          if (MxServer.isMxc(rawURL) && !JSON.Obj.path(e0.ct, JSON.Str.E, "info", "mimetype").str().equals("image/gif")) { // TODO checking for gif specifically is stupid
+            r.u.loadMxcImg(rawURL, got, ImageNode.InlineImageNode::new, r.m.gc.getProp("chat.image.maxW").len(), r.m.gc.getProp("chat.image.maxH").len(), MxServer.ThumbnailMode.SCALE, () -> true);
+          } else {
+            r.u.loadImg(safeURL, got, ImageNode.InlineImageNode::new, () -> true);
+          }
         } else {
           String url = getURL(false);
           if (url==null) {
@@ -143,13 +148,12 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   
+  private String getRawURL() {
+    return m0.ct.str("url", null);
+  }
   private String getURL(boolean safe) { // returns null if unknown or unsafe
-    String body;
-    
-    JSON.Obj c = m0.ct;
-    if (c.hasStr("url")) body = c.str("url");
-    else return null;
-    
+    String body = getRawURL();
+    if (body==null) return null;
     if (body.startsWith("mxc://")) return r.u.s.mxcToURL(body);
     if (safe) return null;
     return body;

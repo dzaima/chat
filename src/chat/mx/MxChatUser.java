@@ -218,7 +218,7 @@ public class MxChatUser extends ChatUser {
   public void loadImg(String url, String link, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, Supplier<Boolean> stillNeeded) { // TODO pass actually useful stillNeeded
     media.request(url, d -> primary.add(() -> loaded.accept(HTMLParser.inlineImage(this, link, url.equals(link), d, ctor))), stillNeeded);
   }
-  public void loadImg(String mxc, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, int w, int h, MxServer.ThumbnailMode mode, Supplier<Boolean> stillNeeded) {
+  public void loadMxcImg(String mxc, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, int w, int h, MxServer.ThumbnailMode mode, Supplier<Boolean> stillNeeded) {
     loadImg(s.mxcToThumbnailURL(mxc, w, h, mode), s.mxcToURL(mxc), loaded, ctor, stillNeeded);
   }
   
