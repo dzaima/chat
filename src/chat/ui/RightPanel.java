@@ -27,12 +27,10 @@ public class RightPanel {
     run(true);
     place.clearCh();
     Node n = m.ctx.make(m.gc.getProp("chat.rightPanel.ui").gr());
-    n.ctx.id("closeIcon").add(m.ctx.make(m.gc.getProp("chat.icon.closeP").gr()));
     ((BtnNode) n.ctx.id("closeBtn")).setFn(b -> close());
     
     if (backName!=null) {
       Node b = m.ctx.make(m.gc.getProp("chat.rightPanel.backBtn").gr());
-      b.ctx.id("backIcon").add(m.ctx.make(m.gc.getProp("chat.icon.backP").gr()));
       b.ctx.id("text").add(new StringNode(m.ctx, backName));
       ((BtnNode) b.ctx.id("btn")).setFn(btn -> onBack.run());
       n.ctx.id("backBtnPlace").add(b);

@@ -88,7 +88,7 @@ public class ViewProfile {
     
     if (data!=null && data.avatar!=null) {
       Chatroom.URLRes url = r.parseURL(data.avatar);
-      if (url.safe) r.user().loadImg(url.url, n -> base.ctx.id("image").add(n), ImageNode.ProfilePictureNode::new);
+      if (url.safe) r.user().loadImg(url.url, n -> base.ctx.id("image").add(n), ImageNode.ProfilePictureNode::new, () -> true);
     }
     
     ((Extras.ClickableTextNode) base.ctx.id("toReadReceipt")).fn = () -> {

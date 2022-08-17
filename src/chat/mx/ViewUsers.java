@@ -51,14 +51,14 @@ public class ViewUsers {
     public LazyLoadedImg(Ctx ctx, String mxc) { super(ctx, KS_NONE, VS_NONE);
       this.mxc = mxc;
     }
-  
+    
     public void drawC(Graphics g) {
       if (!loaded) {
         loaded = true;
-        r.u.loadImg(mxc, this::add, ImageNode.UserListAvatarNode::new, w, h, MxServer.ThumbnailMode.CROP);
+        r.u.loadImg(mxc, this::add, ImageNode.UserListAvatarNode::new, w, h, MxServer.ThumbnailMode.CROP, () -> true);
       }
     }
-  
+    
     protected void resized() { if (ch.sz==1) ch.get(0).resize(w, h, 0, 0); }
   }
 }

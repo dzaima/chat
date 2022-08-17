@@ -54,9 +54,7 @@ public class HTMLParser {
   
   private static Node pre(Ctx ctx, String c0) {
     if (c0.endsWith("\n")) c0 = c0.substring(0, c0.length()-1);
-    Node n = ctx.make(ctx.gc.getProp("chat.code.blockP").gr());
-    n.ctx.id("body").add(new StringNode(ctx, c0));
-    return n;
+    return ctx.makeKV(ctx.gc.getProp("chat.code.$blockP").gr(), "$body", new StringNode(ctx, c0));
   }
   
   
@@ -153,7 +151,7 @@ public class HTMLParser {
               if (src.safe) r.user().loadImg(src.url, img -> {
                 l.clearCh();
                 l.add(img);
-              }, c.hasAttr("data-mx-emoticon")? ImageNode.EmojiImageNode::new : ImageNode.InlineImageNode::new);
+              }, c.hasAttr("data-mx-emoticon")? ImageNode.EmojiImageNode::new : ImageNode.InlineImageNode::new, () -> true);
               p.add(l);
             } else {
               p.add(new StringNode(p.ctx, "(<img> without URL)"));
@@ -297,7 +295,7 @@ public class HTMLParser {
   private static void wrap(TextNode n, Element c, boolean mono, String link, Chatroom r, String key) {
     PNodeGroup g = n.gc.getProp(key).gr();
     assert "text".equals(g.name);
-    wrap(n, c, mono, link, r, g.ks, n.ctx.finishProps(g));
+    wrap(n, c, mono, link, r, g.ks, n.ctx.finishProps(g, Ctx.NO_VARS));
   }
   private static void wrap(TextNode p, Element c, boolean mono, String link, Chatroom r, String[] k, Prop[] v) {
     TextNode n = new TextNode(p.ctx, k, v);

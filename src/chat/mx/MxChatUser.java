@@ -35,9 +35,12 @@ public class MxChatUser extends ChatUser {
   private final ConcurrentLinkedQueue<Runnable> primary = new ConcurrentLinkedQueue<>();
   private final LinkedBlockingDeque<Runnable> network = new LinkedBlockingDeque<>();
   
+  public static void logGet(String logText, String url) {
+    MxServer.log("file", logText+" "+url);
+  }
   public static byte[] get(String logText, String url) {
     return CacheObj.compute(url, () -> {
-      MxServer.log("file", logText+" "+url);
+      logGet(logText, url);
       try { return Tools.get(url); }
       catch (RuntimeException e) { Log.warn(logText, "Failed to load "+url); return null; }
     });
@@ -69,6 +72,7 @@ public class MxChatUser extends ChatUser {
       }
     }
   });
+  MediaThread media = new MediaThread();
   
   public MxChatUser(ChatMain m, Obj dataIn) {
     super(m);
@@ -168,6 +172,7 @@ public class MxChatUser extends ChatUser {
         c.run();
       } catch (Throwable t) { Log.stacktrace("mx primaryQueue", t); }
     }
+    media.tick();
     
     if (sync==null) return;
     
@@ -207,11 +212,12 @@ public class MxChatUser extends ChatUser {
   public void queueGet(String msg, String url, Consumer<byte[]> loaded) {
     queueRequest(null, () -> MxChatUser.get(msg, url), loaded);
   }
-  public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor) {
-    queueGet("Load image", url, d -> loaded.accept(HTMLParser.inlineImage(this, url, d, ctor)));
+  public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, Supplier<Boolean> stillNeeded) { // TODO pass actually useful stillNeeded
+    // queueGet("Load image", url, d -> loaded.accept(HTMLParser.inlineImage(this, url, d, ctor)));
+    media.request(url, d -> primary.add(() -> loaded.accept(HTMLParser.inlineImage(this, url, d, ctor))), stillNeeded);
   }
-  public void loadImg(String mxc, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, int w, int h, MxServer.ThumbnailMode mode) {
-    loadImg(s.mxgToThumbnailURL(mxc, w, h, mode), loaded, ctor);
+  public void loadImg(String mxc, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, int w, int h, MxServer.ThumbnailMode mode, Supplier<Boolean> stillNeeded) {
+    loadImg(s.mxgToThumbnailURL(mxc, w, h, mode), loaded, ctor, stillNeeded);
   }
   
   public MxChatroom findRoom(String name) {

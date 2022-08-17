@@ -305,19 +305,17 @@ public class ChatMain extends NodeWindow {
       lastTimeStr = c;
       removeLastTime();
       if (c==null) return;
-      msgs.add(makeInfo(lastTimeProp, "chat.info.textP", new StringNode(ctx, "The last message was posted "+c+" ago.")));
+      msgs.add(makeInfo(lastTimeProp, "chat.info.$textP", new StringNode(ctx, "The last message was posted "+c+" ago.")));
     }
   }
   
   public boolean atEnd() { return msgsScroll.atEnd(5); }
   
   public Node makeInfo(EnumProp type, String cfg, Node body) {
-    Node n = ctx.make(gc.getProp(cfg).gr());
-    n.ctx.id("body").add(body);
-    
+  
     Node msg = ctx.make(gc.getProp("chat.info.mainP").gr());
     msg.set(msg.id("infoType"), type);
-    msg.ctx.id("body").add(n);
+    msg.ctx.id("body").add(ctx.makeKV(gc.getProp(cfg).gr(), "$body", body));
     return msg;
   }
   
@@ -463,8 +461,8 @@ public class ChatMain extends NodeWindow {
     Node padU = b.ctx.id("padU");
     padU.set(padU.id("u"), merge? new LenProp(gc, 0, "px") : gc.getProp("chat.msg.sep"));
     if (between || newDate!=null) {
-      if (newDate==null) return makeInfo(laterProp, "chat.info.textP", new StringNode(ctx, timeDelta(h)+" later..."));
-      else return makeInfo(laterProp, "chat.info.titleP", new StringNode(ctx, df.format(newDate)));
+      if (newDate==null) return makeInfo(laterProp, "chat.info.$textP", new StringNode(ctx, timeDelta(h)+" later..."));
+      else return makeInfo(laterProp, "chat.info.$titleP", new StringNode(ctx, df.format(newDate)));
     }
     return null;
   }
@@ -646,7 +644,7 @@ public class ChatMain extends NodeWindow {
       Vec<PNode> l = p.gr().ch;
       int[] res = new int[l.sz];
       for (int i = 0; i < res.length; i++) {
-        int c = ColorUtils.parsePrefixed(((PNodeStr) l.get(i)).s);
+        int c = ColorUtils.parsePrefixed(((PNode.PNodeStr) l.get(i)).s);
         res[i] = c;
       }
       return res;
