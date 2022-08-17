@@ -37,9 +37,10 @@ public abstract class Chatroom extends View {
   
   private static final Prop TRANSPARENT = new ColProp(0);
   
-  public abstract void upload();
-  
   public abstract String getUsername(String uid);
+  
+  public abstract void upload();
+  public abstract void mentionUser(String uid);
   
   public static class URLRes {
     public final String url;

@@ -234,6 +234,7 @@ chat {
         vsep { y=.2em }
         chat.profile.$title { t="General" }
         chat.profile.$link { id=toReadReceipt $t="  Jump to read receipt" }
+        chat.profile.$link { id=mention $t="  Mention" }
         id = more
       }
     }

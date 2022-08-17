@@ -42,9 +42,7 @@ public class UserTagNode extends TextNode {
   
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    r.input.um.pushL("tag user");
-    r.input.pasteText(userString+" ");
-    r.input.um.pop();
+    r.mentionUser(userString);
   }
   
   public void drawCh(Graphics g, boolean full) {

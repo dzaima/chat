@@ -336,6 +336,12 @@ public class MxChatroom extends Chatroom {
     return res;
   }
   
+  public void mentionUser(String id) {
+    input.um.pushL("tag user");
+    input.pasteText(id+" ");
+    input.um.pop();
+  }
+  
   public String upload(byte[] data, String name, String mime) {
     String req = r.s.url+"/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+r.s.gToken;
     String res = Utils.postPut("POST", req, data, mime);
