@@ -90,7 +90,7 @@ public class MxChatMessage extends MxChatEvent {
           r.m.updMessage(this, tmpLink, live);
           
           r.u.queueRequest(updateBodyCtr,
-            () -> HTMLParser.inlineImage(r.u, loadUrl, MxChatUser.get("Load image", loadUrl), ImageNode.InlineImageNode::new), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
+            () -> HTMLParser.inlineImage(r.u, loadUrl, true, MxChatUser.get("Load image", loadUrl), ImageNode.InlineImageNode::new), // TODO the ImageNode made by this will take a long time to draw; precompute/cache somehow?
             data -> {
               if (visible) { // room may have changed by the time the image loads
                 r.m.updMessage(this, data, false);

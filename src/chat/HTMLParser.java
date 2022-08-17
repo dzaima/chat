@@ -32,9 +32,9 @@ public class HTMLParser {
     return base;
   }
   
-  public static Node inlineImage(ChatUser u, String link, byte[] data, BiFunction<Ctx, byte[], Node> ctor) {
+  public static Node inlineImage(ChatUser u, String link, boolean dataIsFull, byte[] data, BiFunction<Ctx, byte[], Node> ctor) {
     Ctx ctx = u.m.base.ctx;
-    TextNode l = Extras.textLink(u, link, LinkType.IMG, data);
+    TextNode l = Extras.textLink(u, link, LinkType.IMG, dataIsFull? data : null);
     InlineNode.TANode v = new InlineNode.TANode(ctx, new String[]{"width"}, new Prop[]{new EnumProp("max")});
     v.add(ctor.apply(ctx, data));
     l.add(v);
