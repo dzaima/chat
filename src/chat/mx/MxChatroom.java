@@ -47,7 +47,8 @@ public class MxChatroom extends Chatroom {
     this.u = u;
     this.r = u.s.room(rid);
     update(init);
-    prevBatch = init.obj("timeline").str("prev_batch");
+    Obj timeline = init.obj("timeline", Obj.E);
+    prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
     if (nameState==0) {
       ArrayList<String> parts = new ArrayList<>();
       userData.forEach((id, d) -> {
@@ -114,7 +115,12 @@ public class MxChatroom extends Chatroom {
       }
     }
     
+    HashSet<String> seen = new HashSet<>();
     for (Obj ev : sync.obj("timeline").arr("events").objs()) {
+      if (!seen.add(ev.str("event_id", "(unknown)"))) {
+        Log.info("skipping duplicate event with ID "+ev.str("event_id", "(unknown)")); // Synapse duplicates join event :|
+        continue;
+      }
       Obj ct = ev.obj("content", null);
       MxEvent mxEv = new MxEvent(r, ev);
       MxChatEvent newObj = pushMsg(mxEv);
