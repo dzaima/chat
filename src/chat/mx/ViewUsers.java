@@ -37,7 +37,7 @@ public class ViewUsers {
       Node e = list.ctx.make(list.gc.getProp("chat.userList.entry").gr());
       if (d.avatar!=null && MxServer.isMxc(d.avatar)) e.ctx.id("image").add(new LazyLoadedImg(list.ctx, d.avatar));
       e.ctx.id("name").add(new StringNode(list.ctx, p.b));
-      ((BtnNode) e.ctx.id("btn")).setFn(b -> ViewProfile.viewProfile(p.a, p.b, r));
+      ((BtnNode) e.ctx.id("btn")).setFn(b -> ViewProfile.viewProfile(p.a, r));
       list.add(e);
     }
   }

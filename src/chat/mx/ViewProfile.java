@@ -19,18 +19,18 @@ public class ViewProfile {
   final MxChatroom.UserData data;
   boolean banned;
   
-  ViewProfile(MxChatroom r, String username0, String uid) {
+  ViewProfile(MxChatroom r, String uid) {
     this.r = r;
     this.m = r.m;
     this.base = m.ctx.make(m.gc.getProp("chat.profile.ui").gr());
     this.more = base.ctx.id("more");
     this.data = r.userData.get(uid);
-    this.username = data==null? username0 : data.username==null? uid : data.username;
+    this.username = r.getUsername(uid);
     this.uid = uid;
   }
   
-  public static void viewProfile(String uid, String username0, MxChatroom r) {
-    new ViewProfile(r, username0, uid).run();
+  public static void viewProfile(String uid, MxChatroom r) {
+    new ViewProfile(r, uid).run();
   }
   
   boolean adminPanel = false;

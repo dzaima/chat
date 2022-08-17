@@ -551,6 +551,6 @@ public class MxChatroom extends Chatroom {
   }
   
   public void viewProfile(String uid) {
-    ViewProfile.viewProfile(uid, getUsername(uid), this);
+    ViewProfile.viewProfile(uid, this);
   }
 }

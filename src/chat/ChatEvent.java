@@ -44,8 +44,6 @@ public abstract class ChatEvent {
       n.highlight();
     }
   }
-  public abstract void viewProfile();
-  
   public abstract Chatroom room();
   
   public abstract void toTarget();

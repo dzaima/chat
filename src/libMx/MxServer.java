@@ -247,7 +247,7 @@ public class MxServer {
     return url+"/_matrix/media/r0/download/"+mxcPath(mxc);
   }
   public enum ThumbnailMode { CROP("crop"), SCALE("scale"); final String s; ThumbnailMode(String s) { this.s = s; } }
-  public String mxgToThumbnailURL(String mxc, int w, int h, ThumbnailMode mode) {
+  public String mxcToThumbnailURL(String mxc, int w, int h, ThumbnailMode mode) {
     return url+"/_matrix/media/v3/thumbnail/"+mxcPath(mxc)+"?width="+w+"&height="+h+"&mode="+mode.s;
   }
 }
