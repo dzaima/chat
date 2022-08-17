@@ -38,53 +38,50 @@ public class MxChatNotice extends MxChatEvent {
         case "m.room.member":
           String currName = e.ct.str("displayname", null);
           String member = e.o.str("state_key", "");
-          if (currName==null) currName = r.getUsername(member);
+          String someName = currName==null? r.getUsername(member) : currName;
           Vec<Node> nds = new Vec<>();
           Obj prev = Obj.path(e.o, Obj.E, "unsigned", "prev_content").obj();
           String prevMembership = prev.str("membership", "");
           switch (e.ct.str("membership", "")) {
             case "join":
               if (!prevMembership.equals("join")) {
-                nds.add(mk("chat.notice.$join", "user", mkp(member, currName)));
+                nds.add(mk("chat.notice.$join", "user", mkp(member, someName)));
               } else {
                 String prevName = prev.str("displayname", null);
                 Vec<Node> list = new Vec<>();
-                if (!Objects.equals(prevName, currName)) {
-                  list.add(currName==null? mk("chat.notice.$noName") : mk("chat.notice.$setName", "new", mks(currName)));
-                }
-                String prevAvatar = prev.str("avatar_url", null);
-                String currAvatar = e.ct.str("avatar_url", null);
-                if (!Objects.equals(prevAvatar, currAvatar)) {
-                  list.add(mk("chat.notice.$newAvatar"));
-                }
+                
+                if (!Objects.equals(prevName, currName)) list.add(currName==null? mk("chat.notice.$noName") : mk("chat.notice.$setName", "new", mks(someName)));
+  
+                if (!Objects.equals(prev.str("avatar_url", null), e.ct.str("avatar_url", null))) list.add(mk("chat.notice.$newAvatar"));
+                
                 if (list.sz==0) list.add(mk("chat.notice.$noopMember")); // TODO ignore if not developer mode or something, when that exists
                 
-                nds.add(mkp(member, prevName));
+                nds.add(mkp(member, prevName==null? member : prevName));
                 for (int i = 0; i < list.size(); i++) {
                   if (i>0) nds.add(mk("chat.notice.$and"));
                   nds.add(list.get(i));
                 }
               }
               break;
-            case "invite": nds.add(mk("chat.notice.$invite", "executer", mkp(e.uid, executer), "user", mkp(member, currName))); break;
+            case "invite": nds.add(mk("chat.notice.$invite", "executer", mkp(e.uid, executer), "user", mkp(member, someName))); break;
             case "leave":
-              if (executer.equals(currName)) nds.add(mk("chat.notice.$left", "user", mkp(member, currName)));
+              if (executer.equals(someName)) nds.add(mk("chat.notice.$left", "user", mkp(member, someName)));
               else {
-                nds.add(mk(prevMembership.equals("ban")? "chat.notice.$unban" : "chat.notice.$kick", "executer", mkp(e.uid, executer), "user", mkp(member, currName)));
+                nds.add(mk(prevMembership.equals("ban")? "chat.notice.$unban" : "chat.notice.$kick", "executer", mkp(e.uid, executer), "user", mkp(member, someName)));
                 if (e.ct.hasStr("reason")) nds.add(mks(": "+e.ct.str("reason")));
               }
               break;
             case "ban":
-              nds.add(mk("chat.notice.$ban", "executer", mkp(e.uid, executer), "user", mkp(member, currName)));
+              nds.add(mk("chat.notice.$ban", "executer", mkp(e.uid, executer), "user", mkp(member, someName)));
               if (e.ct.hasStr("reason")) nds.add(mks(": "+e.ct.str("reason")));
               break;
             case "knock":
-              if (!executer.equals(currName)) {
-                nds.add(mk("chat.notice.$requestAccess", "user", mkp(member, currName)));
+              if (!executer.equals(member)) {
+                nds.add(mk("chat.notice.$requestAccess", "user", mkp(member, someName)));
                 break;
               }
               /* fallthrough */
-            default: nds.add(mk("chat.notice.$defaultMember", "executer", mkp(e.uid, executer), "user", mkp(member, currName), "type", mks(e.ct.str("membership", "m.room.member")))); break;
+            default: nds.add(mk("chat.notice.$defaultMember", "executer", mkp(e.uid, executer), "user", mkp(member, someName), "type", mks(e.ct.str("membership", "m.room.member")))); break;
           }
           for (Node c : nds) ch.add(c);
           break;
