@@ -54,7 +54,7 @@ public class HTMLParser {
   
   private static Node pre(Ctx ctx, String c0) {
     if (c0.endsWith("\n")) c0 = c0.substring(0, c0.length()-1);
-    return ctx.makeKV(ctx.gc.getProp("chat.code.$blockP").gr(), "$body", new StringNode(ctx, c0));
+    return ctx.makeKV(ctx.gc.getProp("chat.code.$blockP").gr(), "body", new StringNode(ctx, c0));
   }
   
   
@@ -244,8 +244,16 @@ public class HTMLParser {
     }
   }
   
+  public static Node pillLink(Chatroom r, Node ch, String uid) {
+    TextNode n = new TextNode(ch.ctx, Node.KS_NONE, Node.VS_NONE) {
+      public void mouseStart(int x, int y, Click c) { if (c.bR()) c.register(this, x, y); }
+      public void mouseDown(int x, int y, Click c) { r.userMenu(c, x, y, uid); }
+    };
+    n.add(ch);
+    return n;
+  }
   private static void pill(Chatroom r, Node p, String text, String id, boolean mine) {
-    p.add(new Pill(p.ctx, r.user(), mine, id, "@"+text));
+    p.add(pillLink(r, new Pill(p.ctx, r.user(), mine, id, "@"+text), id));
   }
   public static class Pill extends Node implements StringifiableNode {
     public final boolean mine;

@@ -31,13 +31,7 @@ public class UserTagNode extends TextNode {
   }
   
   public void mouseDown(int x, int y, Click c) {
-    if (c.bR()) Popup.rightClickMenu(gc, ctx, "chat.profile.menu", cmd -> {
-      switch (cmd) {
-        case "view": ev.viewProfile(); break;
-        case "copyID": ctx.win().copyString(ev.userString()); break;
-        case "copyLink": r.m.copyString(ev.userURL()); break;
-      }
-    }).takeClick(c);
+    if (c.bR()) r.userMenu(c, x, y, userString);
   }
   
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }

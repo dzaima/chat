@@ -245,7 +245,7 @@ chat {
     kickUI         = chat.profile.$link { id=run t="  Kick" }
     removeRecentUI = chat.profile.$link { id=run t="  Remove recent messages" }
     banUI          = chat.profile.$link { id=run t=text { "  " text { id=text "" } } }
-//    advancedBanUI  = clickableText { hover=true color=chat.link.col id=run "  Advanced ban" }
+//    advancedBanUI  = chat.profile.$link { id=run "  Advanced ban" }
     banMsg="Ban" unbanMsg="Unban"
     
     $btn = btn { id=$id style=rect padX=.5em padY=.3em $t }
@@ -374,6 +374,33 @@ chat {
   msg.noticeP = text { id=ch italics=true color=chat.msg.noticeCol } // X joined/left/etc
   msg.removedP = text { "(removed)" color=chat.msg.removedCol }
   msg.imageLoadingP = text { "(image loading…)" }
+  notice {
+    $defaultEvent = text { $executer " did " $type }
+    $defaultMember = text { $executer " did " $type " on " $user }
+    $join = text { $user " joined" }
+    
+    $and = text { " and" }
+    $setName = text { " changed their display name to " $new }
+    $noName = text { " unset their username" }
+    $newAvatar = text { " changed their avatar" }
+    $noopMember = text { " did m.room.member" }
+    $requestAccess = text { $user " requested access to this room" }
+    
+    $invite = text { $executer " invited "  $user }
+    $ban    = text { $executer " banned "   $user }
+    $kick   = text { $executer " kicked "   $user }
+    $unban  = text { $executer " unbanned " $user }
+    $left = text { $user " left" }
+    
+    $createRoom = text { $executer " created this room" }
+    $canonicalAlias = text { $executer " set the canonical alias" }
+    $powerLevels = text { $executer " changed power levels" }
+    $joinRules = text { $executer " set join rules to " $rule }
+    $historyVis = text { $executer " set history visibility to " $vis }
+    $roomName = text { $executer " set room name to " $name }
+    $guestAccess = text { $executer " set guest access to " $val }
+    // $ = text { $executer }
+  }
   
   // general UI
   rooms.accountP = v { h=min

@@ -465,6 +465,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public String getUsername(String uid) {
+    assert uid.startsWith("@");
     UserData d = userData.get(uid);
     if (d==null || d.username==null) return uid.split(":")[0].substring(1);
     return d.username;
@@ -520,7 +521,7 @@ public class MxChatroom extends Chatroom {
     ViewUsers.viewUsers(this);
   }
   
-  protected void rightClick(Click c, int x, int y) {
+  protected void roomMenu(Click c, int x, int y) {
     PNodeGroup gr = node.gc.getProp("chat.mx.roomMenu.main").gr().copy();
     node.openMenu(true);
     
@@ -537,5 +538,19 @@ public class MxChatroom extends Chatroom {
           break;
       }
     }).takeClick(c);
+  }
+  
+  public void userMenu(Click c, int x, int y, String uid) {
+    Popup.rightClickMenu(m.gc, m.ctx, "chat.profile.menu", cmd -> {
+      switch (cmd) {
+        case "view": viewProfile(uid); break;
+        case "copyID": m.ctx.win().copyString(uid); break;
+        case "copyLink": m.copyString(MxFmt.userURL(uid)); break;
+      }
+    }).takeClick(c);
+  }
+  
+  public void viewProfile(String uid) {
+    ViewProfile.viewProfile(uid, getUsername(uid), this);
   }
 }

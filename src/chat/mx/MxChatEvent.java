@@ -64,10 +64,6 @@ abstract class MxChatEvent extends ChatEvent {
   public String userString() { return e0.uid; }
   public String userURL() { return MxFmt.userURL(e0.uid); }
   
-  public void viewProfile() {
-    ViewProfile.viewProfile(e0.uid, username, r);
-  }
-  
   public void rightClick(Click c, int x, int y) {
     PNodeGroup gr = n.gc.getProp("chat.mx.msgMenu.main").gr().copy();
     n.border.openMenu(true);

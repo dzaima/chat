@@ -315,7 +315,7 @@ public class ChatMain extends NodeWindow {
   
     Node msg = ctx.make(gc.getProp("chat.info.mainP").gr());
     msg.set(msg.id("infoType"), type);
-    msg.ctx.id("body").add(ctx.makeKV(gc.getProp(cfg).gr(), "$body", body));
+    msg.ctx.id("body").add(ctx.makeKV(gc.getProp(cfg).gr(), "body", body));
     return msg;
   }
   

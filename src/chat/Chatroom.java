@@ -76,7 +76,7 @@ public abstract class Chatroom extends View {
     
     public void mouseDown(int x, int y, Click c) {
       if (c.bL()) c.register(this, x, y);
-      if (c.bR()) rightClick(c, x, y);
+      if (c.bR()) roomMenu(c, x, y);
     }
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
     public void mouseUp(int x, int y, Click c) { m.toRoom(Chatroom.this); }
@@ -88,7 +88,9 @@ public abstract class Chatroom extends View {
     }
   }
   
-  protected abstract void rightClick(Click c, int x, int y);
+  protected abstract void roomMenu(Click c, int x, int y);
+  public abstract void userMenu(Click c, int x, int y, String uid);
+  public abstract void viewProfile(String uid);
   
   public void viewTick() {
     if (m.toLast!=0) {
