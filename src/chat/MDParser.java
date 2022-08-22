@@ -190,6 +190,8 @@ public class MDParser {
               r.append(Tools.repeat('`', am));
               continue;
             }
+            ss(sei-am, sei, S_DEF_ESC);
+            ss(cend, cend+am, S_DEF_ESC);
             String cont = s.substring(i, cend);
             int iOff = i;
             i = cend+am;
