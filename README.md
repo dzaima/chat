@@ -34,6 +34,7 @@
 |          <kbd>ctrl+down</kbd> | go to room below                               |
 |          <kbd>ctrl+plus</kbd> | increase UI scale                              |
 |         <kbd>ctrl+minus</kbd> | decrease UI scale                              |
+|       <kbd>ctrl+shift+v</kbd> | paste clipboard as code block                  |
 |              <kbd>alt+r</kbd> | hide/unhide unread count for current room      |
 |         <kbd>ctrl+alt+r</kbd> | hide/unhide unread count for all rooms         |
 

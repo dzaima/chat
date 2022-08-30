@@ -39,6 +39,14 @@ public class ChatTextArea extends CodeAreaNode {
           return true;
         }
         break;
+      case "pasteCode":
+        m.pasteString(g -> {
+          if (g==null) return;
+          um.pushL("paste code");
+          pasteText(r.asCodeblock(g));
+          um.pop();
+        });
+        return true;
       case "deleteMsg":
         if (editing!=null) {
           ChatEvent toDel = editing;

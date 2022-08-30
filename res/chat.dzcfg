@@ -25,6 +25,7 @@ chat {
     deleteMsg = { "ctrl+alt+shift+del" }
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }
+    pasteCode = { "ctrl+shift+v" } // paste clipboard, escaping things
   }
   menuKeys {
     copyLink = { "l" }

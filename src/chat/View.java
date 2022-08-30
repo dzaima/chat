@@ -14,4 +14,5 @@ public abstract class View {
   
   public abstract boolean key(Key key, int scancode, KeyAction a);
   public abstract boolean typed(int codepoint);
+  public abstract String asCodeblock(String s);
 }

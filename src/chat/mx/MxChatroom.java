@@ -407,27 +407,41 @@ public class MxChatroom extends Chatroom {
       input.um.pushL("backtick code");
       for (Cursor c : input.cs) {
         String s = input.getByCursor(c);
-        if ((s.contains("\\") || s.contains("`")) && !(s.startsWith(" ") || s.endsWith(" "))) {
-          int l = 1;
-          int cl = 0;
-          for (int i = 0; i < s.length(); i++) {
-            if (s.charAt(i)!='`') {
-              if (cl>l) l=cl;
-              cl=0;
-            } else cl++;
-          }
-          String fence = Tools.repeat('`', Math.max(cl,l)+1);
-          s = fence+" "+s+" "+fence;
-        } else {
-          s = "`"+s.replace("\\", "\\\\").replace("`", "\\`")+"`";
-        }
         c.clearSel();
-        input.insert(c.sx, c.sy, s);
+        input.insert(c.sx, c.sy, asCodeblock(s));
       }
       input.um.pop();
       return true;
     }
     return false;
+  }
+  
+  public String asCodeblock(String s) {
+    if (s.contains("\n")) {
+      int l = 2;
+      for (String c : Tools.split(s, '\n')) {
+        int cl = 0;
+        while (cl < c.length() && c.charAt(cl)=='`') cl++;
+        l = Math.max(l, cl);
+      }
+      String fence = Tools.repeat('`', l+1);
+      if (s.endsWith("\n")) s = s.substring(0, s.length()-1);
+      return fence+"\n"+s+"\n"+fence;
+    } else if ((s.contains("\\") || s.contains("`")) && !(s.startsWith(" ") || s.endsWith(" "))) {
+      int l = 1;
+      int cl = 0;
+      for (int i = 0; i < s.length(); i++) {
+        if (s.charAt(i)!='`') {
+          l = Math.max(l, cl);
+          cl=0;
+        } else cl++;
+      }
+      l = Math.max(l, cl);
+      String fence = Tools.repeat('`', l+1);
+      return fence+" "+s+" "+fence;
+    } else {
+      return "`"+s.replace("\\", "\\\\").replace("`", "\\`")+"`";
+    }
   }
   
   public ChatUser user() { return u; }
