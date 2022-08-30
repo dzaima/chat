@@ -161,7 +161,7 @@ public class MDParser {
         } else { // ``...
           i = sei;
           int backtickEndI = i;
-          if (am==3 && s.indexOf('\n',i)>=0 && s.indexOf('`', i) > s.indexOf('\n',i)) { // ```[no more backticks]\n[whatever]`
+          if (am>=3 && s.indexOf('\n',i)>=0 && s.indexOf('`', i) > s.indexOf('\n',i)) { // ```[no more backticks]\n[whatever]`
             int le = s.indexOf('\n',i);
             String lang = s.substring(i, le);
             int afterStart = i;
@@ -175,9 +175,9 @@ public class MDParser {
             String cont = le+1<cend? s.substring(le+1, cend) : "";
             i = cend+am+2;
             
-            ss(afterStart-3, afterStart, S_DEF_ESC);
+            ss(afterStart-am, afterStart, S_DEF_ESC);
             ss(le, i-4, S_CODE);
-            ss(i-4, i-1, S_DEF_ESC);
+            ss(i-1-am, i-1, S_DEF_ESC);
             r.append("<pre><code");
             if (lang.length()!=0) r.append(" class=\"language-").append(lang).append('\"');
             r.append('>');
