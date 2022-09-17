@@ -88,14 +88,27 @@ public class MxChatMessage extends MxChatEvent {
         int s = r.m.imageSafety();
         String safeURL = getURL(s<=1);
         
+        Consumer<String> toLink = url -> {
+          TextNode link = HTMLParser.link(r, url, LinkType.IMG);
+          link.add(new StringNode(n.ctx, url));
+          r.m.updMessage(this, link, live);
+        };
+  
+        String linkURL = getURL(false);
         if (s>0 && safeURL!=null) {
-          TextNode tmpLink = HTMLParser.link(r, getURL(false), LinkType.IMG);
+          TextNode tmpLink = HTMLParser.link(r, linkURL, LinkType.IMG);
           tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           r.m.updMessage(this, tmpLink, live);
   
           String rawURL = getRawURL();
           int expect = bodyUpdateCtr;
-          Consumer<Node> got = n -> { if (visible && expect==bodyUpdateCtr) r.m.updMessage(this, n, false); };
+          Consumer<Node> got = n -> {
+            if (n==null) {
+              toLink.accept(linkURL);
+            } else if (visible && expect==bodyUpdateCtr) {
+              r.m.updMessage(this, n, false);
+            }
+          };
   
           if (MxServer.isMxc(rawURL) && !JSON.Obj.path(e0.ct, JSON.Str.E, "info", "mimetype").str().equals("image/gif")) { // TODO checking for gif specifically is stupid
             r.u.loadMxcImg(rawURL, got, ImageNode.InlineImageNode::new, r.m.gc.getProp("chat.image.maxW").len(), r.m.gc.getProp("chat.image.maxH").len(), MxServer.ThumbnailMode.SCALE, () -> true);
@@ -103,13 +116,10 @@ public class MxChatMessage extends MxChatEvent {
             r.u.loadImg(safeURL, got, ImageNode.InlineImageNode::new, () -> true);
           }
         } else {
-          String url = getURL(false);
-          if (url==null) {
+          if (linkURL==null) {
             r.m.updMessage(this, new StringNode(n.ctx, "(no URL for image provided)"), live);
           } else {
-            TextNode link = HTMLParser.link(r, url, LinkType.IMG);
-            link.add(new StringNode(n.ctx, url));
-            r.m.updMessage(this, link, live);
+            toLink.accept(linkURL);
           }
         }
         break;

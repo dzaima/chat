@@ -21,6 +21,8 @@ public abstract class ImageNode extends Node {
     }
   }
   
+  public boolean loadableImage() { return f0!=null; }
+  
   public static float scaleMax(GConfig gc, int iw, int ih, int maxW, int maxH) { return Math.min(Math.min(maxW*1f/iw, maxH*1f/ih), gc.imgScale); }
   public static float scaleMin(GConfig gc, int iw, int ih, int minW, int minH) { return Math.max(Math.max(minW*1f/iw, minH*1f/ih), gc.imgScale); }
   

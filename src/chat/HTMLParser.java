@@ -32,11 +32,13 @@ public class HTMLParser {
     return base;
   }
   
-  public static Node inlineImage(ChatUser u, String link, boolean dataIsFull, byte[] data, BiFunction<Ctx, byte[], Node> ctor) {
+  public static Node inlineImage(ChatUser u, String link, boolean dataIsFull, byte[] data, BiFunction<Ctx, byte[], ImageNode> ctor) {
     Ctx ctx = u.m.base.ctx;
+    ImageNode img = ctor.apply(ctx, data);
+    if (!img.loadableImage()) return null;
     TextNode l = Extras.textLink(u, link, LinkType.IMG, dataIsFull? data : null);
     InlineNode.TANode v = new InlineNode.TANode(ctx, new String[]{"width"}, new Prop[]{new EnumProp("max")});
-    v.add(ctor.apply(ctx, data));
+    v.add(img);
     l.add(v);
     return l;
   }
@@ -149,6 +151,7 @@ public class HTMLParser {
                                         : c.hasAttr("title")? c.attr("title")
                                         : src.safe? "(image loading)" : "image"));
               if (src.safe) r.user().loadImg(src.url, img -> {
+                if (img==null) return; // TODO link fallback
                 l.clearCh();
                 l.add(img);
               }, c.hasAttr("data-mx-emoticon")? ImageNode.EmojiImageNode::new : ImageNode.InlineImageNode::new, () -> true);

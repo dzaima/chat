@@ -1,6 +1,6 @@
 package chat;
 
-import chat.ui.Extras;
+import chat.ui.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Prop;
@@ -34,7 +34,7 @@ public abstract class ChatUser {
   public abstract Obj data();
   
   public abstract void openLink(String url, Extras.LinkType type, byte[] data);
-  public abstract void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], Node> ctor, Supplier<Boolean> stillNeeded);
+  public abstract void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded);
   
   public int userCol(String name, boolean mine, boolean pill) {
     if (mine) return pill? m.colMyPill : m.colMyNick;
