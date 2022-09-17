@@ -75,8 +75,8 @@ chat {
   quote.color = #999 // text color in quote
   image.maxW = 40em // maximum size of inline images (whichever is hit first will limit the scale)
   image.maxH = 20em
-  image.minW = 5em // and minimum size (touch area will always be at least this big, and the image will be as big as it can within it and/or the max size)
-  image.minH = 3em
+  image.minW = 4em // and minimum size (touch area will always be at least this big, and the image will be as big as it can within it and/or the max size)
+  image.minH = 1.2em
   
   userCols.myNick = #D2D2D2
   userCols.myPill = chat.userCols.myNick
