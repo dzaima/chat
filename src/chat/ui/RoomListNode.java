@@ -220,6 +220,9 @@ public class RoomListNode extends ReorderableNode {
     public String name;
     public Node afterEditReplacement;
     
+    public int unread;
+    public boolean ping;
+    
     public Node[] closedCh;
     
     public DirStartNode(ChatUser r) {
@@ -269,6 +272,13 @@ public class RoomListNode extends ReorderableNode {
       else setName(name);
       u.roomListChanged();
     }
+  
+    public void updateUnread() {
+      if (editing()) return;
+      boolean closed = !isOpen();
+      RoomListNode.setUnread(u.m, ch.get(0), false, closed && ping, closed? unread : 0);
+    }
+    
     public static class NameEditFieldNode extends TextFieldNode {
       public NameEditFieldNode(Ctx ctx, String[] ks, Prop[] vs) { super(ctx, ks, vs); }
       
@@ -290,12 +300,14 @@ public class RoomListNode extends ReorderableNode {
       closedCh = p.ch.get(s+1, e, Node[].class);
       p.remove(s+1, e);
       setName(name);
+      u.updateFolderUnread();
     }
     public void open() {
       assert !isOpen();
       p.insert(getPos()+1, Vec.ofReuse(closedCh));
       closedCh = null;
       setName(name);
+      u.updateFolderUnread();
     }
     public void leftClick() {
       u.preRoomListChange();
@@ -407,5 +419,17 @@ public class RoomListNode extends ReorderableNode {
     
     public void leftClick() { r.m.toRoom(r); }
     public void rightClick(Click c, int x, int y, Runnable onClose) { r.roomMenu(c, x, y, onClose); }
+  }
+  
+  public static void setUnread(ChatMain m, Node node, boolean hidden, boolean ping, int unread) {
+    Node un = node.ctx.id("unread");
+    un.clearCh();
+    if ((hidden || m.globalHidden) && !ping) {
+      un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
+    } else if (unread>0 || ping) {
+      Node n = node.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
+      n.ctx.id("num").add(new StringNode(n.ctx, "("+(unread>0?unread+"":"")+(ping? "*" : "")+")"));
+      un.add(n);
+    }
   }
 }

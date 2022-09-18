@@ -29,8 +29,8 @@ public class MxChatUser extends ChatUser {
   
   public MxSync2 sync;
   
-  public Vec<MxChatroom> roomList = new Vec<>();
   public HashMap<String, MxChatroom> roomMap = new HashMap<>();
+  public Collection<MxChatroom> roomSet = roomMap.values();
   
   private final ConcurrentLinkedQueue<Runnable> primary = new ConcurrentLinkedQueue<>();
   private final LinkedBlockingDeque<Runnable> network = new LinkedBlockingDeque<>();
@@ -134,7 +134,7 @@ public class MxChatUser extends ChatUser {
   
   public Vec<Chatroom> rooms() {
     Vec<Chatroom> r = new Vec<>();
-    for (MxChatroom c : roomList) r.add(c);
+    for (MxChatroom c : roomSet) r.add(c);
     return r;
   }
   
@@ -159,7 +159,6 @@ public class MxChatUser extends ChatUser {
           MxChatroom r = new MxChatroom(this, k.k, k.v.obj());
           preRoomListChange();
           roomMap.put(k.k, r);
-          roomList.add(r);
           roomListNode.add(r.node); // TODO place in space if appropriate
           newRooms = true;
         } else room.update(k.v.obj());
@@ -167,7 +166,7 @@ public class MxChatUser extends ChatUser {
       if (newRooms) roomListChanged();
     }
     
-    for (MxChatroom c : roomList) c.tick();
+    for (MxChatroom c : roomSet) c.tick();
   }
   
   public void close() {
@@ -199,10 +198,10 @@ public class MxChatUser extends ChatUser {
   
   public MxChatroom findRoom(String name) {
     if (name.startsWith("!")) {
-      for (MxChatroom c : roomList) if (c.r.rid.equals(name)) return c;
+      for (MxChatroom c : roomSet) if (c.r.rid.equals(name)) return c;
     } else if (name.startsWith("#")) {
-      for (MxChatroom c : roomList) if (name.equals(c.canonicalAlias)) return c;
-      for (MxChatroom c : roomList) for (String a : c.altAliases) if (name.equals(a)) return c;
+      for (MxChatroom c : roomSet) if (name.equals(c.canonicalAlias)) return c;
+      for (MxChatroom c : roomSet) for (String a : c.altAliases) if (name.equals(a)) return c;
     }
     return null;
   }

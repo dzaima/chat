@@ -41,9 +41,31 @@ public abstract class ChatUser {
     if (roomListNode.reordering()) roomListNode.stopReorder(false);
   }
   public void roomListChanged() {
-    // TODO undo/redo setup
+    // TODO undo/redo
     assert !roomListNode.reordering();
     roomListNode.recalculateDepths();
     saveRooms();
+  }
+  
+  public void updateFolderUnread() {
+    for (Node c : roomListNode.ch) updateFolderUnread(c);
+  }
+  private void updateFolderUnread(Node c) {
+    if (c instanceof RoomListNode.DirStartNode) {
+      RoomListNode.DirStartNode d = (RoomListNode.DirStartNode) c;
+      if (!d.isOpen()) {
+        Vec<Chatroom> rs = d.subRooms();
+        boolean ping = false;
+        int count = 0;
+        for (Chatroom r : rs) {
+          if (r.hiddenUnread) continue;
+          count+= r.unread;
+          ping|= r.ping;
+        }
+        d.unread = count;
+        d.ping = ping;
+      }
+      d.updateUnread();
+    }
   }
 }

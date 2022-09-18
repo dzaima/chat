@@ -2,7 +2,6 @@ package chat;
 
 import chat.ui.*;
 import dzaima.ui.gui.io.Click;
-import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Vec;
@@ -112,16 +111,9 @@ public abstract class Chatroom extends View {
       unread = 0;
       ping=false;
     }
-    Node un = node.ctx.id("unread");
-    un.clearCh();
-    if ((hiddenUnread || m.globalHidden) && !ping) {
-      un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
-    } else if (unread>0 || ping) {
-      Node n = node.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
-      n.ctx.id("num").add(new StringNode(n.ctx, "("+(unread>0?unread+"":"")+(ping? "*" : "")+")"));
-      un.add(n);
-    }
+    RoomListNode.setUnread(m, node, hiddenUnread, ping, unread);
     m.unreadChanged();
+    user().updateFolderUnread();
   }
   
   public abstract ChatEvent prevMsg(ChatEvent msg, boolean mine);
