@@ -78,8 +78,14 @@ public class RoomListNode extends ReorderableNode {
   
   public void reorderSwapped() {
     recalculateDepths();
+    noFancyScroll(); // TODO move to base ReorderableNode?
+  }
+  
+  public void noFancyScroll() {
     ScrollNode s = ScrollNode.nearestScrollNode(this);
-    if (s!=null) s.ignoreFocus(true); // TODO move to base ReorderableNode?
+    if (s==null) return;
+    s.ignoreFocus(true);
+    s.ignoreEnd();
   }
   
   public boolean holdingRoom(RoomEntryNode r) {
@@ -106,6 +112,7 @@ public class RoomListNode extends ReorderableNode {
   
   public void recalculateDepths() {
     calculateDepths(ch, 0);
+    noFancyScroll();
   }
   public void calculateDepths(Vec<Node> l, int depth) {
     for (Node n : l) {
@@ -137,7 +144,7 @@ public class RoomListNode extends ReorderableNode {
     int x = 0;
     if (mode==1) depth--;
     for (int i = 0; i < depth; i++) {
-      g.rect(x, 0, x+w, mode==2? h-u.m.gc.getProp("chat.folder.endH").len() : h, cols[i%cols.length]);
+      g.rect(x, 0, x+w, i==depth-1 && mode==2? h-u.m.gc.getProp("chat.folder.endH").len() : h, cols[i%cols.length]);
       x+= w;
     }
   }
