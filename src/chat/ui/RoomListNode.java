@@ -9,6 +9,7 @@ import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 import dzaima.ui.node.types.editable.*;
+import dzaima.utils.Tools;
 import dzaima.utils.Vec;
 
 public class RoomListNode extends ReorderableNode {
@@ -161,17 +162,23 @@ public class RoomListNode extends ReorderableNode {
       this.u = u;
       add(ch);
     }
-    
+    public void propsUpd() { super.propsUpd(); updBG(); }
     
     boolean hovered, openMenu;
+    int bg = 0;
     public void updBG() {
-      Node bg = ctx.id("bg");
       boolean showHover = (hovered && !u.roomListNode.reordering())  ||  u.roomListNode.holdingRoom(this)  ||  openMenu;
-      bg.set(bg.id("bg"), isSelected()? gc.getProp("chat.room.selected") : showHover? gc.getProp("chat.room.hovered") : SelRoomEntryNode.TRANSPARENT); // TODO plain background when drag'n'dropping outside
+      int newbg = isSelected()? gc.getProp("chat.room.selected").col() : showHover? gc.getProp("chat.room.hovered").col() : 0; // TODO plain background when drag'n'dropping outside
+      if (newbg!=bg) {
+        bg = newbg;
+        mRedraw();
+      }
     }
     public abstract boolean isSelected();
     
-    public void over(Graphics g) {
+    public void bg(Graphics g, boolean full) {
+      if (Tools.st(bg)) pbg(g, full);
+      if (Tools.vs(bg)) g.rect(0, 0, w, h, bg);
       drawDepths(g, u, h, depth, this instanceof DirEndNode? 1 : this instanceof DirStartNode && !((DirStartNode) this).isOpen()? 2 : 0);
     }
     
@@ -183,7 +190,6 @@ public class RoomListNode extends ReorderableNode {
     public void resized() { ch.get(0).resize(w-indent(), h, indent(), 0); }
   }
   public static abstract class SelRoomEntryNode extends RoomEntryNode {
-    private static final Prop TRANSPARENT = new ColProp(0);
     public SelRoomEntryNode(ChatUser u, Node ch) { super(u, ch); }
     
     

@@ -445,7 +445,7 @@ chat {
     }
   }
   rooms.accountSepP = vsep { x=.5em }
-  rooms.roomP = pad { bg=#0000 id=bg
+  rooms.roomP = pad { id=bg
     all=.4em x=0.7em
     h { id=entryPlace
       text {
