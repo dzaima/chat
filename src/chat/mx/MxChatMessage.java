@@ -103,9 +103,10 @@ public class MxChatMessage extends MxChatEvent {
           String rawURL = getRawURL();
           int expect = bodyUpdateCtr;
           Consumer<Node> got = n -> {
+            if (!visible) return;
             if (n==null) {
               toLink.accept(linkURL);
-            } else if (visible && expect==bodyUpdateCtr) {
+            } else if (expect==bodyUpdateCtr) {
               r.m.updMessage(this, n, false);
             }
           };
