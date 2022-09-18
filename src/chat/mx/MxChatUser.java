@@ -157,8 +157,10 @@ public class MxChatUser extends ChatUser {
         MxChatroom room = roomMap.get(k.k);
         if (room==null) {
           MxChatroom r = new MxChatroom(this, k.k, k.v.obj());
+          preRoomListChange();
           roomMap.put(k.k, r);
           roomList.add(r);
+          roomListNode.add(r.node); // TODO place in space if appropriate
           newRooms = true;
         } else room.update(k.v.obj());
       }

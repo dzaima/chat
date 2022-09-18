@@ -119,12 +119,7 @@ public class MxChatroom extends Chatroom {
   public void update(Obj sync) {
     for (Obj ev : sync.obj("state").arr("events").objs()) {
       Obj ct = ev.obj("content");
-      switch (ev.str("type")) {
-        default:
-          anyEvent(ev, ct);
-          break;
-        case "m.room.history_visibility": case "m.room.join_rules": case "m.room.create": case "m.room.guest_access": break;
-      }
+      anyEvent(ev, ct);
     }
     
     HashSet<String> seen = new HashSet<>();
@@ -144,10 +139,8 @@ public class MxChatroom extends Chatroom {
       eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) setReceipt(ev.str("sender"), mxEv.id);
       //noinspection SwitchStatementWithTooFewBranches
+      anyEvent(ev, ct);
       switch (ev.str("type")) {
-        default:
-          anyEvent(ev, ct);
-          break;
         case "m.room.redaction":
           String e = ev.str("redacts", "");
           MxChatEvent m = log.get(e);

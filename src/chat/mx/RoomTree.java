@@ -47,6 +47,7 @@ public class RoomTree {
     
     spacesLeft.forEach((k, v) -> { // add new spaces
       RoomTree t = new RoomTree(k, v, null);
+      t.open = true;
       t.ch = new Vec<>();
       root.add(t);
       map.put(k, t);
@@ -108,6 +109,7 @@ public class RoomTree {
   }
   
   private static void addToList(MxChatUser u, RoomTree t) {
+    RoomListNode l = u.roomListNode;
     if (t.ch!=null) {
       RoomListNode.DirStartNode s;
       if (t.id==null) {
@@ -117,12 +119,15 @@ public class RoomTree {
         s = new RoomListNode.DirStartNode(u, t.got.asDir());
         s.external.setLocalName(t.name);
       }
-      u.roomListNode.add(s);
-      // TODO open/close
+      int sp = l.ch.sz;
+      l.add(s);
+      
       for (RoomTree c : t.ch) addToList(u, c);
-      u.roomListNode.add(new RoomListNode.DirEndNode(u));
+      l.add(new RoomListNode.DirEndNode(u));
+      
+      if (!t.open) s.close(sp, l.ch.sz);
     } else {
-      u.roomListNode.add(t.got.node);
+      l.add(t.got.node);
     }
   }
   
@@ -132,8 +137,17 @@ public class RoomTree {
   
   
   public static JSON.Arr saveTree(RoomListNode list) {
-    SavingState s = new SavingState(list.ch);
+    Vec<Node> l = new Vec<>();
+    for (Node c : list.ch) recAdd(l, c);
+    SavingState s = new SavingState(l);
     return new JSON.Arr(saveList(s, false).toArray(new JSON.Val[0]));
+  }
+  public static void recAdd(Vec<Node> l, Node c) {
+    l.add(c);
+    if (c instanceof RoomListNode.DirStartNode) {
+      RoomListNode.DirStartNode d = (RoomListNode.DirStartNode) c;
+      if (!d.isOpen()) for (Node n : d.closedCh) recAdd(l, n);
+    }
   }
   private static class SavingState {
     final Vec<Node> ch;
@@ -158,7 +172,7 @@ public class RoomTree {
     } else {
       if (e0.name!=null) m.put("name", new JSON.Str(e0.name));
     }
-    m.put("open", JSON.Bool.of(e0.open));
+    m.put("open", JSON.Bool.of(e0.isOpen()));
     Vec<JSON.Obj> list = saveList(s, true);
     m.put("folder", new JSON.Arr(list.toArray(new JSON.Val[0])));
     return new JSON.Obj(m);

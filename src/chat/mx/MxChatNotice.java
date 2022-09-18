@@ -51,7 +51,7 @@ public class MxChatNotice extends MxChatEvent {
                 Vec<Node> list = new Vec<>();
                 
                 if (!Objects.equals(prevName, currName)) list.add(currName==null? mk("chat.notice.$noName") : mk("chat.notice.$setName", "new", mks(someName)));
-  
+                
                 if (!Objects.equals(prev.str("avatar_url", null), e.ct.str("avatar_url", null))) list.add(mk("chat.notice.$newAvatar"));
                 
                 if (list.sz==0) list.add(mk("chat.notice.$noopMember")); // TODO ignore if not developer mode or something, when that exists

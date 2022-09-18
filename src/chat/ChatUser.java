@@ -37,8 +37,12 @@ public abstract class ChatUser {
     return cs[(name.hashCode()&Integer.MAX_VALUE) % cs.length];
   }
   
+  public void preRoomListChange() {
+    if (roomListNode.reordering()) roomListNode.stopReorder(false);
+  }
   public void roomListChanged() {
     // TODO undo/redo setup
+    assert !roomListNode.reordering();
     roomListNode.recalculateDepths();
     saveRooms();
   }

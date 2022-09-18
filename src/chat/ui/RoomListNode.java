@@ -34,9 +34,16 @@ public class RoomListNode extends ReorderableNode {
     return n instanceof RoomNode || n instanceof DirStartNode; // also excludes the placeholder before room list is loaded
   }
   
-  public Node reorderSelect(Node selected) {
-    if (!(selected instanceof DirStartNode)) return selected;
-    int[] r = ((DirStartNode) selected).getRange();
+  public Node reorderSelect(Node sel) {
+    if (!(sel instanceof DirStartNode)) return sel;
+    DirStartNode s = (DirStartNode) sel;
+    int[] r;
+    if (s.isOpen()) {
+      r = s.getRange();
+    } else {
+      int p = s.getPos();
+      r = new int[]{p, p+1};
+    }
     
     PackedListNode l = new PackedListNode(ctx, new String[]{"dir"}, new Prop[]{new EnumProp("v")});
     Vec<Node> dir = Vec.ofReuse(ch.get(r[0], r[1], Node[].class));
@@ -103,22 +110,24 @@ public class RoomListNode extends ReorderableNode {
         }
       }
       if (placeholder) placeholderDepth = depth;
+      if (n instanceof DirStartNode && !((DirStartNode) n).isOpen()) depth--;
       if (n instanceof DirEndNode) depth--;
     }
   }
-  public static void drawDepths(Graphics g, ChatUser u, int h, int depth, boolean ending) {
+  public static void drawDepths(Graphics g, ChatUser u, int h, int depth, int mode) { // 0:middle 1:end 2:start&end
     if (depth==0) return;
     int[] cols = u.m.folderColors;
     int w = u.m.gc.getProp("chat.folder.indentW").len();
     int x = 0;
+    if (mode==1) depth--;
     for (int i = 0; i < depth; i++) {
-      g.rect(x, 0, x+w, ending && i==depth-1? h/2f : h, cols[i%cols.length]);
+      g.rect(x, 0, x+w, mode==2? h-u.m.gc.getProp("chat.folder.endH").len() : h, cols[i%cols.length]);
       x+= w;
     }
   }
   int placeholderDepth;
   public void drawPlaceholder(Graphics g, int w, int h) {
-    drawDepths(g, u, h, placeholderDepth, false);
+    drawDepths(g, u, h, placeholderDepth, 0);
   }
   
   public static abstract class RoomEntryNode extends Node {
@@ -139,7 +148,9 @@ public class RoomListNode extends ReorderableNode {
     }
     public abstract boolean isSelected();
     
-    public void over(Graphics g) { drawDepths(g, u, h, depth, this instanceof DirEndNode); }
+    public void over(Graphics g) {
+      drawDepths(g, u, h, depth, this instanceof DirEndNode? 1 : this instanceof DirStartNode && !((DirStartNode) this).isOpen()? 2 : 0);
+    }
     
     public int indent() { return depth*gc.getProp("chat.folder.indentW").len(); }
     public int minW() { return ch.get(0).minW()+indent(); }
@@ -186,7 +197,7 @@ public class RoomListNode extends ReorderableNode {
     public String name;
     public Node afterEditReplacement;
     
-    public boolean open = true; // TODO
+    public Node[] closedCh;
     
     public DirStartNode(ChatUser r) {
       this(r, null);
@@ -202,13 +213,15 @@ public class RoomListNode extends ReorderableNode {
         external.nodeAttached();
       }
     }
+    
     public boolean editing() {
       return afterEditReplacement!=null;
     }
     public void setName(String name) {
       this.name = name;
       if (editing()) return;
-      nameObj.ctx.id("name").replace(0, new StringNode(ctx, name!=null? name : gc.getProp("chat.folder.defaultName").str()));
+      String disp = name!=null? name : gc.getProp("chat.folder.defaultName").str();
+      nameObj.ctx.id("name").replace(0, new StringNode(ctx, (isOpen()? "" : "["+subRooms().sz+"] ") + disp));
     }
     private void startEdit() {
       if (editing()) return;
@@ -226,6 +239,7 @@ public class RoomListNode extends ReorderableNode {
       ctx.win().focus(f);
     }
     private void endEdit() {
+      u.preRoomListChange();
       ch.get(0).ctx.id("entryPlace").replace(0, afterEditReplacement);
       afterEditReplacement = null;
       if (external!=null) external.setLocalName(name.length()==0? null : name);
@@ -234,7 +248,7 @@ public class RoomListNode extends ReorderableNode {
     }
     public static class NameEditFieldNode extends TextFieldNode {
       public NameEditFieldNode(Ctx ctx, String[] ks, Prop[] vs) { super(ctx, ks, vs); }
-  
+      
       public int action(Key key, KeyAction a) {
         switch (gc.keymap(key, a, "chat.rooms.folderRename")) {
           default: return super.action(key, a);
@@ -245,14 +259,56 @@ public class RoomListNode extends ReorderableNode {
       }
     }
     
+    public boolean isOpen() {
+      return closedCh==null;
+    }
+    public void close(int s, int e) {
+      assert isOpen();
+      closedCh = p.ch.get(s+1, e, Node[].class);
+      p.remove(s+1, e);
+      setName(name);
+    }
+    public void open() {
+      assert !isOpen();
+      p.insert(getPos()+1, Vec.ofReuse(closedCh));
+      closedCh = null;
+      setName(name);
+    }
+    public void leftClick() {
+      u.preRoomListChange();
+      if (isOpen()) {
+        int[] r = getRange();
+        close(r[0], r[1]);
+      } else {
+        open();
+      }
+      u.roomListChanged();
+    }
+    public Vec<Chatroom> subRooms() {
+      assert !isOpen();
+      Vec<Chatroom> res = new Vec<>();
+      for (Node n : closedCh) recRooms(res, n);
+      return res;
+    }
+    public void recRooms(Vec<Chatroom> res, Node c) {
+      if (c instanceof RoomNode) res.add(((RoomNode) c).r);
+      if (c instanceof DirStartNode && !((DirStartNode) c).isOpen()) {
+        for (Node n : ((DirStartNode) c).closedCh) recRooms(res, n);
+      }
+    }
+    
+    public int getPos() {
+      return p.ch.indexOf(this);
+    }
     public int[] getRange() {
-      Vec<Node> pch = p.ch;
-      int s = pch.indexOf(this);
+      assert isOpen();
+      int s = getPos();
       int e = s+1;
       int d = 1;
+      Vec<Node> pch = p.ch;
       do {
         Node c = pch.get(e);
-        if (c instanceof DirStartNode) d++;
+        if (c instanceof DirStartNode && ((DirStartNode) c).isOpen()) d++;
         else if (c instanceof DirEndNode) d--;
         e++;
       } while (d != 0);
@@ -260,7 +316,6 @@ public class RoomListNode extends ReorderableNode {
     }
     public boolean isSelected() { return false; }
     
-    public void leftClick() { }
     public void rightClick(Click c, int x, int y, Runnable onClose) {
       PNodeGroup gr = gc.getProp("chat.folderMenu.main").gr().copy();
       if (external ==null) {
@@ -283,8 +338,10 @@ public class RoomListNode extends ReorderableNode {
             DirStartNode.wrap(u, this);
             break;
           case "delete":
+            if (!isOpen()) open();
             int[] r = getRange();
             r[1]--;
+            u.preRoomListChange();
             u.roomListNode.remove(r[1], r[1]+1);
             u.roomListNode.remove(r[0], r[0]+1);
             u.roomListChanged();
@@ -300,7 +357,8 @@ public class RoomListNode extends ReorderableNode {
       int s = u.roomListNode.ch.indexOf(n);
       if (s==-1) return;
       int e = s+1;
-      if (n instanceof DirStartNode) e = ((DirStartNode) n).getRange()[1];
+      if (n instanceof DirStartNode && ((DirStartNode) n).isOpen()) e = ((DirStartNode) n).getRange()[1];
+      u.preRoomListChange();
       u.roomListNode.insert(e, new DirEndNode(u));
       u.roomListNode.insert(s, new DirStartNode(u));
       u.roomListChanged();
