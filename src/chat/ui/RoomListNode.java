@@ -3,11 +3,12 @@ package chat.ui;
 import chat.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
-import dzaima.ui.gui.io.Click;
+import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
+import dzaima.ui.node.types.editable.*;
 import dzaima.utils.Vec;
 
 public class RoomListNode extends ReorderableNode {
@@ -156,6 +157,7 @@ public class RoomListNode extends ReorderableNode {
     public void hoverE() { hovered=false; updBG(); ctx.vw().popCursor(); }
     
     public void mouseStart(int x, int y, Click c) {
+      super.mouseStart(x, y, c);
       if (c.bL() || c.bR()) c.register(this, x, y);
     }
     
@@ -182,6 +184,7 @@ public class RoomListNode extends ReorderableNode {
     public final ExternalDirInfo external;
     Node nameObj;
     public String name;
+    public Node afterEditReplacement;
     
     public boolean open = true; // TODO
     
@@ -191,7 +194,7 @@ public class RoomListNode extends ReorderableNode {
     public DirStartNode(ChatUser r, ExternalDirInfo external) {
       super(r, r.m.ctx.make(r.m.gc.getProp("chat.rooms.roomP").gr()));
       this.external = external;
-      nameObj = r.m.ctx.make(r.m.gc.getProp("chat.rooms.folderName").gr());
+      nameObj = ctx.make(gc.getProp("chat.rooms.folderName").gr());
       ch.get(0).ctx.id("name").replace(0, nameObj);
       setName(gc.getProp("chat.folder.defaultName").str());
       if (external!=null) {
@@ -199,10 +202,49 @@ public class RoomListNode extends ReorderableNode {
         external.nodeAttached();
       }
     }
+    public boolean editing() {
+      return afterEditReplacement!=null;
+    }
     public void setName(String name) {
       this.name = name;
+      if (editing()) return;
       nameObj.ctx.id("name").replace(0, new StringNode(ctx, name!=null? name : gc.getProp("chat.folder.defaultName").str()));
     }
+    private void startEdit() {
+      if (editing()) return;
+      Node rename = ctx.make(gc.getProp("chat.rooms.folderRename.field").gr());
+      TextFieldNode f = (TextFieldNode) rename.ctx.id("val");
+      f.setFn(i -> {
+        if (i!=-1) setName(f.getAll());
+        endEdit();
+        return true;
+      });
+      f.append(name);
+      Node e = ch.get(0).ctx.id("entryPlace");
+      afterEditReplacement = e.ch.get(0);
+      e.replace(0, rename);
+      ctx.win().focus(f);
+    }
+    private void endEdit() {
+      ch.get(0).ctx.id("entryPlace").replace(0, afterEditReplacement);
+      afterEditReplacement = null;
+      if (external!=null) external.setLocalName(name.length()==0? null : name);
+      else setName(name);
+      u.roomListChanged();
+    }
+    public static class NameEditFieldNode extends TextFieldNode {
+      public NameEditFieldNode(Ctx ctx, String[] ks, Prop[] vs) { super(ctx, ks, vs); }
+  
+      public int action(Key key, KeyAction a) {
+        switch (gc.keymap(key, a, "chat.rooms.folderRename")) {
+          default: return super.action(key, a);
+          case "cancel":
+            fn.test(-1);
+            return 1;
+        }
+      }
+    }
+    
     public int[] getRange() {
       Vec<Node> pch = p.ch;
       int s = pch.indexOf(this);
@@ -248,10 +290,7 @@ public class RoomListNode extends ReorderableNode {
             u.roomListChanged();
             break;
           case "rename":
-            String val = "Renamed new folder";
-            if (external!=null) external.setLocalName(val);
-            else setName(val);
-            u.roomListChanged();
+            startEdit();
             break;
         }
       }).takeClick(c);

@@ -26,6 +26,7 @@ chat {
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }
     pasteCode = { "ctrl+shift+v" } // paste clipboard, escaping things
+    cancel = { "esc" }
   }
   menuKeys {
     copyLink = { "l" }
@@ -222,7 +223,7 @@ chat {
       text { ta { mode=above chat.icon.$back{} } text { id=text } }
     }
     keys {
-      close = { "esc" }
+      close = chat.keys.cancel
       back = { }
     }
   }
@@ -345,11 +346,11 @@ chat {
       mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
     }
     local = {
-//      mi { id=rename "Rename folder" key=chat.menuKeys.rename }
+      mi { id=rename "Rename folder" key=chat.menuKeys.rename }
       mi { id=delete "Delete folder" key=chat.menuKeys.delete }
     }
     mxSpace = {
-//      mi { id=rename "Rename locally" key=chat.menuKeys.rename }
+      mi { id=rename "Rename locally" key=chat.menuKeys.rename }
       vsep{}
       chat.mx.roomMenu.$links{}
       mi { id=viewInternal "View internal Matrix room" }
@@ -444,9 +445,9 @@ chat {
     }
   }
   rooms.accountSepP = vsep { x=.5em }
-  rooms.roomP = pad { bg=#00000000 id=bg
+  rooms.roomP = pad { bg=#0000 id=bg
     all=.4em x=0.7em
-    h {
+    h { id=entryPlace
       text {
         text { id=name "…" }
         text { id=unread }
@@ -454,7 +455,10 @@ chat {
     }
   }
   rooms.folderName = text { color=chat.folder.nameCol id=name "…" }
-  rooms.folderEnd = v { bg=#00000000 id=bg h=chat.folder.endH }
+  rooms.folderEnd = v { bg=#0000 id=bg h=chat.folder.endH }
+  rooms.folderRename.field = scroll { y=off x=hidden nameEditField { family=str.defaultFont bg=#0000 id=val color=chat.folder.nameCol } }
+  rooms.folderRename.keys { cancel = chat.keys.cancel }
+  
   rooms.unreadP = text { " " text { bg=chat.ly.bgUnread id=num } }
   rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }
   

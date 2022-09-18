@@ -10,6 +10,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.*;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
+import dzaima.ui.node.types.editable.EditNode;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import io.github.humbleui.skija.*;
@@ -597,7 +598,7 @@ public class ChatMain extends NodeWindow {
     }
     if (super.key(key, scancode, a)) return true;
     if (rightPanel.key(key, a)) return true;
-    if (a.press && !key.isModifier()) focus(input);
+    if (a.press && !key.isModifier() && !(focusNode() instanceof EditNode)) focus(input);
     return super.key(key, scancode, a);
   }
   private Chatroom edgeRoom(boolean up) {
@@ -622,6 +623,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("imageViewer", ImageViewerNode::new);
       ctx.put("roomList", RoomListNode::new);
       ctx.put("clickableText", Extras.ClickableTextNode::new);
+      ctx.put("nameEditField", RoomListNode.DirStartNode.NameEditFieldNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));
