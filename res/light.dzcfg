@@ -72,6 +72,9 @@ chat {
   room.selected = #CCC
   room.hovered = #DDD
   
+  folder.colors = { "#bbb" "#aaa" }
+  folder.nameCol = #777
+  
   ly.bgRoomTitle = #DDD
   ly.bgTranscript = #FFF
   ly.bgInputBar = #DDD
