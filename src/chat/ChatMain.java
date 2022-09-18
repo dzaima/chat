@@ -559,13 +559,13 @@ public class ChatMain extends NodeWindow {
       case "roomUp": case "roomDn": {
         boolean up = name.equals("roomUp");
         Chatroom prev = room();
-        Chatroom res;
-        if (prev==null) {
-          res = edgeRoom(true);
-        } else {
+        Chatroom res = null;
+        search: {
+          if (prev==null) break search;
           ChatUser u = prev.user();
           int i = users.indexOf(u);
-          int j = u.roomListNode.ch.indexOf(prev.node);
+          int j = u.roomListNode.findRoomClosest(prev);
+          if (j==-1) break search;
           int delta = up? -1 : 1;
           while (true) {
             res = u.roomListNode.nextRoom(j, delta);

@@ -18,6 +18,22 @@ public class RoomListNode extends ReorderableNode {
     super(ctx, ks, vs);
   }
   
+  public int findRoomClosest(Chatroom r) {
+    for (int i = 0; i < ch.sz; i++) {
+      Node n = ch.get(i);
+      if (containsRoom(n, r)) return i;
+    }
+    return -1;
+  }
+  
+  private static boolean containsRoom(Node n, Chatroom r) {
+    if (n instanceof RoomNode && ((RoomNode) n).r==r) return true;
+    if (n instanceof DirStartNode && !((DirStartNode) n).isOpen()) {
+      for (Node c : ((DirStartNode) n).closedCh) if (containsRoom(c, r)) return true;
+    }
+    return false;
+  }
+  
   public Chatroom nextRoom(int start, int delta) {
     int i = start+delta;
     while (delta==1? i<ch.sz : i>=0) {
