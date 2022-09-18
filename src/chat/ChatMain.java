@@ -68,7 +68,7 @@ public class ChatMain extends NodeWindow {
     //   Chatroom r = room();
     //   if (r!=null) r.viewRoomInfo();
     // });
-  
+    
     rightPanel = new RightPanel(this);
     
     this.profilePath = Paths.get(profilePath);
@@ -312,7 +312,7 @@ public class ChatMain extends NodeWindow {
   public boolean atEnd() { return msgsScroll.atEnd(5); }
   
   public Node makeInfo(EnumProp type, String cfg, Node body) {
-  
+    
     Node msg = ctx.make(gc.getProp("chat.info.mainP").gr());
     msg.set(msg.id("infoType"), type);
     msg.ctx.id("body").add(ctx.makeKV(gc.getProp(cfg).gr(), "body", body));
@@ -557,33 +557,26 @@ public class ChatMain extends NodeWindow {
         return true;
       case "roomUp": case "roomDn": {
         boolean up = name.equals("roomUp");
-        Chatroom room = room();
-        if (room==null) {
-          for (ChatUser u : users) {
-            Vec<Chatroom> rs = u.rooms();
-            if (rs.sz!=0) {
-              toRoom(rs.get(0));
-              return true;
-            }
+        Chatroom prev = room();
+        Chatroom res;
+        if (prev==null) {
+          res = edgeRoom(true);
+        } else {
+          ChatUser u = prev.user();
+          int i = users.indexOf(u);
+          int j = u.roomListNode.ch.indexOf(prev.node);
+          int delta = up? -1 : 1;
+          while (true) {
+            res = u.roomListNode.nextRoom(j, delta);
+            if (res!=null) break;
+            i+= delta;
+            if (up? i<0 : i>=users.sz) break;
+            u = users.get(i);
+            j = up? u.roomListNode.ch.sz : -1;
           }
-          return true;
         }
-        ChatUser u = room.user();
-        Vec<Chatroom> rl = u.rooms();
-        int y = rl.indexOf(room);
-        if (up && y==0) {
-          int yA = users.indexOf(u)-1;
-          while (yA>=0 && users.get(yA).rooms().sz==0) yA--;
-          if (yA>=0 && users.get(yA).rooms().sz!=0) toRoom(users.get(yA).rooms().peek());
-          return true;
-        }
-        if (!up && y==rl.sz-1) {
-          int yA = users.indexOf(u)+1;
-          while (yA<users.sz && users.get(yA).rooms().sz==0) yA++;
-          if (yA<users.sz && users.get(yA).rooms().sz!=0) toRoom(users.get(yA).rooms().get(0));
-          return true;
-        }
-        toRoom(rl.get(up? y-1 : y+1));
+        if (res==null) res = edgeRoom(!up);
+        if (res!=null) toRoom(res);
         return true;
       }
     }
@@ -607,6 +600,15 @@ public class ChatMain extends NodeWindow {
     if (a.press && !key.isModifier()) focus(input);
     return super.key(key, scancode, a);
   }
+  private Chatroom edgeRoom(boolean up) {
+    for (int i0 = 0; i0 < users.sz; i0++) {
+      int i = up? i0 : users.sz-i0-1;
+      ChatUser u = users.get(i);
+      Chatroom f = u.roomListNode.nextRoom(up? -1 : u.roomListNode.ch.sz, up? 1 : -1);
+      if (f!=null) return f;
+    }
+    return null;
+  }
   
   public static void main(String[] args) {
     // Log.level = Log.Level.FINE;
@@ -618,7 +620,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("msgBorder", MsgBorderNode::new);
       ctx.put("hideOverflow", HideOverflowNode::new);
       ctx.put("imageViewer", ImageViewerNode::new);
-      ctx.put("roomList", ChatUser.RoomListNode::new);
+      ctx.put("roomList", RoomListNode::new);
       ctx.put("clickableText", Extras.ClickableTextNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
@@ -636,6 +638,7 @@ public class ChatMain extends NodeWindow {
   public int colMyNick, colMyPill;
   public int[] colOtherNicks;
   public int[] colOtherPills;
+  public int[] folderColors;
   public Paint msgBorder;
   private static int[] colorList(Prop p) {
     if (p instanceof ColProp) {
@@ -655,6 +658,7 @@ public class ChatMain extends NodeWindow {
     colMyPill = gc.getProp("chat.userCols.myPill").col();
     colOtherNicks = colorList(gc.getProp("chat.userCols.otherNicks"));
     colOtherPills = colorList(gc.getProp("chat.userCols.otherPills"));
+    folderColors = ChatMain.colorList(gc.getProp("chat.folder.colors"));
     
     msgBorder = new Paint().setColor(gc.getProp("chat.msg.border").col()).setPathEffect(PathEffect.makeDash(new float[]{1, 1}, 0));
     for (ChatUser u : users) {

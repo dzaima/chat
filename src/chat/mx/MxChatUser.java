@@ -104,65 +104,38 @@ public class MxChatUser extends ChatUser {
       });
       
       Obj j = u0.s.getJ("_matrix/client/r0/sync?filter={\"room\":{\"timeline\":{\"limit\":" + DEFAULT_MSGS + "}}}&access_token=" + u0.token);
-      
       primary.add(() -> {
-        HashMap<String, MxChatroom> todoRooms = new HashMap<>();
         for (Entry e : j.obj("rooms", Obj.E).obj("join", Obj.E).entries()) {
           MxChatroom r = new MxChatroom(this, e.k, e.v.obj());
           roomMap.put(e.k, r);
-          todoRooms.put(e.k, r);
         }
-  
-        boolean updatedRooms = false;
-        for (String o : data.arr("roomOrder", Arr.E).strs()) {
-          MxChatroom r = todoRooms.get(o);
-          if (r!=null) {
-            roomList.add(r);
-            todoRooms.remove(o);
-          } else updatedRooms = true;
-        }
-  
-        updatedRooms|= todoRooms.size()>0;
-        if (updatedRooms) for (MxChatroom c : todoRooms.values()) roomList.add(c);
-        roomOrderChanged(updatedRooms);
+        
+        Arr storedStructure = data.arr("roomStructure", Arr.E);
+        restoreTree(storedStructure, data.arr("roomOrder", null));
+        if (data.has("roomOrder")) data.remove("roomOrder");
+        saveRooms();
       });
-  
+      
       MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"));
       sync0.start();
       sync = sync0;
     });
   }
-  public void roomOrderChanged(boolean save) {
-    Val[] order = new Val[roomList.sz];
-    roomListNode.clearCh();
-    for (int i = 0; i < order.length; i++) {
-      MxChatroom c = roomList.get(i);
-      order[i] = new JSON.Str(c.r.rid);
-      roomListNode.add(c.node);
-    }
-    data.put("roomOrder", new Arr(order));
-    if (save) m.requestSave();
+  
+  public void restoreTree(JSON.Arr state, JSON.Arr legacyOrder) {
+    RoomTree.restoreTree(this, state, legacyOrder);
   }
+  
+  
+  public void saveRooms() {
+    data.put("roomStructure", RoomTree.saveTree(roomListNode));
+    m.requestSave();
+  }
+  
   public Vec<Chatroom> rooms() {
     Vec<Chatroom> r = new Vec<>();
     for (MxChatroom c : roomList) r.add(c);
     return r;
-  }
-  public void reorderRooms(Vec<Chatroom> rs) {
-    if (rs.sz!=roomList.sz) {
-      ChatMain.warn("bad room reordering length");
-      return;
-    }
-    Vec<MxChatroom> l = new Vec<>();
-    for (Chatroom c : rs) {
-      if (roomMap.get(((MxChatroom) c).r.rid)==null) {
-        ChatMain.warn("bad room reordering");
-        return;
-      }
-      l.add((MxChatroom) c);
-    }
-    roomList = l;
-    roomOrderChanged(true);
   }
   
   public void tick() {
@@ -189,7 +162,7 @@ public class MxChatUser extends ChatUser {
           newRooms = true;
         } else room.update(k.v.obj());
       }
-      if (newRooms) roomOrderChanged(true);
+      if (newRooms) roomListChanged();
     }
     
     for (MxChatroom c : roomList) c.tick();

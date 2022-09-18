@@ -1,16 +1,15 @@
 package chat;
 
 import chat.ui.*;
-import dzaima.ui.gui.Window;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
-import dzaima.ui.node.types.*;
+import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Vec;
 
 public abstract class Chatroom extends View {
   public final ChatMain m;
-  public RNode node;
+  public RoomListNode.RoomNode node;
   public String name;
   public int unread;
   public String typing = "";
@@ -19,7 +18,7 @@ public abstract class Chatroom extends View {
   public final ChatTextArea input;
   protected Chatroom(ChatUser u) {
     this.m = u.m;
-    node = new RNode(this, u.node.ctx.make(u.m.gc.getProp("chat.rooms.roomP").gr()));
+    node = new RoomListNode.RoomNode(this, u);
     setName("Unnamed room");
     input = new ChatTextArea(this, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE});
     input.wrap = true;
@@ -35,7 +34,6 @@ public abstract class Chatroom extends View {
     else input.setLang(m.gc.langs().defLang);
   }
   
-  private static final Prop TRANSPARENT = new ColProp(0);
   
   public abstract String getUsername(String uid);
   
@@ -55,42 +53,11 @@ public abstract class Chatroom extends View {
   }
   public abstract Vec<UserRes> autocompleteUsers(String prefix);
   
-  public class RNode extends WrapNode {
-    public final Chatroom r;
-    public RNode(Chatroom r, Node ch) {
-      super(ch.ctx, ch);
-      this.r = r;
-    }
-    
-    public void propsUpd() { super.propsUpd(); setBG(); }
-    
-    boolean openMenu;
-    public void openMenu(boolean v) { openMenu = v; setBG(); }
-    boolean hovered;
-    public void hoverS() { hovered=true;  setBG(); ctx.vw().pushCursor(Window.CursorType.HAND); }
-    public void hoverE() { hovered=false; setBG(); ctx.vw().popCursor(); }
-    
-    public void mouseStart(int x, int y, Click c) {
-      if (c.bL() || c.bR()) c.register(this, x, y);
-    }
-    
-    public void mouseDown(int x, int y, Click c) {
-      if (c.bL()) c.register(this, x, y);
-      if (c.bR()) roomMenu(c, x, y);
-    }
-    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
-    public void mouseUp(int x, int y, Click c) { m.toRoom(Chatroom.this); }
-    
-    public void setBG() {
-      Node bg = node.ctx.id("bg");
-      boolean showHover = hovered && !user().roomListNode.reordering()  ||  user().roomListNode.holding(this)  ||  openMenu;
-      bg.set(bg.id("bg"), open? gc.getProp("chat.room.selected") : showHover? gc.getProp("chat.room.hovered") : TRANSPARENT); // TODO plain background when drag'n'dropping outside
-    }
-  }
-  
-  protected abstract void roomMenu(Click c, int x, int y);
+  public abstract void roomMenu(Click c, int x, int y, Runnable onClose);
   public abstract void userMenu(Click c, int x, int y, String uid);
   public abstract void viewProfile(String uid);
+  
+  public abstract RoomListNode.ExternalDirInfo asDir();
   
   public void viewTick() {
     if (m.toLast!=0) {
@@ -115,9 +82,9 @@ public abstract class Chatroom extends View {
   public abstract ChatUser user();
   public Chatroom room() { return this; }
   
-  protected boolean open;
-  public /*open*/ void show() { open=true; node.setBG(); unreadChanged(); m.setCurrentName(name); input.roomShown(); }
-  public /*open*/ void hide() { open=false;node.setBG(); input.roomHidden(); }
+  public boolean open;
+  public /*open*/ void show() { open=true; node.updBG(); unreadChanged(); m.setCurrentName(name); input.roomShown(); }
+  public /*open*/ void hide() { open=false;node.updBG(); input.roomHidden(); }
   
   public abstract void readAll();
   public abstract void older();

@@ -3,8 +3,6 @@ package chat;
 import chat.ui.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.prop.Prop;
-import dzaima.ui.node.types.ReorderableNode;
 import dzaima.utils.JSON.Obj;
 import dzaima.utils.Vec;
 
@@ -23,14 +21,11 @@ public abstract class ChatUser {
   }
   
   public abstract Vec<Chatroom> rooms();
-  public abstract void reorderRooms(Vec<Chatroom> rs);
+  public abstract void saveRooms();
   
   public abstract void tick();
-  
   public abstract void close();
-  
   public abstract String id();
-  
   public abstract Obj data();
   
   public abstract void openLink(String url, Extras.LinkType type, byte[] data);
@@ -42,28 +37,9 @@ public abstract class ChatUser {
     return cs[(name.hashCode()&Integer.MAX_VALUE) % cs.length];
   }
   
-  public static class RoomListNode extends ReorderableNode {
-    public ChatUser u;
-  
-    public RoomListNode(Ctx ctx, String[] ks, Prop[] vs) {
-      super(ctx, ks, vs);
-    }
-  
-    public boolean shouldReorder(int idx, Node n) {
-      return n instanceof Chatroom.RNode;
-    }
-  
-    public void reorderStarted(Node n) {
-      ((Chatroom.RNode) n).setBG();
-    }
-    
-    public void reorderEnded(int oldIdx, int newIdx, Node n) {
-      ((Chatroom.RNode) n).setBG();
-      if (oldIdx!=newIdx) {
-        Vec<Chatroom> rs = new Vec<>();
-        for (Node c : ch) rs.add(((Chatroom.RNode) c).r);
-        u.reorderRooms(rs);
-      }
-    }
+  public void roomListChanged() {
+    // TODO undo/redo setup
+    roomListNode.recalculateDepths();
+    saveRooms();
   }
 }

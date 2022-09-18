@@ -36,6 +36,9 @@ chat {
     edit = { "e" }
     viewSource = { "s" }
     viewProfile = { "v" }
+    folder = { "f" }
+    delete = { "delete" }
+    rename = { "r" }
   }
   autocomplete.keys {
     prev = { "up" }
@@ -113,6 +116,12 @@ chat {
   room.selected = #373C44
   room.hovered = #2D3237
   room.colServer = #777 // color of the server indicator in user list
+  
+  folder.endH = 0.2em // height of the closing segment of a folder
+  folder.colors = { "#484848" "#585858" }
+  folder.indentW = 0.2em // width of each folder indicating line
+  folder.nameCol = #AAA
+  folder.defaultName = "Unnamed folder"
   
   // layouts
   ly.bgRoomTitle = #191A1A
@@ -321,9 +330,29 @@ chat {
     }
   }
   mx.roomMenu {
-    main = menu {
+    $links = {
       mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
       mi { id=copyID "Copy room ID" key=chat.menuKeys.copyText }
+    }
+    main = menu {
+      chat.mx.roomMenu.$links{}
+      vsep{}
+      mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
+    }
+  }
+  folderMenu {
+    main = menu {
+      mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
+    }
+    local = {
+//      mi { id=rename "Rename folder" key=chat.menuKeys.rename }
+      mi { id=delete "Delete folder" key=chat.menuKeys.delete }
+    }
+    mxSpace = {
+//      mi { id=rename "Rename locally" key=chat.menuKeys.rename }
+      vsep{}
+      chat.mx.roomMenu.$links{}
+      mi { id=viewInternal "View internal Matrix room" }
     }
   }
   linkMenu = menu {
@@ -416,7 +445,7 @@ chat {
   }
   rooms.accountSepP = vsep { x=.5em }
   rooms.roomP = pad { bg=#00000000 id=bg
-    all=.5em x=1em
+    all=.4em x=0.7em
     h {
       text {
         text { id=name "…" }
@@ -424,6 +453,8 @@ chat {
       }
     }
   }
+  rooms.folderName = text { color=chat.folder.nameCol id=name "…" }
+  rooms.folderEnd = v { bg=#00000000 id=bg h=chat.folder.endH }
   rooms.unreadP = text { " " text { bg=chat.ly.bgUnread id=num } }
   rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }
   

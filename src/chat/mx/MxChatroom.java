@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.ui.RoomListNode;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
@@ -40,6 +41,8 @@ public class MxChatroom extends Chatroom {
   private static class EventInfo { String closestVisible; int monotonicID; }
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
+  
+  public SpaceInfo spaceInfo;
   
   public MxChatroom(MxChatUser u, String rid, Obj init) {
     super(u);
@@ -82,6 +85,15 @@ public class MxChatroom extends Chatroom {
           case "leave": d.s = UserStatus.LEFT; break;
           case "ban": d.s = UserStatus.BANNED; break;
           case "knock": d.s = UserStatus.KNOCKING; break;
+        }
+        break;
+      case "m.room.create":
+        String type = ct.str("type", "");
+        if (type.equals("m.space")) spaceInfo = new SpaceInfo(this);
+        break;
+      case "m.space.child":
+        if (spaceInfo!=null && ev.hasStr("state_key")) {
+          spaceInfo.childInfo(ev.str("state_key"), ct.size()!=0);
         }
         break;
       case "m.room.canonical_alias":
@@ -535,28 +547,78 @@ public class MxChatroom extends Chatroom {
     ViewUsers.viewUsers(this);
   }
   
-  protected void roomMenu(Click c, int x, int y) {
+  public void roomMenu(Click c, int x, int y, Runnable onClose) {
     PNodeGroup gr = node.gc.getProp("chat.mx.roomMenu.main").gr().copy();
-    node.openMenu(true);
     
     Popup.rightClickMenu(node.gc, node.ctx, gr, cmd -> {
       switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
-        case "(closed)":
-          node.openMenu(false);
-          break;
-        case "copyLink":
-          m.copyString(r.link());
-          break;
-        case "copyID":
-          m.copyString(canonicalAlias==null? r.rid : canonicalAlias);
-          break;
+        case "(closed)": onClose.run(); break;
+        case "copyLink": actionCopyLink(); break;
+        case "copyID": actionCopyID(); break;
+        case "wrap": RoomListNode.DirStartNode.wrap(u, node); break;
       }
     }).takeClick(c);
+  }
+  private void actionCopyLink() {
+    m.copyString(r.link());
+  }
+  private void actionCopyID() {
+    m.copyString(canonicalAlias==null? r.rid : canonicalAlias);
+  }
+  
+  
+  public static class SpaceInfo extends RoomListNode.ExternalDirInfo {
+    public final MxChatroom r;
+    public String officialName, customName;
+    public SpaceInfo(MxChatroom r) { this.r = r; }
+    
+    public void setLocalName(String val) {
+      customName = val;
+      nameUpdated();
+    }
+    public void nameUpdated() {
+      if (node!=null) node.setName(getName());
+    }
+    public String getName() {
+      return customName!=null? customName : officialName;
+    }
+    public void addToMenu(PNodeGroup gr) {
+      gr.ch.addAll(r.m.gc.getProp("chat.folderMenu.mxSpace").gr().ch);
+    }
+    
+    public void runAction(String cmd) {
+      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+        case "copyLink": r.actionCopyLink(); break;
+        case "copyID": r.actionCopyID(); break;
+        case "viewInternal": r.node.leftClick();
+      }
+    }
+    
+    public void nodeAttached() {
+      nameUpdated();
+    }
+    
+    HashSet<String> children = new HashSet<>();
+    HashSet<String> children0 = new HashSet<>();
+    public void childInfo(String id, boolean has) {
+      if (has) { children.add(id);    children0.add(id); }
+      else     { children.remove(id); children0.remove(id); }
+    }
+  }
+  public RoomListNode.ExternalDirInfo asDir() {
+    return spaceInfo;
+  }
+  public void setName(String name) {
+    super.setName(name);
+    if (spaceInfo!=null) {
+      spaceInfo.officialName = name;
+      spaceInfo.nameUpdated();
+    }
   }
   
   public void userMenu(Click c, int x, int y, String uid) {
     Popup.rightClickMenu(m.gc, m.ctx, "chat.profile.menu", cmd -> {
-      switch (cmd) {
+      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
         case "view": viewProfile(uid); break;
         case "copyID": m.ctx.win().copyString(uid); break;
         case "copyLink": m.copyString(MxFmt.userURL(uid)); break;
