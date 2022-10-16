@@ -118,6 +118,27 @@ chat {
   room.hovered = #2D3237
   room.colServer = #777 // color of the server indicator in user list
   
+  
+  info.bg = #282828 // background of view room/profile info
+  info.colID = #777 // color of user ID & room ID in profile/room info
+  info.colDesc = #999 // color of room description
+  
+  
+  info.infoBtn.bgOff=#333 // "info" button at the right of the room title
+  info.infoBtn.bgHover=#383838
+  info.infoBtn.bgOn=#404040
+  
+  info.moveBtn.$props = { bgOff=chat.info.moveBtn.bgOff bgHover=chat.info.moveBtn.bgHover bgOn=chat.info.moveBtn.bgOn radius=.6em } // go back & close buttons
+  info.moveBtn.bgOff=#444
+  info.moveBtn.bgHover=#484848
+  info.moveBtn.bgOn=btn.round.bgOn
+  
+  info.userList.$props = { bgOff=chat.info.userList.bgOff bgHover=chat.info.userList.bgHover bgOn=chat.info.userList.bgOn radius=.6em } // user list entries
+  info.userList.bgOff=#0000
+  info.userList.bgHover=#303030
+  info.userList.bgOn=#383838
+  
+  
   folder.endH = 0.2em // height of the closing segment of a folder
   folder.colors = { "#484848" "#585858" }
   folder.indentW = 0.2em // width of each folder indicating line
@@ -162,7 +183,7 @@ chat {
             h {
               h { weight=99 alY=center text { tsz=1.2em "" id=roomName } }
               h { alX=right alY=center
-//                btn { padX=.4em padY=.35em bgOff=#333 bgHover=#383838 bgOn=#404040 radius=.6em w=max id=roomInfo "info" }
+                btn { padX=.4em padY=.35em bgOff=chat.info.infoBtn.bgOff bgHover=chat.info.infoBtn.bgHover bgOn=chat.info.infoBtn.bgOn radius=.6em w=max id=roomInfo "info" }
               }
             }
           }
@@ -210,16 +231,16 @@ chat {
   // right panel in general
   rightPanel {
     weight = 0.3 // initial width fraction
-    ui = v { bg = #282828
+    ui = v { bg = chat.info.bg
       pad { all=.4em
         h { h=min
           h { alX=left id=backBtnPlace }
-          h { alX=right btn { padX=.5em padY=.5em bgOff=#444 bgHover=#484848 radius=.6em w=max chat.icon.$close{} id=closeBtn } }
+          h { alX=right btn { padX=.5em padY=.5em chat.info.moveBtn.$props{} w=max chat.icon.$close{} id=closeBtn } }
         }
       }
       scroll { id=content x=off tempOverlap=true } // TODO move scroll to the specific panel users that want it
     }
-    backBtn = btn { padX=.4em padY=.35em bgOff=#444 bgHover=#484848 radius=.6em w=max id=btn
+    backBtn = btn { padX=.4em padY=.35em chat.info.moveBtn.$props{} w=max id=btn
       text { ta { mode=above chat.icon.$back{} } text { id=text } }
     }
     keys {
@@ -239,8 +260,8 @@ chat {
     $link = clickableText { hover=true color=chat.link.col id=$id $t }
     ui = pad { x=0.5em
       v { pad=.5em
-        h { h=min alX=center text { tsz=1.05em id=name } }
-        h { h=min alX=center text { tsz=1.05em id=server color=chat.room.colServer family=chat.code.familyUI } }
+        h { h=min alX=center stext { ibeam=true tsz=1.05em id=name } }
+        h { h=min alX=center stext { ibeam=true tsz=1.05em id=server color=chat.info.colID family=chat.code.familyUI } }
         h { h=min alX=center id=image }
         vsep { y=.2em }
         chat.profile.$title { t="General" }
@@ -286,10 +307,26 @@ chat {
   userList {
     ui = vl { id=list }
     avatarSz = 2em
-    entry = btn { style=box w=inherit bgHover=#303030 bgOn=#383838 id=btn
+    entry = btn { style=box w=inherit chat.info.userList.$props{} id=btn
       h { alY=center pad=.5em
         h { id=image w=chat.userList.avatarSz h=chat.userList.avatarSz }
         text { id=name }
+      }
+    }
+  }
+  
+  // room info
+  roomList {
+    ui = pad { x=0.5em
+      v { pad=.5em
+        h { h=min alX=center stext { ibeam=true tsz=1.05em id=name } }
+        h { h=min alX=center stext { ibeam=true tsz=1.05em id=server   color=chat.info.colID family=chat.code.familyUI } }
+        h { h=min            stext { ibeam=true tsz=1em id=description color=chat.info.colDesc } }
+//        h { h=min alX=center id=image }
+        vsep { y=.2em }
+        chat.profile.$title { t="General" }
+        chat.profile.$link { id=userList $t="  User list" }
+        id = more
       }
     }
   }

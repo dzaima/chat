@@ -28,8 +28,7 @@ public class ViewUsers {
   }
   
   public void run() {
-    // m.rightPanel.make("info", r::viewRoomInfo).add(base);
-    m.rightPanel.make(null, null).add(base);
+    m.rightPanel.make("info", r::viewRoomInfo).add(base);
     Vec<Pair<String, String>> l = new Vec<>(new ArrayList<>(r.userData.keySet())).map(id -> new Pair<>(id, r.getUsername(id)));
     l.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.b, b.b));
     for (Pair<String, String> p : l) {

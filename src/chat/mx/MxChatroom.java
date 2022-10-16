@@ -22,7 +22,7 @@ public class MxChatroom extends Chatroom {
   
   public final MxChatUser u;
   public final MxRoom r;
-  public String canonicalAlias;
+  public String canonicalAlias, description;
   public String[] altAliases = new String[0];
   private int nameState = 0; // 0 - none; 1 - user; 2 - alias; 3 - primary
   
@@ -31,7 +31,7 @@ public class MxChatroom extends Chatroom {
   public MxEvent lastEvent;
   public final MxLog log;
   
-  public enum UserStatus { LEFT, INVITED, JOINED, BANNED, KNOCKING; }
+  public enum UserStatus { LEFT, INVITED, JOINED, BANNED, KNOCKING }
   public static class UserData { public String username, avatar; UserStatus s = UserStatus.LEFT; }
   public final HashMap<String, UserData> userData = new HashMap<>();
   
@@ -95,6 +95,9 @@ public class MxChatroom extends Chatroom {
         if (spaceInfo!=null && ev.hasStr("state_key")) {
           spaceInfo.childInfo(ev.str("state_key"), ct.size()!=0);
         }
+        break;
+      case "m.room.topic":
+        description = ct.str("topic", null);
         break;
       case "m.room.canonical_alias":
         if (nameState>2) break; nameState = 2;
@@ -534,7 +537,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public void viewRoomInfo() {
-    viewUsers();
+    ViewRoom.viewRooms(this);
   }
   public void viewUsers() {
     ViewUsers.viewUsers(this);
@@ -552,12 +555,12 @@ public class MxChatroom extends Chatroom {
       }
     }).takeClick(c);
   }
-  private void actionCopyLink() {
-    m.copyString(r.link());
+  
+  public String prettyID() {
+    return canonicalAlias==null? r.rid : canonicalAlias;
   }
-  private void actionCopyID() {
-    m.copyString(canonicalAlias==null? r.rid : canonicalAlias);
-  }
+  private void actionCopyLink() { m.copyString(r.link()); }
+  private void actionCopyID() { m.copyString(prettyID()); }
   
   
   public static class SpaceInfo extends RoomListNode.ExternalDirInfo {

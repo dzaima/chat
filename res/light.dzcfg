@@ -23,13 +23,15 @@ btn {
   rect.borderD = #bbb
   
   round.bgOff = #fff
-  round.bgHover = #3C3C3E
-  round.bgOn = #4F4F50
+  round.bgHover = #eee
+  round.bgOn = #ccc
   round.radius = .2em
   
   padX = .3em
   padY = .1em
 }
+
+icon.color = #555
 
 chat {
   preview.escape = #779
@@ -60,8 +62,8 @@ chat {
   pill.bg = #0000
   pill.bgMine = #EDBE90
   
-  code.bgInline = #BBB
-  code.bgBlock = #BBB
+  code.bgInline = #CCC
+  code.bgBlock = #DDD
   
   reaction.col = #666
   receipt.col = #777
@@ -71,6 +73,22 @@ chat {
   room.listBg = #EEE
   room.selected = #CCC
   room.hovered = #DDD
+  
+  info.bg = #EEE
+  info.colID = #777
+  info.colDesc = #444
+  
+  info.infoBtn.bgOff=btn.round.bgOff
+  info.infoBtn.bgHover=btn.round.bgHover
+  info.infoBtn.bgOn=btn.round.bgOn
+  
+  info.moveBtn.bgOff=#FFF
+  info.moveBtn.bgHover=#DDD
+  info.moveBtn.bgOn=#CCC
+  
+  info.userList.bgOff=#0000
+  info.userList.bgHover=#DDD
+  info.userList.bgOn=btn.round.bgOn
   
   folder.colors = { "#bbb" "#aaa" }
   folder.nameCol = #777

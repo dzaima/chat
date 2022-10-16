@@ -65,10 +65,10 @@ public class ChatMain extends NodeWindow {
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
       if (view!=null) view.room().upload();
     });
-    // ((BtnNode) base.ctx.id("roomInfo")).setFn(c -> {
-    //   Chatroom r = room();
-    //   if (r!=null) r.viewRoomInfo();
-    // });
+    ((BtnNode) base.ctx.id("roomInfo")).setFn(c -> {
+      Chatroom r = room();
+      if (r!=null) r.viewRoomInfo();
+    });
     
     rightPanel = new RightPanel(this);
     
