@@ -244,21 +244,24 @@ public class MxChatUser extends ChatUser {
       if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || url.contains("/_matrix/media/"))) {
         byte[] d = data;
         if (d==null) {
-          try {
-            HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
-            c.setRequestMethod("HEAD");
-            String[] ct = new String[1];
-            c.getHeaderFields().forEach((k, v) -> {
-              if ("Content-Type".equals(k) && v.size()==1) ct[0] = v.get(0);
-            });
-            c.disconnect();
-            
-            if (ct[0]!=null && ct[0].startsWith("image/")) {
-              d = Tools.get(url);
+          byte[] isImg = CacheObj.compute("head_isImage\0"+url, () -> { // TODO move out from main thread
+            try {
+              MxServer.log("head", url);
+              HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+              c.setRequestMethod("HEAD");
+              String[] ct = new String[1];
+              c.getHeaderFields().forEach((k, v) -> {
+                if ("Content-Type".equals(k) && v.size()==1) ct[0] = v.get(0);
+              });
+              c.disconnect();
+              
+              return new byte[]{(byte)(ct[0]!=null && ct[0].startsWith("image/")? 1 : 0)};
+            } catch (Throwable e) {
+              Log.stacktrace("mx image type", e);
+              return null;
             }
-          } catch (Throwable e) {
-            Log.stacktrace("mx image type", e);
-          }
+          });
+          if (isImg!=null && isImg[0]==1) d = Tools.get(url);
         }
         if (d!=null) {
           Animation anim = new Animation(d);
