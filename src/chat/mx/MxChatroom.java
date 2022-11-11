@@ -625,4 +625,8 @@ public class MxChatroom extends Chatroom {
   public void viewProfile(String uid) {
     ViewProfile.viewProfile(uid, this);
   }
+  
+  public View getSearch() {
+    return new MxSearchView(m, this);
+  }
 }

@@ -1,6 +1,7 @@
 package chat.ui;
 
 import chat.*;
+import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.types.WrapNode;
@@ -11,14 +12,16 @@ public class MsgNode extends WrapNode {
   public final MsgBorderNode border;
   
   private final int bgId;
+  public final boolean asContext;
   
-  public MsgNode(Ctx pctx, MsgType type, ChatEvent msg) {
-    super(pctx, pctx.makeHere(pctx.gc.getProp("chat.msg.mainP").gr()));
+  public MsgNode(Ctx ctx, MsgType type, ChatEvent msg, boolean asContext) {
+    super(ctx, ctx.makeHere(ctx.gc.getProp("chat.msg.mainP").gr()));
     this.type = type;
     this.msg = msg;
-    border = (MsgBorderNode) ctx.id("border");
+    border = (MsgBorderNode) this.ctx.id("border");
     border.n = this;
     bgId = border.id("bg");
+    this.asContext = asContext;
     setBG();
   }
   
@@ -32,8 +35,9 @@ public class MsgNode extends WrapNode {
     if (hl) {
       abg = "chat.msg.highlight";
     } else if (mode==0) {
-      if (type==MsgType.MSG) abg = on? "chat.msg.sel" : msg.mine? "chat.msg.my" : "chat.msg.other";
-      else                   abg = "chat.msg.noticeBg";
+      if (asContext) abg = msg.mine? "chat.search.ctx.my" : "chat.search.ctx.other";
+      else if (type==MsgType.MSG) abg = on? "chat.msg.sel" : msg.mine? "chat.msg.my" : "chat.msg.other";
+      else                        abg = "chat.msg.noticeBg";
     } else if (mode==2) {
       abg = "chat.msg.reply";
     } else if (mode==1) {

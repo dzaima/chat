@@ -27,6 +27,7 @@ chat {
     fontMinus = { "ctrl+minus" }
     pasteCode = { "ctrl+shift+v" } // paste clipboard, escaping things
     cancel = { "esc" }
+    search = { "ctrl+f" }
   }
   menuKeys {
     copyLink = { "l" }
@@ -46,6 +47,15 @@ chat {
     next = { "down" }
     // once either of those is activated and the menu focused, regular menu keys will work (incl. menu.keys.accept for accepting an entry)
     acceptOnly = { "tab" } // complete without selecting anything when there's only one user left
+  }
+  search.keys {
+    showContext = { "alt+x" }
+    serverSide = { "alt+s" }
+    allRooms = { "alt+a" }
+    caseSensitive = { "alt+c" }
+    exactMatch = { "alt+e" }
+    focusField = chat.keys.search
+    cancel = chat.keys.cancel
   }
   
   inputWidth = 10em:50em // width of the input field
@@ -164,6 +174,13 @@ chat {
   ly.iconEdit = #999
   ly.iconReply = #AAA
   
+  // search
+  search.bg = #252627
+  search.inputBg = #333
+  search.ctx.my = #353535 // context message colors
+  search.ctx.other = #444A4D
+  search.ctx.color = #888
+  
   // main
   ui = weighed { dir=h
     weight=.16
@@ -178,7 +195,7 @@ chat {
     }
     weighed { dir=h weight=1 id=panelWeight enabled=false
       v { // message list
-        h { h=2.5em
+        h { h=2.5em // room title bar
           pad { l=1.5em r=.35em
             h {
               h { weight=99 alY=center text { tsz=1.2em "" id=roomName } }
@@ -189,7 +206,10 @@ chat {
           }
           bg=chat.ly.bgRoomTitle
         }
-        scroll { x=off id=msgsScroll
+        v { weight=0 // search placeholder
+          id=searchPlace
+        }
+        scroll { x=off id=msgsScroll // message timeline
           bg=chat.ly.bgTranscript
           h {
             pad { x=.3em u=5em d=.3em
@@ -200,7 +220,7 @@ chat {
             h { w=0em:5em weight=.05 }
           }
         }
-        pad { all=.5em l=2em bg=chat.ly.bgInputBar
+        pad { all=.5em l=2em bg=chat.ly.bgInputBar // input
           h { h=min pad=.5em
             scroll { h=6.2em w=chat.inputWidth bg=chat.ly.bgInput x=off
               pad { all=.3em id=inputPlace "" }
@@ -349,9 +369,11 @@ chat {
   }
   mx.msgMenu {
     main = menu { }
-    message = {
-      // mi { id=viewHistory "View edit history" }
+    reply = {
       mi { id=replyTo "Reply to" key=chat.menuKeys.reply }
+    }
+    copyLink = {
+      // mi { id=viewHistory "View edit history" }
       mi { id=copyLink "Copy message link" key=chat.menuKeys.copyLink }
     }
     text = { mi { id=copyText "Copy message text" key=chat.menuKeys.copyText } }
@@ -365,6 +387,9 @@ chat {
     }
     dev = {
       mi { id=viewSource "View source" key=chat.menuKeys.viewSource }
+    }
+    search = {
+      mi { id=goto "Go to message" }
     }
   }
   mx.roomMenu {
@@ -498,6 +523,29 @@ chat {
   
   rooms.unreadP = text { " " text { bg=chat.ly.bgUnread id=num } }
   rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }
+  
+  search {
+    ui = pad { l=1em r=.4em y=.4em bg=chat.search.bg
+      h { pad=1em // alY=center
+        v { pad=.1em
+          h { h=min alY=center
+            "text: "
+            chat.$sField { bg=chat.search.inputBg id=text }
+          }
+          h { checkbox { id=caseSensitive } text{" Case-sensitive"} }
+          h { checkbox { id=exactMatch } text{" Exact match"} }
+        }
+        v { pad=.3em h=min weight=0.5
+          // h { checkbox { id=serverSide } text{" Server-side search"} }
+          h { checkbox { id=allRooms } text{" All rooms"} }
+          h { checkbox { id=showContext enabled=true } text{" Show context"} }
+        }
+        h { alX=right weight=0
+          btn { padX=.5em padY=.5em chat.info.moveBtn.$props{} w=max chat.icon.$close{} id=closeBtn }
+        }
+      }
+    }
+  }
   
   $sField = scroll { y=off x=hidden textfield { family=str.defaultFont bg=$bg id=$id } }
   

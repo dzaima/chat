@@ -268,7 +268,7 @@ public class RoomListNode extends ReorderableNode {
       Node e = ch.get(0).ctx.id("entryPlace");
       afterEditReplacement = e.ch.get(0);
       e.replace(0, rename);
-      ctx.win().focus(f);
+      f.focusMe();
     }
     private void endEdit() {
       u.preRoomListChange();

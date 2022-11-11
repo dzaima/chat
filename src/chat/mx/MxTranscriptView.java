@@ -30,7 +30,7 @@ public class MxTranscriptView extends TranscriptView {
     super.viewTick();
   }
   
-  public void show() { super.show(); log.show(); }
+  public void show() { super.show(); log.show(); highlightTime=2; }
   public void hide() { super.hide(); log.hide(); }
   public Chatroom room() { return r; }
   
@@ -61,5 +61,9 @@ public class MxTranscriptView extends TranscriptView {
       log.addEvents(r.events, true);
       tokF = r.eTok;
     });
+  }
+  
+  public View getSearch() {
+    return new MxSearchView(r.m, this);
   }
 }

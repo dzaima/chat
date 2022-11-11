@@ -110,4 +110,19 @@ chat {
   
   ly.iconEdit = #777
   ly.iconReply = #AAA
+  
+  search.bg = #EEEEEE
+  search.inputBg = #FFF
+  search.ctx.my = #F5FFF4
+  search.ctx.other = #FAFAFA
+  search.ctx.color = #aaa
+}
+checkbox {
+  colOff = #FFF
+  colHover = #EEF
+  colOn = #5082ce
+  borderCol = #7003
+  borderW = .02em
+  round = .15em
+  pathCol = #EEE
 }

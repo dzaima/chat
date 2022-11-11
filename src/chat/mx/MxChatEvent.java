@@ -69,7 +69,15 @@ abstract class MxChatEvent extends ChatEvent {
     n.border.openMenu(true);
     Node code = null;
     if (this instanceof MxChatMessage) {
-      gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.message").gr().ch);
+      boolean search = false;
+      if (r.m.view instanceof SearchView) {
+        gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.search").gr().ch);
+        search = true;
+      }
+      
+      if (!search) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.reply").gr().ch);
+      
+      gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.copyLink").gr().ch);
       
       Node cn = n.border;
       while (true) {
@@ -88,7 +96,7 @@ abstract class MxChatEvent extends ChatEvent {
       else gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.code").gr().ch);
       
       gr.ch.add(n.gc.getProp("chat.mx.msgMenu.sep").gr());
-      if (mine && !isDeleted()) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.mine").gr().ch);
+      if (mine && !isDeleted() && !search) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.mine").gr().ch);
     }
     gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.dev").gr().ch);
     
@@ -118,6 +126,9 @@ abstract class MxChatEvent extends ChatEvent {
         case "replyTo":
           r.input.markReply(this);
           r.input.focusMe();
+          break;
+        case "goto":
+          r.m.toRoom(r, this);
           break;
         case "viewSource":
           new Popup(n.ctx.win()) {

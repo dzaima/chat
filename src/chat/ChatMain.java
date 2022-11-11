@@ -45,7 +45,7 @@ public class ChatMain extends NodeWindow {
   public MsgExtraNode.HoverPopup hoverPopup;
   
   public Chatroom room() {
-    return view==null? null : view.room();
+    return view==null? null : view instanceof SearchView? null : view.room();
   }
   public ChatTextArea input() {
     Chatroom r = room();
@@ -154,6 +154,11 @@ public class ChatMain extends NodeWindow {
     v.show();
     updActions();
     toLast = 0;
+  }
+  public void toView(View v) {
+    if (v instanceof TranscriptView) toTranscript((TranscriptView) v);
+    else if (v instanceof Chatroom) toRoom((Chatroom) v);
+    else Log.error("chat", "toView called with unexpected type");
   }
   public void updActions() {
     String info = "";
@@ -271,8 +276,8 @@ public class ChatMain extends NodeWindow {
     newHover = true;
     msgs.clearCh();
   }
-  public MsgNode createMessage(ChatEvent cm) {
-    MsgNode r = new MsgNode(msgs.ctx.shadow(), cm.type(), cm);
+  public MsgNode createMessage(ChatEvent cm, boolean asContext) {
+    MsgNode r = new MsgNode(msgs.ctx.shadow(), cm.type(), cm, asContext);
     r.ctx.id("user").replace(0, new UserTagNode(this, cm));
     return r;
   }
@@ -327,19 +332,19 @@ public class ChatMain extends NodeWindow {
     Vec<Node> prep = new Vec<>();
     Node p = null;
     for (ChatEvent c : nds) {
-      Node a = c.show(false);
+      Node a = c.show(false, false);
       if (p!=null) {
-        Node sep = handlePair(p, a);
+        Node sep = handlePair(p, a, false);
         if (sep!=null) prep.add(sep);
       }
       p = prep.add(a);
     }
     if (msgs.ch.sz>0) {
       if (atEnd) {
-        Node sep = handlePair(msgs.ch.peek(), prep.get(0));
+        Node sep = handlePair(msgs.ch.peek(), prep.get(0), false);
         if (sep!=null) prep.insert(0, sep);
       } else {
-        Node sep = handlePair(prep.peek(), msgs.ch.get(0));
+        Node sep = handlePair(prep.peek(), msgs.ch.get(0), false);
         if (sep!=null) prep.add(sep);
       }
     }
@@ -352,12 +357,16 @@ public class ChatMain extends NodeWindow {
   public void setMsgBody(Node n, Node ct) { n.ctx.id("body").replace(1, ct); }
   
   public void addMessage(ChatEvent cm, boolean live) {
+    addMessage(cm, live, false, false);
+  }
+  
+  public void addMessage(ChatEvent cm, boolean live, boolean forceDate, boolean forContext) {
     removeLastTime();
     newHover = true;
-    Node msg = cm.show(live);
+    Node msg = cm.show(live, forContext);
     boolean atEnd = atEnd();
     if (msgs.ch.sz>0) {
-      Node sep = handlePair(msgs.ch.peek(), msg);
+      Node sep = handlePair(msgs.ch.peek(), msg, forceDate);
       if (sep!=null) msgs.add(sep);
     }
     msgs.add(msg);
@@ -369,6 +378,11 @@ public class ChatMain extends NodeWindow {
     HashSet<String> vs = ce.getReceipts();
     return rs!=null || vs!=null? new MsgExtraNode(ctx, ce.room(), rs, vs) : new InlineNode.LineEnd(ctx, false);
   }
+  private static final String[] col_ibeam = new String[]{"ibeam","color"};
+  private Node mkSText(ChatEvent e) {
+    if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
+    return new STextNode(ctx, col_ibeam, new Prop[]{EnumProp.TRUE, gc.getProp("chat.search.ctx.color")});
+  }
   public void updMessage(ChatEvent ce, Node body, boolean live) {
     Node msg = ce.n;
     boolean end = atEnd();
@@ -379,11 +393,11 @@ public class ChatMain extends NodeWindow {
     }
     Node nb;
     if (ce.target!=null) {
-      nb = new STextNode(ctx, true);
+      nb = mkSText(ce);
       nb.add(new LinkBtn(ctx, nb.ctx.makeHere(gc.getProp("chat.icon.replyP").gr()), ce));
       nb.add(body);
     } else if (body instanceof InlineNode) {
-      nb = new STextNode(ctx, true);
+      nb = mkSText(ce);
       nb.add(body);
     } else nb = body;
     nb.add(makeExtra(ce));
@@ -441,17 +455,17 @@ public class ChatMain extends NodeWindow {
   EnumProp laterProp = new EnumProp("later");
   // private static final SimpleDateFormat df = new SimpleDateFormat("E, MM d yyyy");
   private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("EE, d MMM yyyy");
-  public Node handlePair(Node a, Node b) {
+  public Node handlePair(Node a, Node b, boolean forceDate) {
     if (!(a instanceof MsgNode) || !(b instanceof MsgNode)) return null;
     ChatEvent at = ((MsgNode) a).msg;
     ChatEvent bt = ((MsgNode) b).msg;
     Duration d = Duration.between(at.time, bt.time);
     float h = d.getSeconds()/3600f;
     
-    boolean between = h>=1 && gc.getProp("chat.timeBetween").b();
+    boolean between = !forceDate && h>=1 && gc.getProp("chat.timeBetween").b();
     
     LocalDate newDate = null;
-    if (gc.getProp("chat.logDate").b()) {
+    if (gc.getProp("chat.logDate").b() || forceDate) {
       LocalDate adt = Time.localDateTime(at.time).toLocalDate();
       LocalDate bdt = Time.localDateTime(bt.time).toLocalDate();
       if (!adt.equals(bdt)) newDate = bdt;
@@ -524,6 +538,14 @@ public class ChatMain extends NodeWindow {
     }
   }
   
+  public void search() {
+    if (room()==null) return;
+    View p = view;
+    hideCurrent();
+    view = p.getSearch();
+    view.show();
+  }
+  
   
   
   public boolean chatKey(Key key, int scancode, KeyAction a) {
@@ -543,6 +565,7 @@ public class ChatMain extends NodeWindow {
   public boolean key(Key key, int scancode, KeyAction a) {
     ChatTextArea input = input();
     if (input!=null && input.globalKey(key, a)) return true;
+    if (view instanceof SearchView && view.key(key, scancode, a)) return true;
     
     String name = gc.keymap(key, a, "chat");
     switch (name) {
@@ -580,6 +603,10 @@ public class ChatMain extends NodeWindow {
         if (res!=null) toRoom(res);
         return true;
       }
+      case "search": {
+        search();
+        return true;
+      }
     }
     
     if (a.typed) {
@@ -598,7 +625,10 @@ public class ChatMain extends NodeWindow {
     }
     if (super.key(key, scancode, a)) return true;
     if (rightPanel.key(key, a)) return true;
-    if (a.press && !key.isModifier() && !(focusNode() instanceof EditNode)) focus(input);
+    if (a.press && !key.isModifier() && !(focusNode() instanceof EditNode)) {
+      if (input!=null && input.visible) focus(input);
+      else if (view instanceof SearchView) focus(((SearchView) view).textInput());
+    }
     return super.key(key, scancode, a);
   }
   private Chatroom edgeRoom(boolean up) {
