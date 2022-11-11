@@ -36,7 +36,7 @@ public class UserTagNode extends TextNode {
   
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    r.mentionUser(userString);
+    if (visible) r.mentionUser(userString);
   }
   
   public void drawCh(Graphics g, boolean full) {

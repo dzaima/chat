@@ -208,7 +208,7 @@ public class RoomListNode extends ReorderableNode {
       }
     }
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
-    public void mouseUp(int x, int y, Click c) { leftClick(); }
+    public void mouseUp(int x, int y, Click c) { if (visible) leftClick(); }
     public abstract void leftClick();
     public abstract void rightClick(Click c, int x, int y, Runnable onClose);
   }

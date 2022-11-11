@@ -351,6 +351,7 @@ public class HTMLParser {
     }
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
     public void mouseUp(int x, int y, Click c) {
+      if (!visible) return;
       open^= true;
       mRedraw();
     }

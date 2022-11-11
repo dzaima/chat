@@ -520,7 +520,7 @@ public class ChatMain extends NodeWindow {
     }
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
     public void mouseUp(int x, int y, Click c) {
-      if (gc.isClick(c)) m.toTarget();
+      if (visible && gc.isClick(c)) m.toTarget();
     }
   }
   

@@ -58,7 +58,7 @@ public class Extras {
       c.onClickEnd();
     }
     public void mouseUp(int x, int y, Click c) {
-      if (c.bL()) u.openLink(url, type, data);
+      if (visible && c.bL()) u.openLink(url, type, data);
     }
     public void hoverS() { super.hoverS(); u.m.hoverURL=url;  u.m.updInfo(); }
     public void hoverE() { super.hoverE(); u.m.hoverURL=null; u.m.updInfo(); }
