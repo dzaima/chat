@@ -17,10 +17,8 @@ public abstract class SearchView extends View {
     for (String c : new String[]{"showContext", "allRooms", /*"serverSide",*/ "caseSensitive", "exactMatch"}) {
       ((CheckboxNode) n.ctx.id(c)).setFn(n -> updatedBtns());
     }
-    ((EditNode) n.ctx.id("text")).setFn(n -> {
-      runSearch();
-      return true;
-    });
+    textInput().setFn(n -> { runSearch(); return true; });
+    userInput().setFn(n -> { runSearch(); return true; });
     ((BtnNode) n.ctx.id("closeBtn")).setFn(n -> close());
   }
   
@@ -36,25 +34,28 @@ public abstract class SearchView extends View {
     return originalView.room();
   }
   
-  private String getText() {
-    return ((EditNode) n.ctx.id("text")).getAll();
-  }
-  public abstract void processSearch(String text);
+  
+  public EditNode textInput() { return (EditNode) n.ctx.id("text"); }
+  public EditNode userInput() { return (EditNode) n.ctx.id("user"); }
+  private String getText() { return textInput().getAll(); }
+  private String getUser() { return userInput().getAll(); }
+  public abstract void processSearch(String text, String user);
   public void runSearch() {
-    String text = getText();
-    processSearch(text);
+    processSearch(getText(), getUser());
   }
   
   public void updatedBtns() {
     if (!serverSide()) runSearch();
   }
-  String pSearch = "";
   
+  String pText="", pUser="";
   public void viewTick() {
     if (!serverSide()) {
-      String nSearch = getText();
-      if (nSearch.equals(pSearch)) return;
-      pSearch = nSearch;
+      String nText = getText();
+      String nUser = getUser();
+      if (nText.equals(pText) && nUser.equals(pUser)) return;
+      pText = nText;
+      pUser = nUser;
       runSearch();
     }
   }
@@ -93,6 +94,7 @@ public abstract class SearchView extends View {
       case "exactMatch": toggleCheckbox("exactMatch"); return true;
       case "cancel": close(); return true;
       case "focusField": n.ctx.id("text").focusMe(); return true;
+      case "focusUser": n.ctx.id("user").focusMe(); return true;
     }
     return false;
   }
@@ -103,9 +105,5 @@ public abstract class SearchView extends View {
   
   public String asCodeblock(String s) {
     return originalView.asCodeblock(s);
-  }
-  
-  public Node textInput() {
-    return n.ctx.id("text");
   }
 }

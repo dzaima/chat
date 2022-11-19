@@ -55,6 +55,7 @@ chat {
     caseSensitive = { "alt+c" }
     exactMatch = { "alt+e" }
     focusField = chat.keys.search
+    focusUser = { "alt+u" }
     cancel = chat.keys.cancel
   }
   
@@ -525,21 +526,33 @@ chat {
   rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }
   
   search {
-    ui = pad { l=1em r=.4em y=.4em bg=chat.search.bg
-      h { pad=1em // alY=center
-        v { pad=.1em
+    ui = pad { l=1em r=.4em u=.4em d=.2em bg=chat.search.bg
+      h { pad=1em
+        v { pad=.2em
           h { h=min alY=center
             "text: "
             chat.$sField { bg=chat.search.inputBg id=text }
           }
-          h { checkbox { id=caseSensitive } text{" Case-sensitive"} }
-          h { checkbox { id=exactMatch } text{" Exact match"} }
+          h { pad=1em
+            v { w=13em pad=.2em
+              h { checkbox { id=caseSensitive } text{" Case-sensitive"} }
+              h { checkbox { id=exactMatch } text{" Exact match"} }
+            }
+            v { w=13em pad=.2em
+              h { checkbox { id=allRooms } text{" All rooms"} }
+              h { checkbox { id=showContext enabled=true } text{" Show context"} }
+            }
+          }
         }
-        v { pad=.3em h=min weight=0.5
+        v { weight=.5
+          h { h=min alY=center
+            "from user: "
+            chat.$sField { bg=chat.search.inputBg id=user }
+          }
+        }
+        // v { pad=.3em h=min weight=0.5
           // h { checkbox { id=serverSide } text{" Server-side search"} }
-          h { checkbox { id=allRooms } text{" All rooms"} }
-          h { checkbox { id=showContext enabled=true } text{" Show context"} }
-        }
+        // }
         h { alX=right weight=0
           btn { padX=.5em padY=.5em chat.info.moveBtn.$props{} w=max chat.icon.$close{} id=closeBtn }
         }

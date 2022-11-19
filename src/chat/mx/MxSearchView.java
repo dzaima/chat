@@ -28,8 +28,10 @@ public class MxSearchView extends SearchView {
   private static class Search {
     private final Vec<String> words = new Vec<>();
     private final boolean caseSensitive;
-    public Search(String text, boolean caseSensitive, boolean exactMatch) {
+    private final String userSearch;
+    public Search(String text, String userSearch, boolean caseSensitive, boolean exactMatch) {
       this.caseSensitive = caseSensitive;
+      this.userSearch = userSearch.toLowerCase(Locale.ROOT);
       if (exactMatch) words.add(text); 
       else words.addAll(0, Tools.split(text, ' '));
       if (!caseSensitive) for (int i = 0; i < words.sz; i++) words.set(i, words.get(i).toLowerCase(Locale.ROOT));
@@ -39,14 +41,22 @@ public class MxSearchView extends SearchView {
       for (String c : words) if (!body.contains(c)) return false;
       return true;
     }
+    public boolean matchesUser(String username) {
+      return userSearch.length()==0 || username.toLowerCase(Locale.ROOT).contains(userSearch);
+    }
+    public boolean triviallyAll() {
+      boolean noTextSearch = words.sz==1 && words.get(0).isEmpty();
+      boolean noUserSearch = userSearch.length()==0;
+      return noTextSearch && noUserSearch;
+    }
   }
   
   public final Vec<MxChatEvent> prevShown = new Vec<>();
-  public void processSearch(String text) {
+  public void processSearch(String text, String user) {
     m.removeAllMessages();
     hidePrev();
-    Search s = new Search(text, caseSensitive(), exactMatch());
-    if (text.length()==0) return;
+    Search s = new Search(text, user, caseSensitive(), exactMatch());
+    if (s.triviallyAll()) return;
     
     boolean needCtx = showContext();
     int ctxSz = contextSize();
@@ -75,7 +85,7 @@ public class MxSearchView extends SearchView {
       Vec<Integer> matches = new Vec<>();
       for (int i = 0; i < ms.sz; i++) {
         MxChatEvent e = ms.get(i);
-        if (s.matches(e.body) || s.matches(e.src)) matches.add(i);
+        if ((s.matchesUser(e.username) || s.matchesUser(e.userString())) && (s.matches(e.body) || s.matches(e.src))) matches.add(i);
       }
       if (matches.sz==0) continue;
       if (needCtx) {

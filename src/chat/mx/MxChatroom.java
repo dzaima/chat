@@ -615,6 +615,7 @@ public class MxChatroom extends Chatroom {
   public void userMenu(Click c, int x, int y, String uid) {
     Popup.rightClickMenu(m.gc, m.ctx, "chat.profile.menu", cmd -> {
       switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+        case "(closed)": break;
         case "view": viewProfile(uid); break;
         case "copyID": m.ctx.win().copyString(uid); break;
         case "copyLink": m.copyString(MxFmt.userURL(uid)); break;

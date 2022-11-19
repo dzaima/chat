@@ -359,7 +359,7 @@ public class RoomListNode extends ReorderableNode {
     
     public void rightClick(Click c, int x, int y, Runnable onClose) {
       PNodeGroup gr = gc.getProp("chat.folderMenu.main").gr().copy();
-      if (external ==null) {
+      if (external==null) {
         gr.ch.addAll(gc.getProp("chat.folderMenu.local").gr().ch);
       } else {
         external.addToMenu(gr);
@@ -369,7 +369,7 @@ public class RoomListNode extends ReorderableNode {
         if (u.roomListNode.reordering() && !"(closed)".equals(cmd)) return;
         switch (cmd) {
           default:
-            if (external !=null) external.runAction(cmd);
+            if (external!=null) external.runAction(cmd);
             else ChatMain.warn("Unknown menu option "+cmd);
             break;
           case "(closed)":
