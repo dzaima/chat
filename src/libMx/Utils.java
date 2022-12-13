@@ -71,6 +71,7 @@ public class Utils {
       os.close();
       
       try (InputStream is = c.getResponseCode()>=400? c.getErrorStream() : c.getInputStream()) {
+        if (is==null) throw new RuntimeException("Failed to get result stream");
         return new String(readAll(is), StandardCharsets.UTF_8);
       }
     } catch (IOException e) {

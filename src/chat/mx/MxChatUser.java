@@ -275,7 +275,9 @@ public class MxChatUser extends ChatUser {
       paste: if (m.gc.getProp("chat.internalPasteViewer").b() && url.startsWith("https://dzaima.github.io/paste")) {
         String[] ps;
         try {
-          ps = Tools.split(new URI(HTMLParser.fixURL(url)).getFragment(), '#');
+          String fragment = new URI(HTMLParser.fixURL(url)).getFragment();
+          if (fragment==null) break paste;
+          ps = Tools.split(fragment, '#');
         } catch (URISyntaxException e) { Log.stacktrace("paste URL", e); break paste; }
         if (ps.length!=1 && ps.length!=2) break paste;
         
