@@ -33,11 +33,13 @@ public class ViewUsers {
     l.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.b, b.b));
     for (Pair<String, String> p : l) {
       MxChatroom.UserData d = r.userData.get(p.a);
-      Node e = list.ctx.make(list.gc.getProp("chat.userList.entry").gr());
-      if (d.avatar!=null && MxServer.isMxc(d.avatar)) e.ctx.id("image").add(new LazyLoadedImg(list.ctx, d.avatar));
-      e.ctx.id("name").add(new StringNode(list.ctx, p.b));
-      ((BtnNode) e.ctx.id("btn")).setFn(b -> ViewProfile.viewProfile(p.a, r));
-      list.add(e);
+      if (d.s == MxChatroom.UserStatus.JOINED) {
+        Node e = list.ctx.make(list.gc.getProp("chat.userList.entry").gr());
+        if (d.avatar!=null && MxServer.isMxc(d.avatar)) e.ctx.id("image").add(new LazyLoadedImg(list.ctx, d.avatar));
+        e.ctx.id("name").add(new StringNode(list.ctx, p.b));
+        ((BtnNode) e.ctx.id("btn")).setFn(b -> ViewProfile.viewProfile(p.a, r));
+        list.add(e);
+      }
     }
   }
   

@@ -338,12 +338,14 @@ public class MxChatroom extends Chatroom {
     Vec<UserRes> res = new Vec<>();
     boolean[] complete = new boolean[1];
     userData.forEach((k, v) -> {
-      String src = k.substring(1).toLowerCase();
-      String username = v.username;
-      String disp = username==null? src : username.toLowerCase();
-      if (src.startsWith(term) || (username!=null && disp.startsWith(term))) {
-        if (src.equals(term)) complete[0] = true;
-        res.add(new UserRes(disp, k));
+      if (v.s==UserStatus.JOINED || v.s==UserStatus.INVITED || v.s==UserStatus.KNOCKING) {
+        String src = k.substring(1).toLowerCase();
+        String username = v.username;
+        String disp = username==null? src : username.toLowerCase();
+        if (src.startsWith(term) || (username!=null && disp.startsWith(term))) {
+          if (src.equals(term)) complete[0] = true;
+          res.add(new UserRes(disp, k));
+        }
       }
     });
     if (complete[0]) res.clear();
