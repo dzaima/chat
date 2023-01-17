@@ -83,7 +83,6 @@ public abstract class SearchView extends View {
   private void toggleCheckbox(String s) {
     CheckboxNode c = (CheckboxNode) n.ctx.id(s);
     c.toggle();
-    c.focusMe();
   }
   public boolean key(Key key, int scancode, KeyAction a) {
     switch (m.gc.keymap(key, a, "chat.search")) {
