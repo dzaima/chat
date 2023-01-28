@@ -93,7 +93,7 @@ public class HTMLParser {
                 Node inner = p;
                 if (link==null) p.add(inner = link(r, url, LinkType.UNK));
                 String txt = uri.getHost()+"/";
-                trunc: { int L = 50;
+                trunc: { int L = 100;
                   if (!uri.getScheme().equals("https")) txt = uri.getScheme()+"://"+txt;
                   String[] path = uri.getPath().split("/");
                   int j = 0;
