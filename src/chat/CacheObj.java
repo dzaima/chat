@@ -18,7 +18,13 @@ public class CacheObj {
     path = p;
   }
   
+  static long nextPurge;
+  static long minTimeBetweenPurges = 60*60; // every hour
   public static void purgeOldCache() {
+    long currTime = System.currentTimeMillis()/1000;
+    if (currTime > nextPurge) nextPurge = currTime+minTimeBetweenPurges;
+    else return;
+    
     if (!Files.isDirectory(cachePath)) return;
     try (DirectoryStream<Path> s = Files.newDirectoryStream(cachePath)) {
       for (Path p : s) {
