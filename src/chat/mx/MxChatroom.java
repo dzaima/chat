@@ -276,7 +276,7 @@ public class MxChatroom extends Chatroom {
     new Popup(m) {
       protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
       protected void unfocused() { close(); }
-      protected boolean key(Key key, KeyAction a) { defaultKeys(key, a); return true; } // don't return keyboard control back to chat text input
+      protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a) || ChatMain.keyFocus(pw, key, a) || true; }
       EditNode name, mime, path;
       protected void setup() {
         name = (EditNode) node.ctx.id("name");

@@ -699,4 +699,10 @@ public class ChatMain extends NodeWindow {
       }
     }
   }
+  
+  public static boolean keyFocus(NodeWindow w, Key key, KeyAction a) {
+    Node f = w.focusNode();
+    if (f==null) return false;
+    return f.keyF(key, 0, a);
+  }
 }

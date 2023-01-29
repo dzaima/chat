@@ -48,7 +48,7 @@ public class ViewProfile {
   public void confirm(String path, Consumer<Popup> setup) {
     new Popup(m) {
       protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
-      protected boolean key(Key key, KeyAction a) { super.key(key, a); return true; }
+      protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a) || ChatMain.keyFocus(pw, key, a) || true; }
       protected void unfocused() { close(); }
       protected void setup() { }
       protected void preSetup() {
