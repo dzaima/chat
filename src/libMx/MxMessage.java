@@ -40,12 +40,12 @@ public final class MxMessage {
       if (ct.has("m.new_content")) fmtT = new MxFmted(ct.obj("m.new_content"));
     } else if (rel.has("m.in_reply_to")) {
       replyId = rel.obj("m.in_reply_to").str("event_id");
-      if (fmtT.html.startsWith("<mx-reply>")) {
-        Document d = Jsoup.parse(fmtT.html);
-        d.getElementsByTag("mx-reply").remove();
-        fmtT = new MxFmted(fmtT.body, d.body().html());
-        // fmtT = new MxFmted(fmtT.body, fmtT.html.substring(0, fmtT.html.indexOf("</mx-reply>")+11));
-      }
+    }
+    if (fmtT.html.startsWith("<mx-reply>")) {
+      Document d = Jsoup.parse(fmtT.html);
+      d.getElementsByTag("mx-reply").remove();
+      fmtT = new MxFmted(fmtT.body, d.body().html());
+      // fmtT = new MxFmted(fmtT.body, fmtT.html.substring(0, fmtT.html.indexOf("</mx-reply>")+11));
     }
     this.replyId = replyId;
     this.fmt = fmtT;
