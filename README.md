@@ -54,7 +54,9 @@ by default, messages are interpreted as a markdown-ish thing. This default can b
 /text forced plain text (also "/plain ..." works)
 /me does something
 /html <p>manually enter HTML</p>
-File uploading kind of works (untested for non-images); the client can display images & gifs inline, but videos will open externally. Right click on an image gives more options.
+/goto https://matrix.to/#/!foo:matrix.org/$bar // same behavior as clicking a link containing that URL
+File uploading mostly works; the client can display images & gifs inline, but videos will open externally.
+Right click on many things (rooms, messages, links, images, user @s, code blocks) gives more options.
 
 _italics_
 *bold*

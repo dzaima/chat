@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.*;
-import chat.ui.RoomListNode;
+import chat.ui.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
@@ -250,6 +250,9 @@ public class MxChatroom extends Chatroom {
           f2.type = MxFmt.Type.EMOTE;
           f = f2;
           break;
+        case "goto":
+          u.openLink(left, Extras.LinkType.UNK, null);
+          return;
         default:
           f = parse(s);
           break;
