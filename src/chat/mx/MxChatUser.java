@@ -261,7 +261,7 @@ public class MxChatUser extends ChatUser {
               return null;
             }
           });
-          if (isImg!=null && isImg[0]==1) d = Tools.get(url);
+          if (isImg!=null && isImg[0]==1) d = get("image", url);
         }
         if (d!=null) {
           Animation anim = new Animation(d);
