@@ -598,3 +598,5 @@ btn.rect {
 codearea {
   wrapPairs = "()[]{}``"
 }
+
+uw.pad = 0em
