@@ -480,10 +480,11 @@ chat {
     $noopMember = text { " did m.room.member" }
     $requestAccess = text { $user " requested access to this room" }
     
-    $invite = text { $executer " invited "  $user }
-    $ban    = text { $executer " banned "   $user }
-    $kick   = text { $executer " kicked "   $user }
-    $unban  = text { $executer " unbanned " $user }
+    $invite  = text { $executer " invited "   $user }
+    $uninvite= text { $executer " uninvited " $user }
+    $ban     = text { $executer " banned "    $user }
+    $kick    = text { $executer " kicked "    $user }
+    $unban   = text { $executer " unbanned "  $user }
     $left = text { $user " left" }
     
     $createRoom = text { $executer " created this room" }

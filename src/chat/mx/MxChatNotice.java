@@ -12,12 +12,13 @@ import java.util.Objects;
 
 public class MxChatNotice extends MxChatEvent {
   public final MxEvent e;
-  public final String executer;
+  public final String euid, eName; // executer user ID & name
   
   public MxChatNotice(MxLog log, MxEvent e, boolean live) {
     super(log, e, e.id, null);
     this.e = e;
-    executer = r.getUsername(e.uid);
+    this.euid = e.uid;
+    eName = r.getUsername(euid);
     username = "";
     if (!live) loadReactions();
   }
@@ -36,63 +37,65 @@ public class MxChatNotice extends MxChatEvent {
       }
       switch (e.type) {
         case "m.room.member":
-          String currName = e.ct.str("displayname", null);
-          String member = e.o.str("state_key", "");
-          String someName = currName==null? r.getUsername(member) : currName;
+          String tuid = e.o.str("state_key", ""); // target user ID
+          String tDName = e.ct.str("displayname", null); // target chosen name
+          String tName = tDName==null? r.getUsername(tuid) : tDName; // some name for target
+          
           Vec<Node> nds = new Vec<>();
           Obj prev = Obj.path(e.o, Obj.E, "unsigned", "prev_content").obj();
           String prevMembership = prev.str("membership", "");
           switch (e.ct.str("membership", "")) {
             case "join":
               if (!prevMembership.equals("join")) {
-                nds.add(mk("chat.notice.$join", "user", mkp(member, someName)));
+                nds.add(mk("chat.notice.$join", "user", mkp(tuid, tName)));
               } else {
                 String prevName = prev.str("displayname", null);
                 Vec<Node> list = new Vec<>();
                 
-                if (!Objects.equals(prevName, currName)) list.add(currName==null? mk("chat.notice.$noName") : mk("chat.notice.$setName", "new", mks(someName)));
+                if (!Objects.equals(prevName, tDName)) list.add(tDName==null? mk("chat.notice.$noName") : mk("chat.notice.$setName", "new", mks(tName)));
                 
                 if (!Objects.equals(prev.str("avatar_url", null), e.ct.str("avatar_url", null))) list.add(mk("chat.notice.$newAvatar"));
                 
                 if (list.sz==0) list.add(mk("chat.notice.$noopMember")); // TODO ignore if not developer mode or something, when that exists
                 
-                nds.add(mkp(member, prevName==null? member : prevName));
+                nds.add(mkp(tuid, prevName==null? tuid : prevName));
                 for (int i = 0; i < list.size(); i++) {
                   if (i>0) nds.add(mk("chat.notice.$and"));
                   nds.add(list.get(i));
                 }
               }
               break;
-            case "invite": nds.add(mk("chat.notice.$invite", "executer", mkp(e.uid, executer), "user", mkp(member, someName))); break;
+            case "invite": nds.add(mk("chat.notice.$invite", "executer", mkp(euid, eName), "user", mkp(tuid, tName))); break;
             case "leave":
-              if (executer.equals(someName)) nds.add(mk("chat.notice.$left", "user", mkp(member, someName)));
-              else {
-                nds.add(mk(prevMembership.equals("ban")? "chat.notice.$unban" : "chat.notice.$kick", "executer", mkp(e.uid, executer), "user", mkp(member, someName)));
+              if (euid.equals(tuid)) {
+                nds.add(mk("chat.notice.$left", "user", mkp(tuid, tName)));
+              } else {
+                nds.add(mk(prevMembership.equals("ban")? "chat.notice.$unban" : prevMembership.equals("invite")? "chat.notice.$uninvite" : "chat.notice.$kick", "executer", mkp(euid, eName), "user", mkp(tuid, tName)));
                 if (e.ct.hasStr("reason")) nds.add(mks(": "+e.ct.str("reason")));
               }
               break;
             case "ban":
-              nds.add(mk("chat.notice.$ban", "executer", mkp(e.uid, executer), "user", mkp(member, someName)));
+              nds.add(mk("chat.notice.$ban", "executer", mkp(euid, eName), "user", mkp(tuid, tName)));
               if (e.ct.hasStr("reason")) nds.add(mks(": "+e.ct.str("reason")));
               break;
             case "knock":
-              if (!executer.equals(member)) {
-                nds.add(mk("chat.notice.$requestAccess", "user", mkp(member, someName)));
+              if (!euid.equals(tuid)) {
+                nds.add(mk("chat.notice.$requestAccess", "user", mkp(tuid, tName)));
                 break;
               }
               /* fallthrough */
-            default: nds.add(mk("chat.notice.$defaultMember", "executer", mkp(e.uid, executer), "user", mkp(member, someName), "type", mks(e.ct.str("membership", "m.room.member")))); break;
+            default: nds.add(mk("chat.notice.$defaultMember", "executer", mkp(euid, eName), "user", mkp(tuid, tName), "type", mks(e.ct.str("membership", "m.room.member")))); break;
           }
           for (Node c : nds) ch.add(c);
           break;
-        case "m.room.create":             ch.add(mk("chat.notice.$createRoom",     "executer", mkp(e.uid, executer))); break;
-        case "m.room.power_levels":       ch.add(mk("chat.notice.$powerLevels",    "executer", mkp(e.uid, executer))); break;
-        case "m.room.canonical_alias":    ch.add(mk("chat.notice.$canonicalAlias", "executer", mkp(e.uid, executer))); break;
-        case "m.room.join_rules":         ch.add(mk("chat.notice.$joinRules",      "executer", mkp(e.uid, executer), "rule", mks(e.ct.str("join_rule", "undefined")))); break;
-        case "m.room.history_visibility": ch.add(mk("chat.notice.$historyVis",     "executer", mkp(e.uid, executer), "vis" , mks(e.ct.str("history_visibility", "undefined")))); break;
-        case "m.room.name":               ch.add(mk("chat.notice.$roomName",       "executer", mkp(e.uid, executer), "name", mks(e.ct.str("name", "undefined")))); break;
-        case "m.room.guest_access":       ch.add(mk("chat.notice.$guestAccess",    "executer", mkp(e.uid, executer), "val",  mks(e.ct.str("guest_access", "undefined")))); break;
-        default: ch.add(mk("chat.notice.$defaultEvent", "executer", mkp(e.uid, executer), "type", mks(e.type))); break;
+        case "m.room.create":             ch.add(mk("chat.notice.$createRoom",     "executer", mkp(euid, eName))); break;
+        case "m.room.power_levels":       ch.add(mk("chat.notice.$powerLevels",    "executer", mkp(euid, eName))); break;
+        case "m.room.canonical_alias":    ch.add(mk("chat.notice.$canonicalAlias", "executer", mkp(euid, eName))); break;
+        case "m.room.join_rules":         ch.add(mk("chat.notice.$joinRules",      "executer", mkp(euid, eName), "rule", mks(e.ct.str("join_rule", "undefined")))); break;
+        case "m.room.history_visibility": ch.add(mk("chat.notice.$historyVis",     "executer", mkp(euid, eName), "vis" , mks(e.ct.str("history_visibility", "undefined")))); break;
+        case "m.room.name":               ch.add(mk("chat.notice.$roomName",       "executer", mkp(euid, eName), "name", mks(e.ct.str("name", "undefined")))); break;
+        case "m.room.guest_access":       ch.add(mk("chat.notice.$guestAccess",    "executer", mkp(euid, eName), "val",  mks(e.ct.str("guest_access", "undefined")))); break;
+        default: ch.add(mk("chat.notice.$defaultEvent", "executer", mkp(euid, eName), "type", mks(e.type))); break;
       }
       r.m.updMessage(this, disp, live);
     }
