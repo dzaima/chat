@@ -302,7 +302,10 @@ public class ChatMain extends NodeWindow {
     if (msgs.ch.sz>0) {
       Node n = msgs.ch.peek();
       int pos = n.id("infoType");
-      if (pos>=0 && n.vs[pos]==lastTimeProp) msgs.ch.removeAt(msgs.ch.sz - 1);
+      if (pos>=0 && n.vs[pos]==lastTimeProp) {
+        msgs.ch.removeAt(msgs.ch.sz - 1);
+        lastTimeStr = null;
+      }
     }
   }
   public void insertLastTime() { // only called once, in tick
