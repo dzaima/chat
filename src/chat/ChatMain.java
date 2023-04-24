@@ -461,6 +461,8 @@ public class ChatMain extends NodeWindow {
     ChatEvent bt = ((MsgNode) b).msg;
     Duration d = Duration.between(at.time, bt.time);
     float h = d.getSeconds()/3600f;
+    boolean before = h<0;
+    if (before) h = -h;
     
     boolean between = !forceDate && h>=1 && gc.getProp("chat.timeBetween").b();
     
@@ -476,7 +478,7 @@ public class ChatMain extends NodeWindow {
     Node padU = b.ctx.id("padU");
     padU.set(padU.id("u"), merge? new LenProp(gc, 0, "px") : gc.getProp("chat.msg.sep"));
     if (between || newDate!=null) {
-      if (newDate==null) return makeInfo(laterProp, "chat.info.$textP", new StringNode(ctx, timeDelta(h)+" later..."));
+      if (newDate==null) return makeInfo(laterProp, "chat.info.$textP", new StringNode(ctx, timeDelta(h)+(before? " earlier..?" : " later...")));
       else return makeInfo(laterProp, "chat.info.$titleP", new StringNode(ctx, df.format(newDate)));
     }
     return null;
