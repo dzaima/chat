@@ -253,6 +253,15 @@ public class MxChatroom extends Chatroom {
         case "goto":
           u.openLink(left, Extras.LinkType.UNK, null);
           return;
+        case "sort":
+          MxLog l = null;
+          if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).log;
+          else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView)m.view).log;
+          if (l!=null) {
+            l.list.sort(Comparator.comparing(k -> k.time));
+            m.toView(m.view);
+          }
+          return;
         default:
           f = parse(s);
           break;
