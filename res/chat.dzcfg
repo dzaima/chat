@@ -20,8 +20,6 @@ chat {
     replyDn = { "alt+down" }
     roomUp = { "ctrl+up" }
     roomDn = { "ctrl+down" }
-    hideCurrent = { "alt+h" } // hide unread count for the current room
-    hideGlobal  = { "ctrl+alt+h" } // globally hide unread count
     deleteMsg = { "ctrl+alt+shift+del" }
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }
@@ -393,27 +391,35 @@ chat {
       mi { id=goto "Go to message" }
     }
   }
+  roomMenu {
+    mute = {
+      mi { id=mute "Mute..." }
+    }
+    unmute = {
+      mi { id=mute "Unmute" }
+      mi { id=mute "Mute settings" }
+    }
+    
+    folder = {
+      mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
+    }
+    localFolder = {
+      mi { id=rename "Rename folder" key=chat.menuKeys.rename }
+      mi { id=delete "Delete folder" key=chat.menuKeys.delete }
+    }
+  }
   mx.roomMenu {
     $links = {
       mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
       mi { id=copyID "Copy room ID" key=chat.menuKeys.copyText }
     }
-    main = menu {
+    room = {
       chat.mx.roomMenu.$links{}
       vsep{}
       mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
     }
-  }
-  folderMenu {
-    main = menu {
-      mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
-    }
-    local = {
-      mi { id=rename "Rename folder" key=chat.menuKeys.rename }
-      mi { id=delete "Delete folder" key=chat.menuKeys.delete }
-    }
-    mxSpace = {
-      mi { id=rename "Rename locally" key=chat.menuKeys.rename }
+    space = {
+      mi { id=localRename "Rename locally" key=chat.menuKeys.rename }
       vsep{}
       chat.mx.roomMenu.$links{}
       mi { id=viewInternal "View internal Matrix room" }

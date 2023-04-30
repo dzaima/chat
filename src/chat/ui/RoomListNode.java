@@ -215,8 +215,7 @@ public class RoomListNode extends ReorderableNode {
   
   public static abstract class ExternalDirInfo {
     public DirStartNode node;
-    public abstract void addToMenu(PNodeGroup gr);
-    public abstract void runAction(String cmd);
+    public abstract void addToMenu(PartialMenu pm);
     public abstract void setLocalName(String val);
     public abstract void nodeAttached();
   }
@@ -255,7 +254,7 @@ public class RoomListNode extends ReorderableNode {
       String disp = name!=null? name : gc.getProp("chat.folder.defaultName").str();
       nameObj.ctx.id("name").replace(0, new StringNode(ctx, (isOpen()? "" : "["+subRooms().sz+"] ") + disp));
     }
-    private void startEdit() {
+    public void startEdit() {
       if (editing()) return;
       Node rename = ctx.make(gc.getProp("chat.rooms.folderRename.field").gr());
       TextFieldNode f = (TextFieldNode) rename.ctx.id("val");
@@ -358,40 +357,30 @@ public class RoomListNode extends ReorderableNode {
     public boolean isSelected() { return false; }
     
     public void rightClick(Click c, int x, int y, Runnable onClose) {
-      PNodeGroup gr = gc.getProp("chat.folderMenu.main").gr().copy();
+      PartialMenu pm = new PartialMenu(gc);
+      pm.add(gc.getProp("chat.roomMenu.folder").gr(), "wrap", () -> DirStartNode.wrap(u, this));
+      
       if (external==null) {
-        gr.ch.addAll(gc.getProp("chat.folderMenu.local").gr().ch);
+        pm.add(gc.getProp("chat.roomMenu.localFolder").gr(), s -> {
+          switch (s) {
+            case "rename": startEdit(); return true;
+            case "delete":
+              if (!isOpen()) open();
+              int[] r = getRange();
+              r[1]--;
+              u.preRoomListChange();
+              u.roomListNode.remove(r[1], r[1] + 1);
+              u.roomListNode.remove(r[0], r[0] + 1);
+              u.roomListChanged();
+              return true;
+            default: return false;
+          }
+        });
       } else {
-        external.addToMenu(gr);
+        external.addToMenu(pm);
       }
       
-      Popup.rightClickMenu(gc, ctx, gr, cmd -> {
-        if (u.roomListNode.reordering() && !"(closed)".equals(cmd)) return;
-        switch (cmd) {
-          default:
-            if (external!=null) external.runAction(cmd);
-            else ChatMain.warn("Unknown menu option "+cmd);
-            break;
-          case "(closed)":
-            onClose.run();
-            break;
-          case "wrap":
-            DirStartNode.wrap(u, this);
-            break;
-          case "delete":
-            if (!isOpen()) open();
-            int[] r = getRange();
-            r[1]--;
-            u.preRoomListChange();
-            u.roomListNode.remove(r[1], r[1]+1);
-            u.roomListNode.remove(r[0], r[0]+1);
-            u.roomListChanged();
-            break;
-          case "rename":
-            startEdit();
-            break;
-        }
-      }).takeClick(c);
+      pm.open(ctx, c, onClose);
     }
     
     public static void wrap(ChatUser u, Node n) {

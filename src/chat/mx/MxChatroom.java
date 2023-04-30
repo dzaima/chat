@@ -2,8 +2,7 @@ package chat.mx;
 
 import chat.*;
 import chat.ui.*;
-import dzaima.ui.eval.PNodeGroup;
-import dzaima.ui.gui.Popup;
+import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.BtnNode;
 import dzaima.ui.node.types.editable.*;
@@ -558,16 +557,16 @@ public class MxChatroom extends Chatroom {
   }
   
   public void roomMenu(Click c, int x, int y, Runnable onClose) {
-    PNodeGroup gr = node.gc.getProp("chat.mx.roomMenu.main").gr().copy();
-    
-    Popup.rightClickMenu(node.gc, node.ctx, gr, cmd -> {
-      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
-        case "(closed)": onClose.run(); break;
-        case "copyLink": actionCopyLink(); break;
-        case "copyID": actionCopyID(); break;
-        case "wrap": RoomListNode.DirStartNode.wrap(u, node); break;
+    PartialMenu pm = new PartialMenu(m.gc);
+    pm.add(pm.gc.getProp("chat.mx.roomMenu.room").gr(), s -> {
+      switch (s) {
+        case "copyLink": actionCopyLink(); return true;
+        case "copyID": actionCopyID(); return true;
+        case "wrap": RoomListNode.DirStartNode.wrap(u, node); return true;
+        default: return false;
       }
-    }).takeClick(c);
+    });
+    pm.open(node.ctx, c, onClose);
   }
   
   public String prettyID() {
@@ -592,16 +591,16 @@ public class MxChatroom extends Chatroom {
     public String getName() {
       return customName!=null? customName : officialName;
     }
-    public void addToMenu(PNodeGroup gr) {
-      gr.ch.addAll(r.m.gc.getProp("chat.folderMenu.mxSpace").gr().ch);
-    }
-    
-    public void runAction(String cmd) {
-      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
-        case "copyLink": r.actionCopyLink(); break;
-        case "copyID": r.actionCopyID(); break;
-        case "viewInternal": r.node.leftClick();
-      }
+    public void addToMenu(PartialMenu pm) {
+      pm.add(pm.gc.getProp("chat.mx.roomMenu.space").gr(), (s) -> {
+        switch (s) {
+          case "localRename": node.startEdit(); return true;
+          case "copyLink": r.actionCopyLink(); return true;
+          case "copyID": r.actionCopyID(); return true;
+          case "viewInternal": r.node.leftClick(); return true;
+          default: return false;
+        }
+      });
     }
     
     public void nodeAttached() {
