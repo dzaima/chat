@@ -396,9 +396,24 @@ chat {
       mi { id=mute "Mute..." }
     }
     unmute = {
-      mi { id=mute "Unmute" }
-      mi { id=mute "Mute settings" }
+      mi { id=unmute "Unmute" }
+      mi { id=muteEdit "Mute settings" }
     }
+    muteUI = pad { bg=bg.middle all=1em
+      v { pad=.4em w=30em h=7em
+        h { checkbox { id=mute } text{" Enable"} }
+        h { checkbox { id=mutePings } text{" Mute pings"} }
+        vsep{}
+        v { pad=.4em
+          h { "Mute time: " chat.$sField { bg=chat.ly.bgUploadField id=time } }
+          h { pad=.4em alX=center
+            chat.roomMenu.$muteBtn{c="15min" i=m15} chat.roomMenu.$muteBtn{c="30min" i=m30} chat.roomMenu.$muteBtn{c="1h" i=h1}
+            chat.roomMenu.$muteBtn{c="3h" i=h3} chat.roomMenu.$muteBtn{c="24h" i=h24} chat.roomMenu.$muteBtn{c="∞" i=inf}
+          }
+        }
+      }
+    }
+    $muteBtn = btn { id=$i vl { $c w=2em alX=center } style=rect }
     
     folder = {
       mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
@@ -567,7 +582,7 @@ chat {
     }
   }
   
-  $sField = scroll { y=off x=hidden textfield { family=str.defaultFont bg=$bg id=$id } }
+  $sField = scroll { y=off x=hidden chatfield { family=str.defaultFont bg=$bg id=$id } }
   
   // icons
   icon.$back = svgicon { iw=11 ih=8 h=0.6em src="M5.5 0l1 1-3 3 3 3-1 1-4-4Z" }

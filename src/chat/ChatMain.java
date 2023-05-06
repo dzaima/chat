@@ -38,11 +38,17 @@ public class ChatMain extends NodeWindow {
   public final Node accountNode;
   public final Node actionbar, infobar;
   public View view;
-  
-  public boolean globalHidden = false;
-  
   public MsgExtraNode msgExtra;
   public MsgExtraNode.HoverPopup hoverPopup;
+  public MuteState defaultMuteState = new MuteState(this) {
+    protected int ownedUnreads() { return 0; }
+    protected boolean ownedPings() { return false; }
+    protected void updated() { }
+  };
+  {
+    defaultMuteState.muted = true;
+    defaultMuteState.mutePings = true;
+  }
   
   public Chatroom room() {
     return view==null? null : view instanceof SearchView? null : view.room();
@@ -183,7 +189,6 @@ public class ChatMain extends NodeWindow {
     ArrayList<String> infos = new ArrayList<>();
     if (currentAction!=null) infos.add(currentAction);
     if (hoverURL!=null) infos.add(hoverURL);
-    if (globalHidden) infos.add("unread counts disabled");
     StringBuilder info = new StringBuilder();
     for (String c : infos) {
       if (info.length()>0) info.append("; ");
@@ -420,12 +425,12 @@ public class ChatMain extends NodeWindow {
     Chatroom room = room();
     
     int otherNew = 0;
-    int currentNew = room==null?0:room.unread();
+    int currentNew = room==null? 0 : room.muteState.unreads();
     boolean ping = false;
     for (ChatUser u : users) {
       for (Chatroom r : u.rooms()) {
-        if (r!=room) otherNew+= r.unread();
-        ping|= r.ping;
+        if (r!=room) otherNew+= r.muteState.unreads();
+        ping|= r.muteState.anyPing();
       }
     }
     
@@ -576,14 +581,6 @@ public class ChatMain extends NodeWindow {
     switch (name) {
       case "fontPlus":  gc.setEM(gc.em+1); return true;
       case "fontMinus": gc.setEM(gc.em-1); return true;
-      case "hideCurrent":
-        if (view instanceof Chatroom) ((Chatroom) view).toggleHide();
-        return true;
-      case "hideGlobal":
-        globalHidden^= true;
-        for (ChatUser u : users) for (Chatroom r : u.rooms()) r.unreadChanged();
-        updInfo();
-        return true;
       case "roomUp": case "roomDn": {
         boolean up = name.equals("roomUp");
         Chatroom prev = room();
@@ -659,6 +656,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("roomList", RoomListNode::new);
       ctx.put("clickableText", Extras.ClickableTextNode::new);
       ctx.put("nameEditField", RoomListNode.DirStartNode.NameEditFieldNode::new);
+      ctx.put("chatfield", ChatTextFieldNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));

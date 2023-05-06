@@ -10,13 +10,21 @@ public abstract class Chatroom extends View {
   public final ChatMain m;
   public RoomListNode.RoomNode node;
   public String name;
-  public int unread;
   public String typing = "";
+  
+  public final MuteState muteState;
+  public int unread;
   public boolean ping;
   
   public final ChatTextArea input;
   protected Chatroom(ChatUser u) {
     this.m = u.m;
+    muteState = new MuteState(m) {
+      protected int ownedUnreads() { return unread; }
+      protected boolean ownedPings() { return ping; }
+      protected void updated() { unreadChanged(); }
+    };
+    
     node = new RoomListNode.RoomNode(this, u);
     setName("Unnamed room");
     input = new ChatTextArea(this, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE});
@@ -31,6 +39,9 @@ public abstract class Chatroom extends View {
   public void cfgUpdated() {
     if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));
     else input.setLang(m.gc.langs().defLang);
+  }
+  public void tick() {
+    muteState.tick();
   }
   
   
@@ -97,21 +108,13 @@ public abstract class Chatroom extends View {
   
   public abstract void pinged();
   
-  public boolean hiddenUnread;
-  public void toggleHide() {
-    hiddenUnread^= true;
-    unreadChanged();
-  }
-  public int unread() {
-    return hiddenUnread || m.globalHidden? 0 : unread;
-  }
   public void unreadChanged() {
-    if (open && m.focused && m.atEnd() && !m.globalHidden && !hiddenUnread) {
+    if (open && m.focused && m.atEnd() && !muteState.muted) {
       if (unread!=0) readAll();
       unread = 0;
-      ping=false;
+      ping = false;
     }
-    RoomListNode.setUnread(m, node, hiddenUnread, ping, unread);
+    RoomListNode.setUnread(m, node, muteState, ping, unread);
     m.unreadChanged();
     user().updateFolderUnread();
   }

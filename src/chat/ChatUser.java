@@ -12,6 +12,7 @@ public abstract class ChatUser {
   public final ChatMain m;
   public final Node node;
   public final RoomListNode roomListNode; // list of rooms
+  // public final MuteState muteState = new MuteState();
   
   public ChatUser(ChatMain m) {
     this.m = m;
@@ -58,9 +59,8 @@ public abstract class ChatUser {
         boolean ping = false;
         int count = 0;
         for (Chatroom r : rs) {
-          if (r.hiddenUnread) continue;
-          count+= r.unread;
-          ping|= r.ping;
+          count+= r.muteState.unreads();
+          ping|= r.muteState.anyPing();
         }
         d.unread = count;
         d.ping = ping;

@@ -490,6 +490,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public void tick() {
+    super.tick();
     if (olderRes!=null) {
       if (olderRes.events.size()==0) msgLogToStart = true;
       prevBatch = olderRes.eTok;
@@ -558,6 +559,8 @@ public class MxChatroom extends Chatroom {
   
   public void roomMenu(Click c, int x, int y, Runnable onClose) {
     PartialMenu pm = new PartialMenu(m.gc);
+    muteState.addMenuOptions(pm);
+    pm.addSep();
     pm.add(pm.gc.getProp("chat.mx.roomMenu.room").gr(), s -> {
       switch (s) {
         case "copyLink": actionCopyLink(); return true;

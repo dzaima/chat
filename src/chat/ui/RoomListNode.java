@@ -1,7 +1,6 @@
 package chat.ui;
 
 import chat.*;
-import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
@@ -281,7 +280,7 @@ public class RoomListNode extends ReorderableNode {
     public void updateUnread() {
       if (editing()) return;
       boolean closed = !isOpen();
-      RoomListNode.setUnread(u.m, ch.get(0), false, closed && ping, closed? unread : 0);
+      RoomListNode.setUnread(u.m, ch.get(0), MuteState.UNMUTED, closed && ping, closed? unread : 0);
     }
     
     public static class NameEditFieldNode extends TextFieldNode {
@@ -416,10 +415,10 @@ public class RoomListNode extends ReorderableNode {
     public void rightClick(Click c, int x, int y, Runnable onClose) { r.roomMenu(c, x, y, onClose); }
   }
   
-  public static void setUnread(ChatMain m, Node node, boolean hidden, boolean ping, int unread) {
+  public static void setUnread(ChatMain m, Node node, MuteState muteState, boolean ping, int unread) {
     Node un = node.ctx.id("unread");
     un.clearCh();
-    if ((hidden || m.globalHidden) && !ping) {
+    if (muteState.hidden(ping, unread)) {
       un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
     } else if (unread>0 || ping) {
       Node n = node.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
