@@ -401,8 +401,8 @@ chat {
     }
     muteUI = pad { bg=bg.middle all=1em
       v { pad=.4em w=30em h=7em
-        h { checkbox { id=mute } text{" Enable"} }
-        h { checkbox { id=mutePings } text{" Mute pings"} }
+        label { h { checkbox { id=mute      } text{" Enable"}     } for=mute }
+        label { h { checkbox { id=mutePings } text{" Mute pings"} } for=mutePings }
         vsep{}
         v { pad=.4em
           h { "Mute time: " chat.$sField { bg=chat.ly.bgUploadField id=time } }
@@ -557,12 +557,12 @@ chat {
           }
           h { pad=1em
             v { w=13em pad=.2em
-              h { checkbox { id=caseSensitive } text{" Case-sensitive"} }
-              h { checkbox { id=exactMatch } text{" Exact match"} }
+              label { h { checkbox { id=caseSensitive } text{" Case-sensitive"} } for=caseSensitive }
+              label { h { checkbox { id=exactMatch    } text{" Exact match"}    } for=exactMatch }
             }
             v { w=13em pad=.2em
-              h { checkbox { id=allRooms } text{" All rooms"} }
-              h { checkbox { id=showContext enabled=true } text{" Show context"} }
+              label { h { checkbox { id=allRooms                 } text{" All rooms"}    } for=allRooms }
+              label { h { checkbox { id=showContext enabled=true } text{" Show context"} } for=showContext }
             }
           }
         }
