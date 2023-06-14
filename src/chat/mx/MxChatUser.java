@@ -200,6 +200,7 @@ public class MxChatUser extends ChatUser {
     if (name.startsWith("!")) {
       for (MxChatroom c : roomSet) if (c.r.rid.equals(name)) return c;
     } else if (name.startsWith("#")) {
+      
       for (MxChatroom c : roomSet) if (name.equals(c.canonicalAlias)) return c;
       for (MxChatroom c : roomSet) for (String a : c.altAliases) if (name.equals(a)) return c;
     }

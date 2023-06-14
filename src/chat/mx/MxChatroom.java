@@ -99,11 +99,13 @@ public class MxChatroom extends Chatroom {
         description = ct.str("topic", null);
         break;
       case "m.room.canonical_alias":
-        if (nameState>2) break; nameState = 2;
         altAliases = ct.arr("alt_aliases", Arr.E).strArr();
         String alias = ct.str("alias", null);
         if (alias!=null) {
-          setName(alias);
+          if (nameState<=2) {
+            setName(alias);
+            nameState = 2;
+          }
           this.canonicalAlias = alias;
         }
         break;
