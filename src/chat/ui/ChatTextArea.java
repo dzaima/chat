@@ -76,7 +76,7 @@ public class ChatTextArea extends CodeAreaNode {
     String newSearch = null;
     int si=-1, ei=-1;
     int y0=-1;
-    if (m.view!=null && visible && (m.focusedVW==psV || m.focusNode==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
+    if (m.view!=null && visible && (m.focusedVW==psV || m.focusNode()==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
       y0 = cs.get(0).sy;
       ei = cs.get(0).sx;
       si = ei;

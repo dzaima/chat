@@ -55,7 +55,7 @@ public class RightPanel {
   public boolean key(Key key, KeyAction a) {
     if (!isOpen()) return false;
     
-    if (m.focusNode instanceof ChatTextArea) return false;
+    if (m.focusNode() instanceof ChatTextArea) return false;
     switch (m.gc.keymap(key, a, "chat.rightPanel")) {
       case "close": close(); return true;
     }
