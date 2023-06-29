@@ -128,25 +128,28 @@ public class MxChatroom extends Chatroom {
   }
   
   private int monotonicCounter = 0;
-  public void update(MyStatus newStatus, Obj sync) {
-    boolean inviting = newStatus==MyStatus.INVITED;
-    boolean inviteToJoin = myStatus==MyStatus.INVITED && newStatus==MyStatus.JOINED;
-    myStatus = newStatus;
+  public void update(MyStatus ns, Obj sync) {
+    MyStatus ps = myStatus;
+    myStatus = ns;
+    boolean pInv = ps==MyStatus.INVITED;
+    boolean nInv = ns==MyStatus.INVITED;
+    if (nInv) pinged();
+    boolean inviteToJoin = pInv && ns==MyStatus.JOINED;
     if (inviteToJoin) {
       log.completelyClear();
       initPrevBatch(sync);
     }
     
-    Arr stateList = sync.obj(inviting?"invite_state":"state", Obj.E).arr("events",Arr.E);
+    Arr stateList = sync.obj(nInv?"invite_state":"state", Obj.E).arr("events",Arr.E);
     for (Obj ev : stateList.objs()) {
       Obj ct = ev.obj("content");
       anyEvent(ev, ct);
     }
-    Arr eventList = inviting? stateList : sync.obj("timeline").arr("events");
+    Arr eventList = nInv? stateList : sync.obj("timeline").arr("events");
     
     HashSet<String> seen = new HashSet<>();
     for (Obj ev : eventList.objs()) {
-      if (!seen.add(ev.str("event_id", "(unknown)"))) {
+      if (!seen.add(ev.str("event_id", "(unknown)")) && !nInv) {
         Log.info("skipping duplicate event with ID "+ev.str("event_id", "(unknown)")); // Synapse duplicates join event :|
         continue;
       }
@@ -172,7 +175,6 @@ public class MxChatroom extends Chatroom {
           break;
       }
     }
-    if (inviting) return;
     
     for (Obj ev : sync.obj("ephemeral",Obj.E).arr("events",Arr.E).objs()) {
       Obj ct = ev.obj("content", Obj.E);
@@ -200,7 +202,7 @@ public class MxChatroom extends Chatroom {
       }
     }
     
-    if (inviteToJoin && m.view == this) m.toRoom(this);
+    if ((pInv || nInv) && m.view==this) m.toRoom(this); // refresh "input" field
   }
   
   public void setReceipt(String uid, String mid) {
