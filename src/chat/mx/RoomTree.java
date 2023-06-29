@@ -3,19 +3,23 @@ package chat.mx;
 import chat.ui.RoomListNode;
 import dzaima.ui.node.Node;
 import dzaima.utils.*;
+import dzaima.utils.JSON.Obj;
 
 import java.util.*;
 
 public class RoomTree {
-  String id, name; // if id==null, then this is a local folder
+  String id;
+  String name; // if id==null, then this is a local folder
+  Obj o;
   boolean open;
   Vec<RoomTree> ch;
   MxChatroom got;
   
-  public RoomTree(String id, MxChatroom got, String name) {
+  public RoomTree(String id, MxChatroom got, String name, Obj o) {
     this.id = id;
     this.got = got;
     this.name = name;
+    this.o = o;
   }
   
   public static void restoreTree(MxChatUser u, JSON.Arr state, JSON.Arr legacyOrder) { // won't request to save
@@ -23,7 +27,7 @@ public class RoomTree {
     
     HashMap<String, RoomTree> map = new HashMap<>();
     Vec<RoomTree> root = new Vec<>();
-    for (JSON.Obj o : state.objs()) root.add(buildTree(map, o)); // build target tree
+    for (Obj o : state.objs()) root.add(buildTree(map, o)); // build target tree
     
     HashSet<String> knownSpaces = new HashSet<>();
     allRooms.forEach((k, v) -> {
@@ -38,7 +42,9 @@ public class RoomTree {
       if (v.asDir()!=null) for (String child : v.spaceInfo.children) toSpace.put(child, k);
       
       if (map.containsKey(k)) {
-        map.get(k).got = v;
+        RoomTree t = map.get(k);
+        t.got = v;
+        if (t.o.has("mute")) v.muteState.deserialize(t.o.str("mute"));
       } else {
         if (v.spaceInfo!=null) spacesLeft.put(k, v);
         else roomsLeft.put(k, v);
@@ -46,7 +52,7 @@ public class RoomTree {
     });
     
     spacesLeft.forEach((k, v) -> { // add new spaces
-      RoomTree t = new RoomTree(k, v, null);
+      RoomTree t = new RoomTree(k, v, null, Obj.E);
       t.open = true;
       t.ch = new Vec<>();
       root.add(t);
@@ -55,7 +61,7 @@ public class RoomTree {
     
     roomsLeft.forEach((k, v) -> { // add new rooms
       String spaceId = toSpace.get(k);
-      RoomTree t = new RoomTree(k, v, null);
+      RoomTree t = new RoomTree(k, v, null, Obj.E);
       map.put(k, t);
       if (spaceId!=null) {
         RoomTree space = map.get(spaceId);
@@ -77,13 +83,13 @@ public class RoomTree {
     u.roomListNode.recalculateDepths();
   }
   
-  public static RoomTree buildTree(HashMap<String, RoomTree> map, JSON.Obj o) {
-    RoomTree res = new RoomTree(o.str("id", null), null, o.str("name", null));
+  public static RoomTree buildTree(HashMap<String, RoomTree> map, Obj o) {
+    RoomTree res = new RoomTree(o.str("id", null), null, o.str("name", null), o);
     res.open = o.bool("open", true);
     if (res.id!=null) map.put(res.id, res);
     if (o.has("folder")) {
       res.ch = new Vec<>();
-      for (JSON.Obj c : o.arr("folder").objs()) res.ch.add(buildTree(map, c));
+      for (Obj c : o.arr("folder").objs()) res.ch.add(buildTree(map, c));
     }
     return res;
   }
@@ -163,7 +169,7 @@ public class RoomTree {
     }
   }
   
-  private static JSON.Obj saveDir(SavingState s, RoomListNode.DirStartNode e0) {
+  private static Obj saveDir(SavingState s, RoomListNode.DirStartNode e0) {
     HashMap<String, JSON.Val> m = new HashMap<>();
     if (e0.external!=null) {
       MxChatroom.SpaceInfo space = (MxChatroom.SpaceInfo) e0.external;
@@ -173,20 +179,21 @@ public class RoomTree {
       if (e0.name!=null) m.put("name", new JSON.Str(e0.name));
     }
     m.put("open", JSON.Bool.of(e0.isOpen()));
-    Vec<JSON.Obj> list = saveList(s, true);
+    Vec<Obj> list = saveList(s, true);
     m.put("folder", new JSON.Arr(list.toArray(new JSON.Val[0])));
-    return new JSON.Obj(m);
+    return new Obj(m);
   }
   
-  private static JSON.Obj saveRoom(RoomListNode.RoomNode e) {
+  private static Obj saveRoom(RoomListNode.RoomNode e) {
     HashMap<String, JSON.Val> m = new HashMap<>();
     m.put("id", new JSON.Str(((MxChatroom) e.r).r.rid));
+    m.put("mute", new JSON.Str(e.r.muteState.serialize()));
     // TODO custom name
-    return new JSON.Obj(m);
+    return new Obj(m);
   }
   
-  private static Vec<JSON.Obj> saveList(SavingState s, boolean dir) {
-    Vec<JSON.Obj> res = new Vec<>();
+  private static Vec<Obj> saveList(SavingState s, boolean dir) {
+    Vec<Obj> res = new Vec<>();
     while (true) {
       if (!dir && s.pos == s.end) return res;
       Node c = s.next();

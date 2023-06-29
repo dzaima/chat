@@ -524,6 +524,10 @@ public class MxChatroom extends Chatroom {
     return input;
   }
   
+  public void muteStateChanged() {
+    u.saveRooms();
+  }
+  
   public void tick() {
     super.tick();
     if (olderRes!=null) {

@@ -23,7 +23,7 @@ public abstract class Chatroom extends View {
     muteState = new MuteState(m) {
       protected int ownedUnreads() { return unread; }
       protected boolean ownedPings() { return ping; }
-      protected void updated() { unreadChanged(); }
+      protected void updated() { unreadChanged(); muteStateChanged(); }
     };
     
     node = new RoomListNode.RoomNode(this, u);
@@ -38,7 +38,7 @@ public abstract class Chatroom extends View {
   }
   
   public abstract Node inputPlaceContent();
-  
+  public abstract void muteStateChanged();
   public void cfgUpdated() {
     if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));
     else input.setLang(m.gc.langs().defLang);

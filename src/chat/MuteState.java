@@ -4,7 +4,7 @@ import chat.ui.ChatTextFieldNode;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.*;
-import dzaima.utils.Rect;
+import dzaima.utils.*;
 
 import java.text.DecimalFormat;
 import java.time.*;
@@ -21,6 +21,19 @@ public abstract class MuteState {
   public final ChatMain m;
   
   public MuteState(ChatMain m) { this.m = m; }
+  
+  public String serialize() {
+    if (!nonDefault()) return "";
+    return (muted?'1':'0')+" "+(mutePings?'1':'0')+" "+(unmuteTime==null?"i":unmuteTime.toEpochMilli());
+  }
+  public void deserialize(String s) {
+    if (s==null || s.length()==0) { copyFrom(UNMUTED); return; }
+    String[] ps = Tools.split(s, ' ');
+    muted = ps[0].equals("1");
+    mutePings = ps[1].equals("1");
+    unmuteTime = ps[2].equals("i")? null : Instant.ofEpochMilli(Long.parseLong(ps[2]));
+    updated();
+  }
   
   public void copyFrom(MuteState s) {
     muted = s.muted;
@@ -109,6 +122,7 @@ public abstract class MuteState {
         Duration d = stringToDuration(s);
         if (d==null) unmuteTime = null;
         else unmuteTime = Instant.now().plus(d);
+        updated();
       }
       private void fixupTime() {
         String s = time.getAll();

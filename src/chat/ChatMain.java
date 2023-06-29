@@ -249,7 +249,7 @@ public class ChatMain extends NodeWindow {
       try {
         Files.write(profilePath, res.toString(2).getBytes(StandardCharsets.UTF_8));
       } catch (IOException e) {
-        System.err.println("Failed to write profile file");
+        Log.warn("Failed to write profile file");
         throw new RuntimeException("Failed to write profile file");
       }
     }
@@ -457,6 +457,7 @@ public class ChatMain extends NodeWindow {
   
   private boolean saveRequested;
   public void requestSave() {
+    Log.info("account save requested");
     saveRequested = true;
   }
   
@@ -644,7 +645,9 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
-    // Log.level = Log.Level.FINE;
+    Log.level = Log.Level.WARN;
+    MxServer.LOG_FN = Log::fine;
+    MxServer.WARN_FN = Log::warn;
     Windows.setManager(Windows.Manager.JWM);
     // Windows.setManager(Windows.Manager.LWJGL);
     

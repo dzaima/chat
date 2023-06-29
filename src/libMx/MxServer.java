@@ -6,6 +6,7 @@ import dzaima.utils.JSON.Obj;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.function.*;
 
 
 public class MxServer {
@@ -72,9 +73,9 @@ public class MxServer {
     try {
       return JSON.parseObj(s);
     } catch (Throwable e) {
-      System.err.println("Failed parsing JSON: ```");
-      System.err.println(s);
-      System.err.println("```");
+      warn("Failed parsing JSON: ```");
+      warn(s);
+      warn("```");
       e.printStackTrace();
       return null;
     }
@@ -228,12 +229,14 @@ public class MxServer {
   }
   
   public static void log(String id, String s) {
-    if (LOG) System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
+    if (LOG) LOG_FN.accept(id, s);
   }
   public static void warn(String s) {
-    System.err.println("["+LocalDateTime.now()+" !!] "+s);
+    WARN_FN.accept("mx itf", s);
   }
   public static boolean LOG = true;
+  public static BiConsumer<String, String> LOG_FN = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
+  public static BiConsumer<String, String> WARN_FN = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
   
   
   public static boolean isMxc(String uri) {
