@@ -432,6 +432,8 @@ chat {
       mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
       mi { id=copyID "Copy room ID" key=chat.menuKeys.copyText }
     }
+    leave = { mi { id=leave "Leave room" } }
+    forget = { mi { id=forget "Leave & forget room" } }
     room = {
       chat.mx.roomMenu.$links{}
       vsep{}
@@ -442,6 +444,20 @@ chat {
       vsep{}
       chat.mx.roomMenu.$links{}
       mi { id=viewInternal "View internal Matrix room" }
+    }
+    
+    leaveMsg = "Leave from the room"
+    leaveMsg2 = "" // "You will still be able to view the history of the room up to the point of leaving."
+    leaveBtn = "leave"
+    forgetMsg = "Leave & forget the room"
+    forgetMsg2 = "You won't be able to view the history of the room afterwards."
+    forgetBtn = "forget"
+    confirmLeave = pad { bg=bg.middle all=1.2em
+      v { h=min w=50em pad=1em
+        text { text { id=msg } " \"" text { id=room } "\"?\n" text { id=msg2 } }
+        h { id=reasonPlace }
+        chat.profile.$btns { run={} }
+      }
     }
   }
   linkMenu = menu {

@@ -3,9 +3,10 @@ package chat.mx;
 import chat.*;
 import chat.ui.*;
 import dzaima.ui.gui.*;
+import dzaima.ui.gui.config.Cfg;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.BtnNode;
+import dzaima.ui.node.types.*;
 import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
@@ -589,10 +590,30 @@ public class MxChatroom extends Chatroom {
     ViewUsers.viewUsers(this);
   }
   
+  public void confirmLeave(PartialMenu pm, String path, String id, Runnable run) {
+    pm.add(m.gc.getProp(path).gr(), id, () -> {
+      new Popup(m) {
+        protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
+        protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a) || ChatMain.keyFocus(pw, key, a) || true; }
+        protected void unfocused() { close(); }
+        protected void setup() { }
+        protected void preSetup() {
+          node.ctx.id("msg").add(new StringNode(m.ctx, m.gc.getProp(path+"Msg").str()));
+          node.ctx.id("msg2").add(new StringNode(m.ctx, m.gc.getProp(path+"Msg2").str()));
+          node.ctx.id("run").add(new StringNode(m.ctx, m.gc.getProp(path+"Btn").str()));
+          node.ctx.id("room").add(new StringNode(m.ctx, title()));
+          ((BtnNode) node.ctx.id("cancel")).setFn(b -> close());
+          ((BtnNode) node.ctx.id("run")).setFn(b -> { run.run(); close(); });
+        }
+      }.openVW(m.gc, m.ctx, m.gc.getProp("chat.mx.roomMenu.confirmLeave").gr(), true);
+    });
+  }
   public void roomMenu(Click c, int x, int y, Runnable onClose) {
     PartialMenu pm = new PartialMenu(m.gc);
     muteState.addMenuOptions(pm);
     pm.addSep();
+    confirmLeave(pm, "chat.mx.roomMenu.leave", "leave", r::selfLeave);
+    // confirmLeave(pm, "chat.mx.roomMenu.forget", "forget", () -> { r.selfLeave(); r.selfForget(); });
     pm.add(pm.gc.getProp("chat.mx.roomMenu.room").gr(), s -> {
       switch (s) {
         case "copyLink": actionCopyLink(); return true;
