@@ -71,7 +71,7 @@ public class MxChatroom extends Chatroom {
         setName(n.toString());
       }
     }
-    ping=false; unread=0; unreadChanged();
+    if (status0!=MyStatus.INVITED) { ping = false; unread = 0; unreadChanged(); }
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
