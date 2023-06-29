@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.mx.MxChatroom.MyStatus;
 import chat.ui.*;
 import chat.ui.Extras.LinkType;
 import dzaima.ui.gui.Popup;
@@ -105,9 +106,12 @@ public class MxChatUser extends ChatUser {
       
       Obj j = u0.s.getJ("_matrix/client/r0/sync?filter={\"room\":{\"timeline\":{\"limit\":" + DEFAULT_MSGS + "}}}&access_token=" + u0.token);
       primary.add(() -> {
-        for (Entry e : j.obj("rooms", Obj.E).obj("join", Obj.E).entries()) {
-          MxChatroom r = new MxChatroom(this, e.k, e.v.obj());
-          roomMap.put(e.k, r);
+        Obj rooms = j.obj("rooms", Obj.E);
+        for (Entry e : rooms.obj("join", Obj.E).entries()) {
+          roomMap.put(e.k, new MxChatroom(this, e.k, e.v.obj(), MyStatus.JOINED));
+        }
+        for (Entry e : rooms.obj("invite", Obj.E).entries()) {
+          roomMap.put(e.k, new MxChatroom(this, e.k, e.v.obj(), MyStatus.INVITED));
         }
         
         Arr storedStructure = data.arr("roomStructure", Arr.E);
@@ -150,20 +154,28 @@ public class MxChatUser extends ChatUser {
     if (sync==null) return;
     
     while (true) {
-      boolean newRooms = false;
       Obj m = sync.poll(); if (m==null) break;
-      Obj crs = m.obj("rooms", Obj.E).obj("join", Obj.E);
-      for (JSON.Entry k : crs.entries()) {
-        MxChatroom room = roomMap.get(k.k);
-        if (room==null) {
-          MxChatroom r = new MxChatroom(this, k.k, k.v.obj());
-          preRoomListChange();
-          roomMap.put(k.k, r);
-          roomListNode.add(r.node); // TODO place in space if appropriate
-          newRooms = true;
-        } else room.update(k.v.obj());
-      }
-      if (newRooms) roomListChanged();
+      Box<Boolean> newRooms = new Box<>(false);
+      
+      BiConsumer<MyStatus, Obj> processRoomList = (status, data) -> {
+        for (JSON.Entry k : data.entries()) {
+          MxChatroom room = roomMap.get(k.k);
+          if (room==null) {
+            MxChatroom r = new MxChatroom(this, k.k, k.v.obj(), status);
+            preRoomListChange();
+            roomMap.put(k.k, r);
+            roomListNode.add(r.node); // TODO place in space if appropriate
+            newRooms.set(true);
+          } else room.update(status, k.v.obj());
+        }
+      };
+      
+      Obj rooms = m.obj("rooms", Obj.E);
+      processRoomList.accept(MyStatus.JOINED, rooms.obj("join", Obj.E));
+      processRoomList.accept(MyStatus.INVITED, rooms.obj("invite", Obj.E));
+      processRoomList.accept(MyStatus.LEFT, rooms.obj("leave", Obj.E));
+      
+      if (newRooms.get()) roomListChanged();
     }
     
     for (MxChatroom c : roomSet) c.tick();

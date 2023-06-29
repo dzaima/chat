@@ -84,4 +84,18 @@ public class MxRoom {
   public String linkMsg(String mid) {
     return link()+"/"+mid;
   }
+  
+  
+  public void selfJoin() {
+    s.postJ("_matrix/client/v3/join/"+rid+"?access_token="+s.gToken, "{}");
+  }
+  public void selfRejectInvite() {
+    selfLeave();
+  }
+  public void selfLeave() {
+    s.postJ("_matrix/client/v3/rooms/"+rid+"/leave"+"?access_token="+s.gToken, "{}");
+  }
+  public void selfForget() {
+    s.postJ("_matrix/client/v3/rooms/"+rid+"/forget"+"?access_token="+s.gToken, "{}");
+  }
 }

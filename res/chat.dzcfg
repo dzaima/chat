@@ -246,6 +246,10 @@ chat {
       v { id=rightPanelPlace }
     }
   }
+  inviteOptions = v { pad=.2em
+    btn { style=rect id=accept "accept invite" padX=.5em padY=.3em }
+    btn { style=rect id=deny "deny invite" padX=.5em padY=.3em }
+  }
   
   // right panel in general
   rightPanel {

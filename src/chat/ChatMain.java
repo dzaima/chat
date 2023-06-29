@@ -146,7 +146,7 @@ public class ChatMain extends NodeWindow {
     Log.fine("chat", "Moving to room "+c.name+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     hideCurrent();
     view = c;
-    inputPlace.replace(0, c.input);
+    inputPlace.replace(0, c.inputPlaceContent());
     c.show();
     updActions();
     toLast = toHighlight!=null? 3 : 2;

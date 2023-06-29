@@ -2,6 +2,7 @@ package chat;
 
 import chat.ui.*;
 import dzaima.ui.gui.io.Click;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Vec;
@@ -35,6 +36,8 @@ public abstract class Chatroom extends View {
     });
     cfgUpdated();
   }
+  
+  public abstract Node inputPlaceContent();
   
   public void cfgUpdated() {
     if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));

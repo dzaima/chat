@@ -103,6 +103,12 @@ public class MxLog {
   private void putMsg(MxChatEvent m) {
     putEvent(m.id, m);
   }
+  public void completelyClear() {
+    list.clear();
+    msgMap.clear();
+    msgReplies.clear();
+    reactions.clear();
+  }
   
   
   

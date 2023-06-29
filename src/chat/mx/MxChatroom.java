@@ -4,6 +4,7 @@ import chat.*;
 import chat.ui.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.types.BtnNode;
 import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
@@ -42,15 +43,17 @@ public class MxChatroom extends Chatroom {
   private String lastVisible;
   
   public SpaceInfo spaceInfo;
+  public enum MyStatus { INVITED, JOINED, LEFT, FORGOTTEN }
+  public MyStatus myStatus;
   
-  public MxChatroom(MxChatUser u, String rid, Obj init) {
+  public MxChatroom(MxChatUser u, String rid, Obj init, MyStatus status0) {
     super(u);
+    this.myStatus = status0;
     this.log = new MxLog(this);
     this.u = u;
     this.r = u.s.room(rid);
-    update(init);
-    Obj timeline = init.obj("timeline", Obj.E);
-    prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
+    update(status0, init);
+    if (status0!=MyStatus.INVITED) initPrevBatch(init);
     if (nameState==0) {
       ArrayList<String> parts = new ArrayList<>();
       userData.forEach((id, d) -> {
@@ -68,6 +71,10 @@ public class MxChatroom extends Chatroom {
       }
     }
     ping=false; unread=0; unreadChanged();
+  }
+  public void initPrevBatch(Obj init) {
+    Obj timeline = init.obj("timeline", Obj.E);
+    prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
   }
   public void anyEvent(Obj ev, Obj ct) {
     switch (ev.str("type")) {
@@ -120,14 +127,24 @@ public class MxChatroom extends Chatroom {
   }
   
   private int monotonicCounter = 0;
-  public void update(Obj sync) {
-    for (Obj ev : sync.obj("state").arr("events").objs()) {
+  public void update(MyStatus newStatus, Obj sync) {
+    boolean inviting = newStatus==MyStatus.INVITED;
+    boolean inviteToJoin = myStatus==MyStatus.INVITED && newStatus==MyStatus.JOINED;
+    myStatus = newStatus;
+    if (inviteToJoin) {
+      log.completelyClear();
+      initPrevBatch(sync);
+    }
+    
+    Arr stateList = sync.obj(inviting?"invite_state":"state", Obj.E).arr("events",Arr.E);
+    for (Obj ev : stateList.objs()) {
       Obj ct = ev.obj("content");
       anyEvent(ev, ct);
     }
+    Arr eventList = inviting? stateList : sync.obj("timeline").arr("events");
     
     HashSet<String> seen = new HashSet<>();
-    for (Obj ev : sync.obj("timeline").arr("events").objs()) {
+    for (Obj ev : eventList.objs()) {
       if (!seen.add(ev.str("event_id", "(unknown)"))) {
         Log.info("skipping duplicate event with ID "+ev.str("event_id", "(unknown)")); // Synapse duplicates join event :|
         continue;
@@ -154,8 +171,9 @@ public class MxChatroom extends Chatroom {
           break;
       }
     }
+    if (inviting) return;
     
-    for (Obj ev : sync.obj("ephemeral").arr("events").objs()) {
+    for (Obj ev : sync.obj("ephemeral",Obj.E).arr("events",Arr.E).objs()) {
       Obj ct = ev.obj("content", Obj.E);
       switch (ev.str("type", "")) {
         case "m.typing":
@@ -180,6 +198,8 @@ public class MxChatroom extends Chatroom {
           break;
       }
     }
+    
+    if (inviteToJoin && m.view == this) m.toRoom(this);
   }
   
   public void setReceipt(String uid, String mid) {
@@ -489,6 +509,16 @@ public class MxChatroom extends Chatroom {
     if (!last.uid.equals(u.id())) {
       u.queueNetwork(() -> r.readTo(last.id));
     }
+  }
+  
+  public Node inputPlaceContent() {
+    if (myStatus==MyStatus.INVITED) {
+      Node n = m.ctx.make(m.gc.getProp("chat.inviteOptions").gr());
+      ((BtnNode) n.ctx.id("accept")).setFn(b -> r.selfJoin());
+      ((BtnNode) n.ctx.id("deny")).setFn(b -> r.selfRejectInvite());
+      return n;
+    }
+    return input;
   }
   
   public void tick() {
