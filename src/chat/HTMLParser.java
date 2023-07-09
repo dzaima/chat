@@ -125,7 +125,7 @@ public class HTMLParser {
           }
         }
         p.add(new StringNode(p.ctx, s));
-      } else {
+      } else if (cn instanceof Element) {
         Element c = (Element) cn;
         String tag = c.tagName();
         switch (tag) {
