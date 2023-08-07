@@ -224,7 +224,7 @@ public class MxServer {
   
   public boolean handleError(Obj j, String do_what) {
     if (!j.has("errcode")) return false;
-    warn("Failed to "+do_what+": "+j.toString());
+    warn("Failed to "+do_what+": "+j);
     return true;
   }
   

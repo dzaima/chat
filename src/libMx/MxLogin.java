@@ -25,21 +25,22 @@ public class MxLogin {
   public MxUser user() {
     return s.user(uid);
   }
-  public String sendMessage(MxRoom r, MxSendMsg msg) {
-    String ct = msg.msgJSON();
-    Obj j = s.postJ("_matrix/client/r0/rooms/"+r.rid+"/send/m.room.message?access_token="+token, ct);
+  
+  private static final AtomicLong txn_id = new AtomicLong();
+  public static String newTxnId() {
+    return (System.currentTimeMillis()%(long)1e12) + "_" + txn_id.getAndIncrement();
+  } 
+  
+  public String sendContent(MxRoom r, String type, String content) {
+    Obj j = s.putJ("_matrix/client/v3/rooms/"+r.rid+"/send/"+type+"/"+newTxnId()+"?access_token="+token, content);
     if (s.handleError(j, "send message")) return null;
     return j.str("event_id");
   }
-  public String sendContent(MxRoom r, String type, String content) {
-    Obj j = s.postJ("_matrix/client/r0/rooms/"+r.rid+"/send/"+type+"?access_token="+token, content);
-    if (s.handleError(j, "send message")) return null;
-    return j.str("event_id");
+  public String sendMessage(MxRoom r, MxSendMsg msg) {
+    return sendContent(r, "m.room.message", msg.msgJSON());
   }
   public String editMessage(MxRoom r, String pid, MxFmt msg) { // ignores msg reply as reply target cannot be edited
-    Obj j = s.postJ("_matrix/client/r0/rooms/"+r.rid+"/send/m.room.message?access_token="+token, msg.editJSON(pid));
-    if (s.handleError(j, "edit message")) return null;
-    return j.str("event_id");
+    return sendContent(r, "m.room.message", msg.editJSON(pid));
   }
   private static final AtomicLong txn = new AtomicLong(ThreadLocalRandom.current().nextLong());
   public void deleteMessage(MxRoom r, String pid) {
