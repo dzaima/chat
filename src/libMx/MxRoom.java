@@ -17,11 +17,11 @@ public class MxRoom {
   
   
   public MxMessage message(String id) {
-    return new MxMessage(this, s.getJ("_matrix/client/r0/rooms/"+rid+"/event/"+id+"?access_token="+s.gToken));
+    return new MxMessage(this, request("event",id).gToken().get().runJ());
   }
   
   public ArrayList<MxEvent> beforeMsg(String id, int am) {
-    Obj o = s.getJ("_matrix/client/r0/rooms/"+rid+"/context/"+id+"?limit="+am+"&access_token="+s.gToken);
+    Obj o = request("context",id).prop("limit",am).gToken().get().runJ();
     ArrayList<MxEvent> res = new ArrayList<>();
     if (!o.has("events_before")) return null;
     for (Obj c : o.arr("events_before").objs()) {
@@ -46,7 +46,7 @@ public class MxRoom {
   public Chunk afterTok(String from, int am) { return getMessages(from, null, 'f', am); }
   public Chunk beforeTok(String from, String to, int am) { return getMessages(from, to, 'b', am); }
   public Chunk getMessages(String from, String to, char d, int am) {
-    Obj o = s.getJ("_matrix/client/r0/rooms/"+rid+"/messages?limit="+am+"&from="+from+(to==null?"":"&to="+to)+"&dir="+d+"&access_token="+s.gToken);
+    Obj o = request("messages").prop("limit",am).prop("from",from).prop("dir",String.valueOf(d)).optProp("to",to).gToken().get().runJ();
     ArrayList<MxEvent> res = new ArrayList<>();
     if (!o.has("chunk")) return null;
     for (Obj c : o.arr("chunk").objs()) {
@@ -57,7 +57,7 @@ public class MxRoom {
   }
   
   public Chunk msgContext(String id, int am) {
-    Obj o = s.getJ("_matrix/client/r0/rooms/"+rid+"/context/"+id+"?limit="+am+"&access_token="+s.gToken);
+    Obj o = request("context",id).prop("limit", am).gToken().get().runJ();
     ArrayList<MxEvent> res = new ArrayList<>();
     if (!o.has("events_before")) return null;
     for (Obj c : o.arr("events_before").objs()) res.add(new MxEvent(this, c));
@@ -68,7 +68,7 @@ public class MxRoom {
   }
   
   public void readTo(String id) {
-    s.postJ("_matrix/client/r0/rooms/"+rid+"/receipt/m.read/"+id+"?access_token="+s.gToken, "{}");
+    request("receipt","m.read",id).gToken().post(Obj.E).runJ();
   }
   
   public void kick(String uid, String reason) { kickBan("kick", uid, reason); }
@@ -79,7 +79,7 @@ public class MxRoom {
     HashMap<String, JSON.Val> map = new HashMap<>();
     map.put("user_id", new JSON.Str(uid));
     if (reason!=null) map.put("reason", new JSON.Str(reason));
-    s.postJ("_matrix/client/v3/rooms/"+rid+"/"+mode+"?access_token="+s.gToken, new JSON.Obj(map).toString());
+    request(mode).gToken().post(new Obj(map)).runJ();
   }
   
   public String link() {
@@ -91,15 +91,17 @@ public class MxRoom {
   
   
   public void selfJoin() {
-    s.postJ("_matrix/client/v3/join/"+rid+"?access_token="+s.gToken, "{}");
+    s.primaryLogin.join(this);
   }
   public void selfRejectInvite() {
     selfLeave();
   }
-  public void selfLeave() {
-    s.postJ("_matrix/client/v3/rooms/"+rid+"/leave"+"?access_token="+s.gToken, "{}");
+  public boolean selfLeave() {
+    Obj j = request("leave").gToken().post(Obj.E).runJ();
+    return !s.handleError(j, "leave room");
   }
-  public void selfForget() {
-    s.postJ("_matrix/client/v3/rooms/"+rid+"/forget"+"?access_token="+s.gToken, "{}");
+  public boolean selfForget() {
+    Obj j = request("forget").gToken().post(Obj.E).runJ();
+    return !s.handleError(j, "forget room");
   }
 }

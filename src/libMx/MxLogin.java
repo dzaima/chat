@@ -42,7 +42,7 @@ public class MxLogin {
     return sendContent(r, "m.room.message", msg.editJSON(pid));
   }
   public void deleteMessage(MxRoom r, String pid) {
-    Obj j = r.request("redact", pid, newTxnId()).token(token).put(Obj.E).runJ();
+    Obj j = r.request("redact",pid,newTxnId()).token(token).put(Obj.E).runJ();
     s.handleError(j, "delete message");
   }
   

@@ -1,8 +1,10 @@
 package libMx;
 
-import dzaima.utils.*;
+import dzaima.utils.JSON;
 import dzaima.utils.JSON.Obj;
+import dzaima.utils.Pair;
 
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -53,12 +55,7 @@ public class MxServer {
   public MxLogin login(String uid, String passwd) {
     hide_data = true;
     try {
-      Obj j = postJ("_matrix/client/r0/login",
-        "{" +
-          "\"user\":"+Utils.toJSON(uid)+"," +
-          "\"password\":"+Utils.toJSON(passwd)+"," +
-          "\"type\":\"m.login.password\"" +
-          "}");
+      Obj j = requestV3("login").post(Obj.fromKV("type","m.login.password", "user",uid, "password",passwd)).runJ();
       if (j.has("errcode")) {
         warn("failed to log in");
         return null;
@@ -72,14 +69,22 @@ public class MxServer {
   
   public class Request {
     private final String[] pathParts;
-    public ArrayList<String> props = new ArrayList<>();
+    private final ArrayList<String> props = new ArrayList<>();
     public Request(String[] pathParts) {
+      for (String s : pathParts) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
       this.pathParts = pathParts;
     }
     
     public Request prop(String key, String value) {
       if (value.indexOf('&')!=-1) throw new IllegalStateException("'&' in property value");
       props.add(key+"="+value);
+      return this;
+    }
+    public Request prop(String key, Number value) {
+      return prop(key, value.toString());
+    }
+    public Request optProp(String key, String value) {
+      if (value!=null) prop(key, value);
       return this;
     }
     public Request token(String token) {
@@ -128,31 +133,41 @@ public class MxServer {
       while (true) {
         int retryTime = 0;
         try {
-          // TODO catch parse error and try to parse out an HTML error code and throw a custom exception on all parseObj
+          log(t.name(), path, ct);
           String res;
           switch (t) { default: throw new IllegalStateException();
-            case GET: res = getRaw(path); break;
-            case PUT: res = putRaw(path, ct); break;
-            case POST: res = postRaw(path, ct); break;
+            case GET:  res = Utils.get (url+"/"+path); break;
+            case PUT:  res = Utils.put (url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
+            case POST: res = Utils.post(url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
           }
           Pair<T, Integer> r = get.apply(res);
           if (r.b==null) return r.a;
           retryTime = r.b;
         } catch (RuntimeException e) {
           warn("Failed to parse result:");
-          e.printStackTrace();
+          warnStacktrace(e);
         }
         
         retryTime = Math.max(retryTime, expTime);
-        log("mxq", "Retrying in "+retryTime+"s");
+        log("mxq", "Retrying in "+(retryTime/1000)+"s");
         Utils.sleep(retryTime);
         expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);
       }
     }
     
+    public String runStr() {
+      return tryRun(s -> new Pair<>(s, null));
+    }
     public Obj runJ() {
       return tryRun((s) -> {
-        Obj r = parseObj(s);
+        Obj r;
+        try {
+          r = JSON.parseObj(s);
+        } catch (Throwable e) {
+          warn("Failed to parse JSON");
+          warnStacktrace(e);
+          r = null;
+        }
         if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return new Pair<>(r, null);
         if (r!=null && r.hasNum("retry_after_ms")) return new Pair<>(r, r.getInt("retry_after_ms"));
         return new Pair<>(r, null);
@@ -162,10 +177,6 @@ public class MxServer {
   
   public enum RequestType { POST, GET, PUT }
   
-  public Request requestRaw(String... path) {
-    for (String s : path) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
-    return new Request(path);
-  }
   public static String[] concat(String[] a, String[] b) {
     String[] res = new String[a.length+b.length];
     System.arraycopy(a, 0, res, 0, a.length);
@@ -174,72 +185,6 @@ public class MxServer {
   }
   public Request requestV3(String... path) {
     return new Request(concat(new String[]{"_matrix","client","v3"}, path));
-  } 
-  
-  public static Obj parseObj(String s) {
-    try {
-      return JSON.parseObj(s);
-    } catch (Throwable e) {
-      warn("Failed parsing JSON: ```");
-      warn(s);
-      warn("```");
-      e.printStackTrace();
-      return null;
-    }
-  }
-  public Obj getJ(String path) {
-    int failTime = 1;
-    while (true) {
-      int retryTime = failTime;
-      try {
-        Obj r = parseObj(getRaw(path)); // TODO catch parse error and try to parse out an HTML error code and throw a custom exception on all parseObj
-        if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return r;
-        if (r!=null && r.hasNum("retry_after_ms")) retryTime = Math.max(failTime, r.getInt("retry_after_ms")/1000 + 2);
-      } catch (RuntimeException e) { e.printStackTrace(); }
-      log("mxq", "Retrying in "+retryTime+"s");
-      Utils.sleep(retryTime*1000);
-      failTime = Math.min(Math.max(failTime*2, 1), 180);
-    }
-  }
-  public Obj postJ(String path, String data) {
-    int failTime = 1;
-    while (true) {
-      int retryTime = failTime;
-      try {
-        Obj r = parseObj(postRaw(path, data));
-        if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return r;
-        if (r!=null && r.hasNum("retry_after_ms")) retryTime = Math.max(failTime, r.getInt("retry_after_ms")/1000 + 2);
-      } catch (RuntimeException e) { e.printStackTrace(); }
-      log("mxq", "Retrying in "+retryTime+"s");
-      Utils.sleep(retryTime*1000);
-      failTime = Math.min(Math.max(failTime*2, 1), 180);
-    }
-  }
-  public Obj putJ(String path, String data) {
-    int failTime = 1;
-    while (true) {
-      int retryTime = failTime;
-      try {
-        Obj r = parseObj(putRaw(path, data));
-        if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return r;
-        if (r!=null && r.hasNum("retry_after_ms")) retryTime = Math.max(failTime, r.getInt("retry_after_ms")/1000 + 2);
-      } catch (RuntimeException e) { e.printStackTrace(); }
-      log("mxq", "Retrying in "+retryTime+"s");
-      Utils.sleep(retryTime*1000);
-      failTime = Math.min(Math.max(failTime*2, 1), 180);
-    }
-  }
-  public String postRaw(String path, String data) {
-    log("POST", path, data);
-    return Utils.post(url+"/"+path, data.getBytes(StandardCharsets.UTF_8));
-  }
-  public String getRaw(String path) {
-    log("GET", path, null);
-    return Utils.get(url+"/"+path);
-  }
-  public String putRaw(String path, String data) {
-    log("PUT", path, data);
-    return Utils.put(url+"/"+path, data.getBytes(StandardCharsets.UTF_8));
   }
   
   public byte[] getB(String path) {
@@ -272,7 +217,7 @@ public class MxServer {
   
   
   public Obj sync(int count) {
-    return getJ("_matrix/client/r0/sync?filter={\"room\":{\"timeline\":{\"limit\":"+count+"}}}&access_token="+gToken);
+    return requestV3("sync").prop("filter", "{\"room\":{\"timeline\":{\"limit\":"+count+"}}}").gToken().get().runJ();
   }
   public String latestBatch() {
     return sync(1).str("next_batch");
@@ -285,13 +230,12 @@ public class MxServer {
     int i = 0;
     while (true) {
       String cid = i==0? id : id+i;
-      Obj j = postJ("_matrix/client/r0/register?kind=user",
-        "{" +
-          "\"username\":" +Utils.toJSON(cid   )+"," +
-          "\"password\":" +Utils.toJSON(passwd)+"," +
-          "\"device_id\":"+Utils.toJSON(device)+"," +
-          "\"auth\": {\"type\":\"m.login.dummy\"}" +
-        "}");
+      Obj j = requestV3("register").prop("kind","user").post(Obj.fromKV(
+        "username", cid,
+        "password", passwd,
+        "device_id", device,
+        "auth", Obj.fromKV("type", "m.login.dummy")
+      )).runJ();
       log("register: "+j.toString());
       String err = j.str("errcode", null);
       if ("M_USER_IN_USE".equals(err)) {
@@ -307,7 +251,7 @@ public class MxServer {
   
   
   public Obj messagesSince(String since, int timeout) {
-    return getJ("_matrix/client/r0/sync?since="+since+"&timeout="+timeout+"&access_token="+gToken);
+    return requestV3("sync").prop("since",since).prop("timeout",timeout).gToken().get().runJ();
   }
   
   
@@ -340,6 +284,11 @@ public class MxServer {
   }
   public static void warn(String s) {
     WARN_FN.accept("mx itf", s);
+  }
+  public static void warnStacktrace(Throwable t) {
+    StringWriter w = new StringWriter();
+    t.printStackTrace(new PrintWriter(w));
+    WARN_FN.accept("mx itf", w.toString());
   }
   public static boolean LOG = true;
   public static BiConsumer<String, String> LOG_FN = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);

@@ -11,7 +11,7 @@ public class MxUser {
   
   private String name;
   public String name() {
-    if (name == null) name = s.getJ("_matrix/client/r0/profile/"+uid+"/displayname?access_token="+s.gToken).str("displayname");
+    if (name == null) name = s.requestV3("profile",uid,"displayname").gToken().get().runJ().str("displayname");
     return name;
   }
   

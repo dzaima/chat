@@ -104,7 +104,7 @@ public class MxChatUser extends ChatUser {
         node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
       });
       
-      Obj j = u0.s.getJ("_matrix/client/r0/sync?filter={\"room\":{\"timeline\":{\"limit\":" + DEFAULT_MSGS + "}}}&access_token=" + u0.token);
+      Obj j = u0.s.requestV3("sync").prop("filter","{\"room\":{\"timeline\":{\"limit\":"+DEFAULT_MSGS+"}}}").token(u0.token).get().runJ();
       primary.add(() -> {
         Obj rooms = j.obj("rooms", Obj.E);
         for (Entry e : rooms.obj("join", Obj.E).entries()) {
