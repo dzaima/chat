@@ -38,6 +38,7 @@ chat {
   preview.quoteLeadBg = #8999
   preview.codeBg = #63000000
   preview.spoilerBg = #60000000
+  preview.commandCol = #0000F0
   
   link.col = #1A8A18
   

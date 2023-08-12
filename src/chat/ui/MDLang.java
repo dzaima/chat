@@ -4,6 +4,7 @@ import chat.*;
 import dzaima.ui.gui.Font;
 import dzaima.ui.node.types.editable.EditNode;
 import dzaima.ui.node.types.editable.code.*;
+import dzaima.utils.Pair;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.paragraph.*;
 
@@ -15,7 +16,7 @@ public class MDLang extends Lang {
   
   public MDLang(Font f, ChatMain m, ChatTextArea ta) {
     super(new MDState(m, ta));
-    styles = new TextStyle[38];
+    styles = new TextStyle[39];
     int defTextCol = m.gc.getProp("str.color").col();
     int spoilerCol = m.gc.getProp("chat.preview.spoilerBg").col();
     int codeCol = m.gc.getProp("chat.preview.codeBg").col(); // TODO separate bgInline and bgBlock
@@ -36,6 +37,7 @@ public class MDLang extends Lang {
           bgCol = codeCol;
           family = codeFamily;
         }
+        if (i==MDParser.S_COMMAND) col = m.gc.getProp("chat.preview.commandCol").col(); 
         if (i==MDParser.S_CODE_ESC || i==MDParser.S_DEF_ESC) col = escCol;
         if (i==MDParser.S_LINK) col = m.gc.getProp("chat.link.col").col();
         if (i==MDParser.S_QUOTE) col = m.gc.getProp("chat.preview.quoteCol").col();
@@ -62,7 +64,9 @@ public class MDLang extends Lang {
     public MDState after(int sz, char[] p, byte[] b) {
       String s = ta.getAll();
       Chatroom r = m.room();
-      int[] styles = r==null || r.highlight(s)? MDParser.eval(s, c->"").styles : new int[s.length()];
+      Pair<Boolean, Integer> h = r==null? new Pair<>(false,0) : r.highlight(s);
+      int[] styles = h.a? MDParser.eval(s, c->"").styles : new int[s.length()];
+      for (int i = 0; i < h.b; i++) styles[i] = MDParser.S_COMMAND;
       int cx = 0;
       for (EditNode.Line l : ta.lns) {
         int lsz = l.sz();

@@ -3,7 +3,6 @@ package chat.mx;
 import chat.*;
 import chat.ui.*;
 import dzaima.ui.gui.*;
-import dzaima.ui.gui.config.Cfg;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
@@ -16,7 +15,7 @@ import libMx.*;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.*;
 
 public class MxChatroom extends Chatroom {
   public static final int DEFAULT_MSGS = 50;
@@ -72,6 +71,42 @@ public class MxChatroom extends Chatroom {
       }
     }
     if (status0!=MyStatus.INVITED) { ping = false; unread = 0; unreadChanged(); }
+    
+    
+    commands.put("md", left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname)));
+    
+    Function<String,MxFmt> text = left -> new MxFmt(left, Utils.toHTML(left, true));
+    commands.put("text", text);
+    commands.put("plain", text);
+    
+    commands.put("html", left -> new MxFmt(left, left));
+    commands.put("me", left -> {
+      MxFmt f = parse(left);
+      f.type = MxFmt.Type.EMOTE;
+      return f;
+    });
+    commands.put("goto", left -> {
+      u.openLink(left, Extras.LinkType.UNK, null);
+      return null;
+    });
+    commands.put("sort", left -> {
+      MxLog l = null;
+      if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).log;
+      else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView)m.view).log;
+      if (l!=null) {
+        l.list.sort(Comparator.comparing(k -> k.time));
+        m.toView(m.view);
+      }
+      return null;
+    });
+    commands.put("roomnick", left -> {
+      u.queueNetwork(() -> u.u.setRoomNick(r, left));
+      return null;
+    });
+    commands.put("globalnick", left -> {
+      u.queueNetwork(() -> u.u.setGlobalNick(left));
+      return null;
+    });
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
@@ -248,49 +283,31 @@ public class MxChatroom extends Chatroom {
     if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
     return new String[]{s.substring(1, ss), s.substring(se)};
   }
-  public boolean highlight(String s) {
+  public Pair<Boolean,Integer> highlight(String s) {
     String[] cmd = command(s);
-    boolean def = m.gc.getProp("chat.markdown").b();
-    if (cmd.length==1 || cmd[0].equals("me")) return def;
-    return cmd[0].equals("md");
+    boolean md = m.gc.getProp("chat.markdown").b();
+    if (cmd.length == 1) return new Pair<>(md, 0);
+    String c0 = cmd[0];
+    if (c0.equals("me")) return new Pair<>(md, 0);
+    md = c0.equals("md");
+    return new Pair<>(md, commands.get(c0)!=null? c0.length()+1 : 0);
   }
+  
+  public final HashMap<String, Function<String,MxFmt>> commands = new HashMap<>();
   public void post(String s, String target) {
     MxFmt f;
     String[] cmd = command(s);
-    if (cmd.length==2) {
-      String left = cmd[1];
-      switch (cmd[0]) {
-        case "md":
-          f = new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname));
-          break;
-        case "text": case "plain":
-          f = new MxFmt(left, Utils.toHTML(left, true));
-          break;
-        case "html":
-          f = new MxFmt(left, left);
-          break;
-        case "me":
-          MxFmt f2 = parse(left);
-          f2.type = MxFmt.Type.EMOTE;
-          f = f2;
-          break;
-        case "goto":
-          u.openLink(left, Extras.LinkType.UNK, null);
-          return;
-        case "sort":
-          MxLog l = null;
-          if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).log;
-          else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView)m.view).log;
-          if (l!=null) {
-            l.list.sort(Comparator.comparing(k -> k.time));
-            m.toView(m.view);
-          }
-          return;
-        default:
-          f = parse(s);
-          break;
+    getF: {
+      if (cmd.length == 2) {
+        Function<String, MxFmt> fn = commands.get(cmd[0]);
+        if (fn != null) {
+          f = fn.apply(cmd[1]);
+          if (f == null) return;
+          break getF;
+        }
       }
-    } else f = parse(s);
+      f = parse(s);
+    }
     
     if (target!=null) {
       MxChatEvent tce = log.msgMap.get(target);

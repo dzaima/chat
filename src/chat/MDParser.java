@@ -21,6 +21,7 @@ public class MDParser {
   public static final int S_DEF_ESC = 35;
   public static final int S_QUOTE = 36;
   public static final int S_QUOTE_LEAD = 37;
+  public static final int S_COMMAND = 38;
   public static final int S_MASK = ~31;
   
   public static final int SD_I  = 1; // italics

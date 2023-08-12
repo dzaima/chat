@@ -5,7 +5,7 @@ import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.StringNode;
-import dzaima.utils.Vec;
+import dzaima.utils.*;
 
 public abstract class Chatroom extends View {
   public final ChatMain m;
@@ -101,7 +101,7 @@ public abstract class Chatroom extends View {
   
   public abstract void readAll();
   public abstract void older();
-  public abstract boolean highlight(String s);
+  public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
   public abstract void post(String s, String target);
   public abstract void edit(ChatEvent m, String s);
   public abstract void delete(ChatEvent m);
