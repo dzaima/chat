@@ -1,11 +1,11 @@
 package libMx;
 
-import dzaima.utils.JSON;
+import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.util.HashMap;
+import java.util.*;
 import java.util.function.*;
 
 
@@ -68,6 +68,113 @@ public class MxServer {
       hide_data = false;
     }
   }
+  
+  
+  public class Request {
+    private final String[] pathParts;
+    public ArrayList<String> props = new ArrayList<>();
+    public Request(String[] pathParts) {
+      this.pathParts = pathParts;
+    }
+    
+    public Request prop(String key, String value) {
+      if (value.indexOf('&')!=-1) throw new IllegalStateException("'&' in property value");
+      props.add(key+"="+value);
+      return this;
+    }
+    public Request token(String token) {
+      prop("access_token", token);
+      return this;
+    }
+    public Request gToken() {
+      return token(gToken);
+    }
+    
+    private RunnableRequest type(RequestType n, String ct) {
+      return new RunnableRequest(this, n, ct);
+    }
+    public RunnableRequest get() { return type(RequestType.GET, null); }
+    public RunnableRequest  put(String content) { return type(RequestType.PUT, content); }
+    public RunnableRequest post(String content) { return type(RequestType.POST, content); }
+    public RunnableRequest  put(Obj o) { return put(o.toString()); }
+    public RunnableRequest post(Obj o) { return post(o.toString()); }
+    
+  }
+  public class RunnableRequest {
+    public final Request r;
+    public final RequestType t;
+    public final String ct;
+    
+    public RunnableRequest(Request r, RequestType t, String ct) {
+      this.r = r;
+      this.t = t;
+      this.ct = ct;
+    }
+    
+    public <T> T tryRun(Function<String, Pair<T, Integer>> get) {
+      if (t==null) throw new IllegalStateException("Request type not set");
+      StringBuilder p = new StringBuilder();
+      for (int i = 0; i < r.pathParts.length; i++) {
+        if (i!=0) p.append('/');
+        p.append(r.pathParts[i]);
+      }
+      for (int i = 0; i < r.props.size(); i++) {
+        p.append(i==0? '?' : '&');
+        p.append(r.props.get(i));
+      }
+      String path = p.toString();
+      
+      int expTime = 1000;
+      while (true) {
+        int retryTime = 0;
+        try {
+          // TODO catch parse error and try to parse out an HTML error code and throw a custom exception on all parseObj
+          String res;
+          switch (t) { default: throw new IllegalStateException();
+            case GET: res = getRaw(path); break;
+            case PUT: res = putRaw(path, ct); break;
+            case POST: res = postRaw(path, ct); break;
+          }
+          Pair<T, Integer> r = get.apply(res);
+          if (r.b==null) return r.a;
+          retryTime = r.b;
+        } catch (RuntimeException e) {
+          warn("Failed to parse result:");
+          e.printStackTrace();
+        }
+        
+        retryTime = Math.max(retryTime, expTime);
+        log("mxq", "Retrying in "+retryTime+"s");
+        Utils.sleep(retryTime);
+        expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);
+      }
+    }
+    
+    public Obj runJ() {
+      return tryRun((s) -> {
+        Obj r = parseObj(s);
+        if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return new Pair<>(r, null);
+        if (r!=null && r.hasNum("retry_after_ms")) return new Pair<>(r, r.getInt("retry_after_ms"));
+        return new Pair<>(r, null);
+      });
+    }
+  }
+  
+  public enum RequestType { POST, GET, PUT }
+  
+  public Request requestRaw(String... path) {
+    for (String s : path) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
+    return new Request(path);
+  }
+  public static String[] concat(String[] a, String[] b) {
+    String[] res = new String[a.length+b.length];
+    System.arraycopy(a, 0, res, 0, a.length);
+    System.arraycopy(b, 0, res, a.length, b.length);
+    return res;
+  }
+  public Request requestV3(String... path) {
+    return new Request(concat(new String[]{"_matrix","client","v3"}, path));
+  } 
   
   public static Obj parseObj(String s) {
     try {

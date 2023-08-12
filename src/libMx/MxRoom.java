@@ -31,6 +31,10 @@ public class MxRoom {
     return res;
   }
   
+  public MxServer.Request request(String... path) {
+    return s.requestV3(MxServer.concat(new String[]{"rooms",rid}, path));
+  }
+  
   public static class Chunk {
     public final ArrayList<MxEvent> events;
     public final String sTok;
