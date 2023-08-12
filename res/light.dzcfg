@@ -1,7 +1,7 @@
 str.color = #000
-text.bgSel = #df2F90FB
-bg.sel = #df2F90FB
-bg.selU = #888
+text.bgSel = #df7ABAFF
+bg.sel = text.bgSel
+bg.selU = #AAA
 
 scroll.barCol   = #F0F0F0
 scroll.thumbCol = #B9B9B9
@@ -57,7 +57,6 @@ chat {
   userCols.myNick = #000
   userCols.myPill = chat.userCols.myNick
   userCols.otherNicks = { "#0D5DA3" "#AA1BA6" "#169974" "#C41319" "#C66727" "#229C9E" "#5DA526" }
-  userCols.otherPills = chat.userCols.otherNicks // TODO remove after proper dependency system
   
   pill.bg = #0000
   pill.bgMine = #EDBE90
@@ -106,7 +105,7 @@ chat {
   ly.colInfoTitle = #666
   
   ly.bgUnread = #7666
-  ly.bgHidden = #CCC
+  ly.bgHidden = #999
   
   ly.iconEdit = #777
   ly.iconReply = #AAA
