@@ -170,7 +170,7 @@ public class MxServer {
         }
         if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return new Pair<>(r, null);
         if (r!=null && r.hasNum("retry_after_ms")) return new Pair<>(r, r.getInt("retry_after_ms"));
-        return new Pair<>(r, null);
+        return new Pair<>(r, 1000);
       });
     }
   }
