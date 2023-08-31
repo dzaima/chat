@@ -79,28 +79,33 @@ public class HTMLParser {
               if (start<pi) continue;
               int depth = 0;
               while (end<s.length()) {
-                char ch = s.charAt(end);
+                char ch = s.charAt(end); 
                 if (Character.isWhitespace(ch)) break;
                 if (ch=='(' | ch=='[') depth++;
                 if (ch==')' | ch==']') if(depth-- == 0) break;
                 end++;
               }
-              String url = fixURL(s.substring(start, end));
+              while (".;:,'\"".indexOf(s.charAt(end-1)) != -1) end--;
+              String url = s.substring(start, end);
+              if (url.equals(link)) continue;
+              url = fixURL(url);
               if (url.equals(link)) continue;
               try {
                 URI uri = new URI(url);
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
                 Node inner = p;
                 if (link==null) p.add(inner = link(r, url, LinkType.UNK));
-                String txt = uri.getHost()+"/";
-                trunc: { int L = 100;
+                
+                String txt;
+                int L = 100;
+                trunc: {
+                  txt = uri.getHost();
                   if (!uri.getScheme().equals("https")) txt = uri.getScheme()+"://"+txt;
-                  String[] path = uri.getPath().split("/");
-                  int j = 0;
+                  String[] path = Tools.split(uri.getPath(), '/');
+                  int j = path[0].isEmpty()? 1 : 0;
                   while (j<path.length) {
-                    if (path[j].length()==0) { j++; continue; }
-                    String n = txt+path[j]+"/";
-                    if (n.length()>L) { txt+="…"; break trunc; }
+                    String n = txt+"/"+path[j];
+                    if (n.length()>L) { txt+="/…"; break trunc; }
                     txt = n; j++;
                   }
                   String q = uri.getQuery();
@@ -109,13 +114,14 @@ public class HTMLParser {
                     if (n.length()>L) { txt+="?…"; break trunc; }
                     txt = n;
                   }
-                  String h = uri.getFragment();
-                  if (h!=null) {
-                    String n = txt+"#"+h;
+                  String f = uri.getFragment();
+                  if (f!=null) {
+                    String n = txt+"#"+f;
                     if (n.length()>L) { txt+="#…"; break trunc; }
                     txt = n;
                   }
                 }
+                
                 inner.add(new StringNode(p.ctx, txt));
                 pi = end;
               } catch (URISyntaxException ignored) { /*bad links get bad formatting*/ }
@@ -134,8 +140,9 @@ public class HTMLParser {
             break;
           case "a":
             String url = fixURL(c.attr("href"));
-            if (url.startsWith("https://matrix.to/#/@")) {
-              String id = url.substring(20);
+            Pair<String,String> parts = urlFrag(url);
+            if (parts.b!=null && parts.a.equals("https://matrix.to") && parts.b.startsWith("/@")) {
+              String id = parts.b.substring(1);
               pill(r, p, c.text(), id, id.equals(r.user().id()));
             } else {
               TextNode t = link(r, url, LinkType.UNK);
@@ -297,10 +304,21 @@ public class HTMLParser {
   }
   
   public static String fixURL(String url) {
-    url = url.replace("[", "%5B").replace("]", "%5D").replace("(", "%28").replace("]", "%29");
-    int h = url.indexOf("#");
-    if (h!=-1) url = url.substring(0, h+1) + url.substring(h+1).replace("#", "%23");
-    return url;
+    String s = url.replace("[", "%5B").replace("]", "%5D").replace("(", "%28").replace("]", "%29");
+    int i = s.indexOf('#')+1;
+    if (i!=0) s = s.substring(0,i) + s.substring(i).replace("#", "%23");
+    return s;
+  }
+  public static Pair<String, String> urlFrag(String url) {
+    try {
+      int i = url.indexOf('#');
+      if (i==-1) return new Pair<>(url, null);
+      String base = url.substring(0, i);
+      if (base.endsWith("/")) base = base.substring(0, base.length()-1);
+      return new Pair<>(base, new URI(url).getFragment());
+    } catch (URISyntaxException e) {
+      return new Pair<>(url, null);
+    }
   }
   
   private static void wrap(TextNode n, Element c, boolean mono, String link, Chatroom r, String key) {
