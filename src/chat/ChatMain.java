@@ -361,8 +361,8 @@ public class ChatMain extends NodeWindow {
     if ( atEnd) msgsScroll.ignoreEnd();
   }
   
-  public Node getMsgBody(Node n) { return   n.ctx.id("body").ch.get(1); }
-  public void setMsgBody(Node n, Node ct) { n.ctx.id("body").replace(1, ct); }
+  public Node getMsgBody(Node n) {          Node b = n.ctx.id("body"); return b.ch.get(b.ch.sz-1); }
+  public void setMsgBody(Node n, Node ct) { Node b = n.ctx.id("body"); b.replace(b.ch.sz-1, ct); }
   
   public void addMessage(ChatEvent cm, boolean live) {
     addMessage(cm, live, false, false);
@@ -384,18 +384,22 @@ public class ChatMain extends NodeWindow {
   private Node makeExtra(ChatEvent ce) {
     HashMap<String, Integer> rs = ce.getReactions();
     HashSet<String> vs = ce.getReceipts();
-    return rs!=null || vs!=null? new MsgExtraNode(ctx, ce.room(), rs, vs) : new InlineNode.LineEnd(ctx, false);
+    boolean edit = newEdit(ce) && ce.edited;
+      return rs!=null || vs!=null || edit? new MsgExtraNode(ctx, ce.room(), rs, vs) : new InlineNode.LineEnd(ctx, false);
   }
   private static final String[] col_ibeam = new String[]{"ibeam","color"};
   private Node mkSText(ChatEvent e) {
     if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
     return new STextNode(ctx, col_ibeam, new Prop[]{EnumProp.TRUE, gc.getProp("chat.search.ctx.color")});
   }
+  private boolean newEdit(ChatEvent e) {
+    return e.n.ctx.idNullable("edit")==null;
+  }
   public void updMessage(ChatEvent ce, Node body, boolean live) {
     Node msg = ce.n;
     boolean end = atEnd();
     newHover = true;
-    if (ce.edited) {
+    if (ce.edited && !newEdit(ce)) {
       Node n = msg.ctx.id("edit");
       if (n.ch.sz==0) n.add(n.ctx.make(n.gc.getProp("chat.icon.editedP").gr()));
     }
@@ -408,6 +412,7 @@ public class ChatMain extends NodeWindow {
       nb = mkSText(ce);
       nb.add(body);
     } else nb = body;
+    if (newEdit(ce) && ce.edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
     nb.add(makeExtra(ce));
     setMsgBody(msg, nb);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
@@ -660,6 +665,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("clickableText", Extras.ClickableTextNode::new);
       ctx.put("nameEditField", RoomListNode.DirStartNode.NameEditFieldNode::new);
       ctx.put("chatfield", ChatTextFieldNode::new);
+      ctx.put("copymenu", CopyMenuNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));

@@ -5,7 +5,7 @@ import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.StringNode;
+import dzaima.ui.node.types.*;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 import libMx.*;
@@ -108,10 +108,10 @@ abstract class MxChatEvent extends ChatEvent {
           break;
         case "copyText":
           Node nd = r.m.getMsgBody(n);
-          r.m.copyString(StringNode.getNodeText(nd));
+          r.m.copyString(InlineNode.getNodeText(nd));
           break;
         case "copyCode":
-          r.m.copyString(StringNode.getNodeText(finalCode));
+          r.m.copyString(InlineNode.getNodeText(finalCode));
           break;
         case "delete":
           r.delete(this);
