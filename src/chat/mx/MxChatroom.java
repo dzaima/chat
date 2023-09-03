@@ -360,7 +360,7 @@ public class MxChatroom extends Chatroom {
           int size = data.length;
           int w = -1, h = -1;
           try {
-            Image img = Image.makeFromEncoded(data);
+            Image img = Image.makeDeferredFromEncodedBytes(data);
             w = img.getWidth();
             h = img.getHeight();
             img.close();

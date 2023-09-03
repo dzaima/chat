@@ -15,7 +15,7 @@ public abstract class ImageNode extends Node {
     super(ctx, KS_NONE, VS_NONE);
     this.data = data;
     try {
-      if (data!=null) f0 = Image.makeFromEncoded(data);
+      if (data!=null) f0 = Image.makeDeferredFromEncodedBytes(data);
     } catch (Throwable e) {
       f0 = null;
     }

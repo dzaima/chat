@@ -86,7 +86,7 @@ public class Animation {
         if (pFrame!=-1 && pFrame+1 == cFrame) c.readPixels(b, cFrame, pFrame);
         else c.readPixels(b, cFrame);
         pFrame = cFrame;
-        pImage = Image.makeFromBitmap(b);
+        pImage = Image.makeRasterFromBitmap(b);
       } catch (Throwable e) { ChatMain.warn("Failed to animate:"); e.printStackTrace(); valid = false; }
     }
     return pImage;
