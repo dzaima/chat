@@ -362,9 +362,9 @@ chat {
         hideOverflow { alX=right w=10em id=user "" }
       }
       msgBorder { id=border bg=#00FF00
-        pad { y=.1em
+        pad { y=.1em l=.4em
           h { id=body
-            h { w=1.5em alX=center h=min id=edit }
+            // h { w=1.5em alX=center h=min id=edit }
             ""
           }
         }
@@ -494,7 +494,7 @@ chat {
   info.mainP = pad { u=.3em infoType="idk"
     h { h=min pad=.5em
       h { w=10em h=.3em }
-      pad { y=.3em l=1.5em id=body }
+      pad { y=.3em l=.4em id=body }
     }
   }
   info.$textP = text { $body color=chat.ly.colInfoText } // e.g. "X time later...", "Last message was posted X ago"
