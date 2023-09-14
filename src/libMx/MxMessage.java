@@ -44,8 +44,8 @@ public final class MxMessage {
     if (fmtT.html.startsWith("<mx-reply>")) {
       Document d = Jsoup.parse(fmtT.html);
       d.getElementsByTag("mx-reply").remove();
+      d.outputSettings().prettyPrint(false);
       fmtT = new MxFmted(fmtT.body, d.body().html());
-      // fmtT = new MxFmted(fmtT.body, fmtT.html.substring(0, fmtT.html.indexOf("</mx-reply>")+11));
     }
     this.replyId = replyId;
     this.fmt = fmtT;
