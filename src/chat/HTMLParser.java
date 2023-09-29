@@ -87,14 +87,13 @@ public class HTMLParser {
               }
               while (".;:,'\"".indexOf(s.charAt(end-1)) != -1) end--;
               String url = s.substring(start, end);
-              if (url.equals(link)) continue;
+              boolean eq = false;
+              eq|= url.equals(link);
               url = fixURL(url);
-              if (url.equals(link)) continue;
-              try {
+              eq|= url.equals(link);
+              if (eq) try {
                 URI uri = new URI(url);
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
-                Node inner = p;
-                if (link==null) p.add(inner = link(r, url, LinkType.UNK));
                 
                 String txt;
                 int L = 100;
@@ -122,7 +121,7 @@ public class HTMLParser {
                   }
                 }
                 
-                inner.add(new StringNode(p.ctx, txt));
+                p.add(new StringNode(p.ctx, txt));
                 pi = end;
               } catch (URISyntaxException ignored) { /*bad links get bad formatting*/ }
             } while (m.find());
