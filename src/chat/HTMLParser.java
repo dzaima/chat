@@ -91,9 +91,11 @@ public class HTMLParser {
               eq|= url.equals(link);
               url = fixURL(url);
               eq|= url.equals(link);
-              if (eq) try {
+              if (eq || link==null) try {
                 URI uri = new URI(url);
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
+                Node inner = p;
+                if (link==null) p.add(inner = link(r, url, LinkType.UNK));
                 
                 String txt;
                 int L = 100;
@@ -121,7 +123,7 @@ public class HTMLParser {
                   }
                 }
                 
-                p.add(new StringNode(p.ctx, txt));
+                inner.add(new StringNode(p.ctx, txt));
                 pi = end;
               } catch (URISyntaxException ignored) { /*bad links get bad formatting*/ }
             } while (m.find());
