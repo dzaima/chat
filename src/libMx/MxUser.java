@@ -9,10 +9,8 @@ public class MxUser {
     this.uid = uid;
   }
   
-  private String name;
-  public String name() {
-    if (name == null) name = s.requestV3("profile",uid,"displayname").gToken().get().runJ().str("displayname");
-    return name;
+  public String globalName() {
+    return s.requestV3("profile",uid,"displayname").gToken().get().runJ().str("displayname");
   }
   
   public static final String nameChars = "abcdefghijklmnopqrstuvwxyz0123456789._=-/";

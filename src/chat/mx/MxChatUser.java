@@ -97,7 +97,7 @@ public class MxChatUser extends ChatUser {
       }
       MxLogin u0 = s0.primaryLogin;
       
-      String name = u0.user().name();
+      String name = u0.user().globalName();
       primary.add(() -> {
         s = s0;
         u = u0;
