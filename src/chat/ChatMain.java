@@ -29,7 +29,7 @@ public class ChatMain extends NodeWindow {
   public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
   
   
-  public Path profilePath;
+  public final Path profilePath;
   private final Node msgs;
   public final RightPanel rightPanel;
   public final WeighedNode leftPanelWeighed;
@@ -59,7 +59,7 @@ public class ChatMain extends NodeWindow {
     return r==null? null : r.input;
   }
   
-  public ChatMain(GConfig gc, Ctx pctx, String profilePath, PNodeGroup g) {
+  public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Obj loadedProfile) {
     super(gc, pctx, g, new WindowInit("chat"));
     if (Tools.DBG) MxServer.LOG = true;
     msgs = base.ctx.id("msgs");
@@ -80,15 +80,20 @@ public class ChatMain extends NodeWindow {
     rightPanel = new RightPanel(this);
     leftPanelWeighed = (WeighedNode) base.ctx.id("leftPanelWeighed");
     
-    this.profilePath = Paths.get(profilePath);
+    this.profilePath = profilePath;
+    
+    Obj global = loadedProfile.obj("global", Obj.E);
+    if (global.has("leftPanelWeight")) leftPanelWeighed.setWeight((float) global.num("leftPanelWeight"));
+    if (global.has("rightPanelWeight")) rightPanel.setWeight((float) global.num("rightPanelWeight"));
+    
+    for (Obj c : loadedProfile.arr("accounts").objs()) {
+      if (c.str("type").equals("matrix")) {
+        addUser(new MxChatUser(this, c));
+      } else throw new RuntimeException("Unknown account type '"+c.str("type")+"'");
+    }
     cfgUpdated();
   }
   
-  @Override
-  public void setup() {
-    super.setup();
-    loadProfile();
-  }
   
   
   public int imageSafety() { // 0-none; 1-safe; 2-all
@@ -98,25 +103,6 @@ public class ChatMain extends NodeWindow {
     if (p.equals("all")) return 2;
     Log.warn("invalid chat.loadImgs value");
     return 2;
-  }
-  
-  public void loadProfile() {
-    // TODO clear out old loaded profile
-    try {
-      Obj obj = JSON.parseObj(new String(Files.readAllBytes(profilePath), StandardCharsets.UTF_8));
-      Obj global = obj.obj("global", Obj.E);
-      if (global.has("leftPanelWeight")) leftPanelWeighed.setWeight((float) global.num("leftPanelWeight"));
-      if (global.has("rightPanelWeight")) rightPanel.setWeight((float) global.num("rightPanelWeight"));
-      
-      for (Obj c : obj.arr("accounts").objs()) {
-        if (c.str("type").equals("matrix")) {
-          addUser(new MxChatUser(this, c));
-        } else throw new RuntimeException("Unknown account type '"+c.str("type")+"'");
-      }
-    } catch (IOException e) {
-      Log.error("chat", "Failed to load profile");
-      throw new RuntimeException(e);
-    }
   }
   
   public static void warn(String s) { // TODO more properly replace logger
@@ -661,6 +647,15 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
+    Path profilePath = Paths.get(args.length==0? DEFAULT_PROFILE : args[0]);
+    Obj loadedProfile;
+    try {
+      loadedProfile = JSON.parseObj(new String(Files.readAllBytes(profilePath), StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      Log.error("chat", "Failed to load profile");
+      System.exit(1); throw new IllegalStateException();
+    }
+    
     Log.level = Log.Level.WARN;
     MxServer.LOG_FN = Log::fine;
     MxServer.WARN_FN = Log::warn;
@@ -686,7 +681,7 @@ public class ChatMain extends NodeWindow {
         });
       });
       
-      mgr.start(new ChatMain(gc, ctx, args.length==0? DEFAULT_PROFILE : args[0], gc.getProp("chat.ui").gr()));
+      mgr.start(new ChatMain(gc, ctx, gc.getProp("chat.ui").gr(), profilePath, loadedProfile));
     });
   }
   
