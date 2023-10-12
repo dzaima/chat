@@ -8,12 +8,14 @@ import dzaima.ui.node.types.*;
 public class RightPanel {
   public final ChatMain m;
   public final Node place;
-  public float weight;
+  public final WeighedNode split;
+  private float weight;
   
   public RightPanel(ChatMain m) {
     this.m = m;
     weight = 1-m.gc.getProp("chat.rightPanel.weight").f();
     place = m.ctx.id("rightPanelPlace");
+    split = (WeighedNode) m.ctx.id("rightPanelWeighed");
   }
   
   
@@ -38,18 +40,23 @@ public class RightPanel {
     place.add(n);
     return n.ctx.id("content");
   }
-  WeighedNode w() {
-    return (WeighedNode) m.ctx.id("panelWeight");
+  
+  public float getWeight() {
+    return split.isModifiable()? split.getWeight() : weight;
   }
+  public void setWeight(float newW) {
+    this.weight = newW;
+    split.setWeight(split.isModifiable()? newW : 1);
+  }
+  
   void run(boolean show) {
-    WeighedNode w = w();
-    if (w.isModifiable()) weight = w.getWeight();
-    w.setModifiable(show);
-    w.setWeight(show? weight : 1);
+    weight = getWeight();
+    split.setModifiable(show);
+    setWeight(weight);
   }
   
   public boolean isOpen() {
-    return w().isModifiable();
+    return split.isModifiable();
   }
   
   public boolean key(Key key, KeyAction a) {

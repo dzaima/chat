@@ -182,7 +182,7 @@ chat {
   search.ctx.color = #888
   
   // main
-  ui = weighed { dir=h
+  ui = weighed { dir=h id=leftPanelWeighed
     weight=.16
     scroll { x=off y=hidden tempOverlap=true // room list
       w=10em
@@ -193,7 +193,7 @@ chat {
         // rooms.accountP / rooms.accountSepP
       }
     }
-    weighed { dir=h weight=1 id=panelWeight enabled=false
+    weighed { dir=h weight=1 id=rightPanelWeighed enabled=false
       v { // message list
         h { h=2.5em // room title bar
           pad { l=1.5em r=.35em

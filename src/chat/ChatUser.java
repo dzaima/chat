@@ -27,7 +27,7 @@ public abstract class ChatUser {
   public abstract void tick();
   public abstract void close();
   public abstract String id();
-  public abstract Obj data();
+  public abstract Obj data(); // must return a proper save&restore-ready result at any point of time after constructor has finished
   
   public abstract void openLink(String url, Extras.LinkType type, byte[] data);
   public abstract void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded);

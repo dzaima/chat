@@ -32,6 +32,7 @@ public class ChatMain extends NodeWindow {
   public Path profilePath;
   private final Node msgs;
   public final RightPanel rightPanel;
+  public final WeighedNode leftPanelWeighed;
   public final ScrollNode msgsScroll;
   public final Node inputPlace;
   public final Vec<ChatUser> users = new Vec<>();
@@ -77,6 +78,7 @@ public class ChatMain extends NodeWindow {
     });
     
     rightPanel = new RightPanel(this);
+    leftPanelWeighed = (WeighedNode) base.ctx.id("leftPanelWeighed");
     
     this.profilePath = Paths.get(profilePath);
     cfgUpdated();
@@ -102,6 +104,10 @@ public class ChatMain extends NodeWindow {
     // TODO clear out old loaded profile
     try {
       Obj obj = JSON.parseObj(new String(Files.readAllBytes(profilePath), StandardCharsets.UTF_8));
+      Obj global = obj.obj("global", Obj.E);
+      if (global.has("leftPanelWeight")) leftPanelWeighed.setWeight((float) global.num("leftPanelWeight"));
+      if (global.has("rightPanelWeight")) rightPanel.setWeight((float) global.num("rightPanelWeight"));
+      
       for (Obj c : obj.arr("accounts").objs()) {
         if (c.str("type").equals("matrix")) {
           addUser(new MxChatUser(this, c));
@@ -237,21 +243,25 @@ public class ChatMain extends NodeWindow {
       nextTimeUpdate = gc.lastNs + (long)60e9;
     }
     
-    if (saveRequested) {
-      saveRequested = false;
-      
-      Val[] accounts = new Val[users.sz];
-      for (int i = 0; i < accounts.length; i++) {
-        ChatUser u = users.get(i);
-        accounts[i] = u.data();
-      }
-      Obj res = Obj.fromKV("accounts", new Arr(accounts));
-      try {
-        Files.write(profilePath, res.toString(2).getBytes(StandardCharsets.UTF_8));
-      } catch (IOException e) {
-        Log.warn("Failed to write profile file");
-        throw new RuntimeException("Failed to write profile file");
-      }
+    if (saveRequested) forceTrySaveNow();
+  }
+  private void forceTrySaveNow() {
+    saveRequested = false;
+    
+    Val[] accounts = new Val[users.sz];
+    for (int i = 0; i < accounts.length; i++) accounts[i] = users.get(i).data();
+    Obj res = Obj.fromKV(
+      "accounts", new Arr(accounts),
+      "global", Obj.fromKV(
+        "leftPanelWeight", leftPanelWeighed.getWeight(),
+        "rightPanelWeight", rightPanel.getWeight()
+      )
+    );
+    try {
+      Files.write(profilePath, res.toString(2).getBytes(StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      Log.warn("Failed to write profile file");
+      throw new RuntimeException("Failed to write profile file");
     }
   }
   
@@ -264,6 +274,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public void stopped() {
+    forceTrySaveNow();
     for (ChatUser u : users) u.close();
   }
   
