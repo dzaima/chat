@@ -99,6 +99,13 @@ public class MxChatroom extends Chatroom {
       }
       return null;
     });
+    commands.put("theme", left -> {
+      switch (left) {
+        case "light": m.setTheme(ChatMain.Theme.light); break;
+        case "dark": m.setTheme(ChatMain.Theme.dark); break;
+      }
+      return null;
+    });
     commands.put("roomnick", left -> {
       u.queueNetwork(() -> u.u.setRoomNick(r, left));
       return null;

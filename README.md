@@ -57,6 +57,7 @@ by default, messages are interpreted as a markdown-ish thing. This default can b
 /html <p>manually enter HTML</p>
 /goto https://matrix.to/#/!foo:matrix.org/$bar // same behavior as clicking a link containing that URL
 /sort // if there were federation issues and messages are shown in non-chronological order, this command will (visually, locally, temporarily) sort them.
+/theme light, /theme dark // change theme
 File uploading mostly works; the client can display images & gifs inline, but videos will open externally.
 Right click on many things (rooms, messages, links, images, user @s, code blocks) gives more options.
 

@@ -117,6 +117,12 @@ public class ChatMain extends NodeWindow {
     input.send();
   }
   
+  public void setTheme(Theme t) {
+    theme.set(t);
+    gc.reloadCfg();
+    requestSave();
+  }
+  
   public void addUser(ChatUser u) {
     users.add(u);
     if (accountNode.ch.sz!=0) accountNode.add(accountNode.ctx.makeHere(gc.getProp("chat.rooms.accountSepP").gr()));
