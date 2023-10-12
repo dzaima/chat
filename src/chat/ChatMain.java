@@ -28,7 +28,8 @@ public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
   public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
   
-  
+  public enum Theme { light, dark }
+  public final Box<Theme> theme;
   public final Path profilePath;
   private final Node msgs;
   public final RightPanel rightPanel;
@@ -59,8 +60,9 @@ public class ChatMain extends NodeWindow {
     return r==null? null : r.input;
   }
   
-  public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Obj loadedProfile) {
+  public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile) {
     super(gc, pctx, g, new WindowInit("chat"));
+    this.theme = theme;
     if (Tools.DBG) MxServer.LOG = true;
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -240,7 +242,8 @@ public class ChatMain extends NodeWindow {
       "accounts", new Arr(accounts),
       "global", Obj.fromKV(
         "leftPanelWeight", leftPanelWeighed.getWeight(),
-        "rightPanelWeight", rightPanel.getWeight()
+        "rightPanelWeight", rightPanel.getWeight(),
+        "theme", theme.get().name()
       )
     );
     try {
@@ -655,6 +658,7 @@ public class ChatMain extends NodeWindow {
       Log.error("chat", "Failed to load profile");
       System.exit(1); throw new IllegalStateException();
     }
+    Box<Theme> theme = new Box<>(Theme.valueOf(loadedProfile.obj("global", Obj.E).str("theme", "dark")));
     
     Log.level = Log.Level.WARN;
     MxServer.LOG_FN = Log::fine;
@@ -676,12 +680,16 @@ public class ChatMain extends NodeWindow {
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));
         gc0.addCfg(() -> {
+          if (theme.get()==Theme.light) return Tools.readRes("light.dzcfg");
+          return "";
+        });
+        gc0.addCfg(() -> {
           if (Files.exists(LOCAL_CFG)) return Tools.readFile(LOCAL_CFG);
           return "";
         });
       });
       
-      mgr.start(new ChatMain(gc, ctx, gc.getProp("chat.ui").gr(), profilePath, loadedProfile));
+      mgr.start(new ChatMain(gc, ctx, gc.getProp("chat.ui").gr(), profilePath, theme, loadedProfile));
     });
   }
   

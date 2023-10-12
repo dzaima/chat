@@ -7,15 +7,18 @@
 1. `./build.py`
 2. make `accounts/profile.json` with:
    ```js
-   {"accounts": [
-     {
-       "type": "matrix",
-       "server": "https://matrix.org", // or your homeserver
-       "userid": "@example:matrix.org",
-       "password": "yourPassword" // or "token": "tokenToUse"
-     }
-     // you can add more accounts here
-   ]}
+   {
+     "accounts": [
+       {
+         "type": "matrix",
+         "server": "https://matrix.org", // or your homeserver
+         "userid": "@example:matrix.org",
+         "password": "yourPassword" // or "token": "tokenToUse"
+       }
+       // you can add more accounts here
+     ],
+     "global": {"theme": "dark"} // or "light"
+   }
    ```
 3. `./run` (alternatively, `./run path/to/alternateProfile.json`)
 
