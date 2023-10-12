@@ -349,7 +349,7 @@ chat {
         // h { h=min alX=center id=image }
         vsep { y=.2em }
         chat.profile.$title { t="General" }
-        chat.profile.$link { id=userList $t="  User list" }
+        text { chat.profile.$link { id=userList $t="  User list" } " (" text { id=memberCount } " members)" }
         id = more
       }
     }

@@ -22,6 +22,7 @@ public class ViewRoom {
     }
     
     ((Extras.ClickableTextNode) base.ctx.id("userList")).fn = r::viewUsers;
+    base.ctx.id("memberCount").add(new StringNode(base.ctx, String.valueOf(r.memberCount())));
   }
   
   public static void viewRooms(MxChatroom r) {

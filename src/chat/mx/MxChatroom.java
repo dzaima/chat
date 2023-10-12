@@ -612,6 +612,10 @@ public class MxChatroom extends Chatroom {
   public void viewUsers() {
     ViewUsers.viewUsers(this);
   }
+  public int memberCount() {
+    return new Vec<>(new ArrayList<>(userData.values())).filter(c -> c.s==UserStatus.JOINED).sz;
+  }
+  
   
   public void confirmLeave(PartialMenu pm, String path, String id, Runnable run) {
     pm.add(m.gc.getProp(path).gr(), id, () -> {
