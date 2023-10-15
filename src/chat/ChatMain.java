@@ -432,20 +432,29 @@ public class ChatMain extends NodeWindow {
     
     int otherNew = 0;
     int currentNew = room==null? 0 : room.muteState.unreads();
-    boolean ping = false;
+    boolean currentPing = room!=null && room.muteState.anyPing();
+    boolean otherPing = false;
     for (ChatUser u : users) {
       for (Chatroom r : u.rooms()) {
-        if (r!=room) otherNew+= r.muteState.unreads();
-        ping|= r.muteState.anyPing();
+        if (r != room) {
+          otherNew+= r.muteState.unreads();
+          otherPing|= r.muteState.anyPing();
+        }
       }
     }
     
     String ct;
-    if (otherNew!=0 || currentNew!=0 || ping) {
+    if (otherNew!=0 || currentNew!=0 || otherPing || currentPing) {
       StringBuilder b = new StringBuilder("(");
+      
       if (currentNew!=0) b.append(currentNew);
-      if (ping) b.append("*");
-      if (otherNew!=0) b.append("+").append(otherNew);
+      if (currentPing) b.append("*");
+      
+      if (otherNew!=0 || otherPing) b.append("+");
+      
+      if (otherNew!=0) b.append(otherNew);
+      if (otherPing) b.append("*");
+      
       b.append(") ");
       ct = b.toString();
     }
