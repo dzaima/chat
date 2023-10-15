@@ -12,7 +12,7 @@ import libMx.*;
 
 import java.util.*;
 
-abstract class MxChatEvent extends ChatEvent {
+public abstract class MxChatEvent extends ChatEvent {
   public final MxChatroom r;
   public final MxLog log;
   public final MxEvent e0;

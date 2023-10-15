@@ -43,8 +43,25 @@ public abstract class Chatroom extends View {
     if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));
     else input.setLang(m.gc.langs().defLang);
   }
+  
+  public long atEndStart;
+  public long firstUnreadTime;
   public void tick() {
     muteState.tick();
+    long nowMs = m.gc.lastMs;
+    if (open && m.focused && m.atEnd() && !muteState.muted) {
+      long viewedMs = nowMs - atEndStart;
+      if (viewedMs > m.readMinViewMs  ||  viewedMs > (nowMs-firstUnreadTime)*m.altViewMult) markAsRead();
+    } else {
+      atEndStart = nowMs;
+    }
+  }
+  public void markAsRead() {
+    if (unread==0 && !ping) return;
+    if (unread!=0) readAll();
+    unread = 0;
+    ping = false;
+    m.updateUnread();
   }
   
   
@@ -111,12 +128,15 @@ public abstract class Chatroom extends View {
   
   public abstract void pinged();
   
+  
+  protected void changeUnread(int addUnread, boolean addPing) {
+    if (addUnread==0 && !addPing) return;
+    if (unread==0 && !ping) firstUnreadTime = m.gc.lastMs;
+    unread+= addUnread;
+    ping|= addPing;
+  }
+  
   public void unreadChanged() {
-    if (open && m.focused && m.atEnd() && !muteState.muted) {
-      if (unread!=0) readAll();
-      unread = 0;
-      ping = false;
-    }
     RoomListNode.setUnread(m, node, muteState, ping, unread);
     m.unreadChanged();
     user().updateFolderUnread();

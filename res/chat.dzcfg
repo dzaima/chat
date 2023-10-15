@@ -12,6 +12,12 @@ chat {
   internalImageViewer = true // whether to use the internal image viewer when clicking images (or some links); you can always right click → "Open externally"
   internalPasteViewer = true // whether to use the internal dzaima.github.io/paste viewer for simple cases
   userAutocomplete = true // whether to show autocompletion options for usernames
+  read {
+    minView = 1 // number of seconds to require being at the end of a room to mark messages in it as read
+    altViewMul = 0.01 // alternatively, depending on the time since being posted, read faster
+                      // e.g. if this is 0.05 and the first unread in this room was 10 seconds ago, mark as read on viewing for 0.05*10 = 0.5 seconds
+    doubleClickToRead = true // whether clicking on a room after already being in it instantly marks as read  
+  }
   
   keys {
     editUp = { "up" }

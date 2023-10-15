@@ -450,10 +450,10 @@ public class MxChatroom extends Chatroom {
     MxChatEvent cm = log.processMessage(e, log.size(), true);
     if (open && cm!=null) m.addMessage(cm, true);
     if (cm==null) {
-      if (m.gc.getProp("chat.notifyOnEdit").b()) unread++;
+      if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
       else if (unread==0) readAll();
     } else if (cm.important()) {
-      unread++;
+      changeUnread(1, false);
     }
     unreadChanged();
     return cm;
@@ -464,8 +464,7 @@ public class MxChatroom extends Chatroom {
   
   
   public void pinged() {
-    ping = true;
-    unreadChanged();
+    changeUnread(0, true);
   }
   
   public boolean key(Key key, int scancode, KeyAction a) {
@@ -555,7 +554,7 @@ public class MxChatroom extends Chatroom {
   public void tick() {
     super.tick();
     if (olderRes!=null) {
-      if (olderRes.events.size()==0) msgLogToStart = true;
+      if (olderRes.events.isEmpty()) msgLogToStart = true;
       prevBatch = olderRes.eTok;
       log.addEvents(olderRes.events, false);
       olderRes = null;

@@ -144,6 +144,7 @@ public class ChatMain extends NodeWindow {
   }
   public void toRoom(Chatroom c, ChatEvent toHighlight) {
     Log.fine("chat", "Moving to room "+c.name+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
+    if (c==view && gc.getProp("chat.read.doubleClickToRead").b()) c.markAsRead();
     hideCurrent();
     view = c;
     inputPlace.replace(0, c.inputPlaceContent());
@@ -202,18 +203,12 @@ public class ChatMain extends NodeWindow {
     updateTitle();
   }
   
-  private boolean prevAtEnd;
   private int updInfoDelay;
   private long nextTimeUpdate;
   public int endDist;
   public void tick() {
     endDist = gc.em*20;
     
-    boolean nAtEnd = atEnd();
-    if (prevAtEnd!=nAtEnd) {
-      updateUnread();
-      prevAtEnd = nAtEnd;
-    }
     if (updInfoDelay--==0) updActions();
     if (newHover) {
       if (pHover!=null) pHover.msg.markRel(false);
@@ -699,6 +694,8 @@ public class ChatMain extends NodeWindow {
     });
   }
   
+  public long readMinViewMs;
+  public float altViewMult;
   public int colMyNick, colMyPill;
   public int[] colOtherNicks;
   public int[] colOtherPills;
@@ -723,6 +720,8 @@ public class ChatMain extends NodeWindow {
     colOtherNicks = colorList(gc.getProp("chat.userCols.otherNicks"));
     colOtherPills = colorList(gc.getProp("chat.userCols.otherPills"));
     folderColors = ChatMain.colorList(gc.getProp("chat.folder.colors"));
+    readMinViewMs = (long) (gc.getProp("chat.read.minView").d()*1000);
+    altViewMult = gc.getProp("chat.read.altViewMul").f();
     
     msgBorder = new Paint().setColor(gc.getProp("chat.msg.border").col()).setPathEffect(PathEffect.makeDash(new float[]{1, 1}, 0));
     for (ChatUser u : users) {
