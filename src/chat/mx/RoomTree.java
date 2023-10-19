@@ -8,8 +8,8 @@ import dzaima.utils.JSON.Obj;
 import java.util.*;
 
 public class RoomTree {
-  String id;
-  String name; // if id==null, then this is a local folder
+  String id; // if id==null, this is a local folder
+  String name;
   Obj o;
   boolean open;
   Vec<RoomTree> ch;

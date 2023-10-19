@@ -7,9 +7,8 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
-import dzaima.ui.node.types.editable.*;
-import dzaima.utils.Tools;
-import dzaima.utils.Vec;
+import dzaima.ui.node.types.editable.TextFieldNode;
+import dzaima.utils.*;
 
 public class RoomListNode extends ReorderableNode {
   public ChatUser u;
@@ -272,7 +271,7 @@ public class RoomListNode extends ReorderableNode {
       u.preRoomListChange();
       ch.get(0).ctx.id("entryPlace").replace(0, afterEditReplacement);
       afterEditReplacement = null;
-      if (external!=null) external.setLocalName(name.length()==0? null : name);
+      if (external!=null) external.setLocalName(name.isEmpty()? null : name);
       else setName(name);
       u.roomListChanged();
     }
