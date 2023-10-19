@@ -113,17 +113,27 @@ public class MDParser {
         String v = run(']');
         int ls = i+1;
         if (i<s.length() && s.charAt(i)=='(') {
-          int le = s.indexOf(')', i);
-          if (le!=-1) {
-            ss(li-1, li, S_DEF_ESC);
-            ss(ls-2, ls, S_DEF_ESC);
-            ss(ls, le, S_LINK);
-            ss(le, le+1, S_DEF_ESC);
-            r.append("<a href=").append(htmlString(s.substring(ls, le))).append(">");
-            r.append(v);
-            r.append("</a>");
-            i = le + 1;
-            continue;
+          int le = i+1;
+          int depth = 1;
+          while (le < s.length()) {
+            c = s.charAt(le);
+            if (c=='(') {
+              depth++;
+            } else if (c==')') {
+              depth--;
+              if (depth==0) {
+                ss(li-1, li, S_DEF_ESC);
+                ss(ls-2, ls, S_DEF_ESC);
+                ss(ls, le, S_LINK);
+                ss(le, le+1, S_DEF_ESC);
+                r.append("<a href=").append(htmlString(s.substring(ls, le))).append(">");
+                r.append(v);
+                r.append("</a>");
+                i = le + 1;
+                continue str;
+              }
+            }
+            le++;
           }
         }
         r.append('[').append(v);
