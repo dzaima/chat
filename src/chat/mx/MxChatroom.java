@@ -184,8 +184,7 @@ public class MxChatroom extends Chatroom {
     
     Arr stateList = sync.obj(nInv?"invite_state":"state", Obj.E).arr("events",Arr.E);
     for (Obj ev : stateList.objs()) {
-      Obj ct = ev.obj("content");
-      anyEvent(ev, ct);
+      anyEvent(ev, ev.obj("content"));
     }
     Arr eventList = nInv? stateList : sync.obj("timeline").arr("events");
     
@@ -667,7 +666,7 @@ public class MxChatroom extends Chatroom {
   
   public static class SpaceInfo extends RoomListNode.ExternalDirInfo {
     public final MxChatroom r;
-    public String officialName, customName;
+    public String customName;
     public SpaceInfo(MxChatroom r) { this.r = r; }
     
     public void setLocalName(String val) {
@@ -678,8 +677,12 @@ public class MxChatroom extends Chatroom {
       if (node!=null) node.setName(getName());
     }
     public String getName() {
-      return customName!=null? customName : officialName;
+      return customName!=null? customName : officialName();
     }
+    public String officialName() {
+      return r.name;
+    }
+    
     public void addToMenu(PartialMenu pm) {
       pm.add(pm.gc.getProp("chat.mx.roomMenu.space").gr(), (s) -> {
         switch (s) {
@@ -691,7 +694,6 @@ public class MxChatroom extends Chatroom {
         }
       });
     }
-    
     public void nodeAttached() {
       nameUpdated();
     }
@@ -708,10 +710,7 @@ public class MxChatroom extends Chatroom {
   }
   public void setName(String name) {
     super.setName(name);
-    if (spaceInfo!=null) {
-      spaceInfo.officialName = name;
-      spaceInfo.nameUpdated();
-    }
+    if (spaceInfo!=null) spaceInfo.nameUpdated();
   }
   
   public void userMenu(Click c, int x, int y, String uid) {
