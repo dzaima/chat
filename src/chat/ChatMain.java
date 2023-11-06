@@ -472,7 +472,7 @@ public class ChatMain extends NodeWindow {
   
   private boolean saveRequested;
   public void requestSave() {
-    Log.info("account save requested");
+    if (!saveRequested) Log.info("account save requested");
     saveRequested = true;
   }
   
