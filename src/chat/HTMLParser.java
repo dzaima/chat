@@ -93,7 +93,6 @@ public class HTMLParser {
               eq|= url.equals(link);
               if (eq || link==null) attemptLink: try {
                 URI uri = new URI(url);
-                if (uri.getHost()==null || uri.getScheme()==null || uri.getPath()==null || uri.getQuery()==null || uri.getFragment()==null) break attemptLink;
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
                 Node inner = p;
                 if (link==null) p.add(inner = link(r, url, LinkType.UNK));
@@ -101,6 +100,10 @@ public class HTMLParser {
                 String txt;
                 int L = 100;
                 trunc: {
+                  if (uri.getHost()==null || uri.getScheme()==null || uri.getPath()==null) {
+                    txt = url;
+                    break trunc;
+                  }
                   txt = uri.getHost();
                   if (!uri.getScheme().equals("https")) txt = uri.getScheme()+"://"+txt;
                   String[] path = Tools.split(uri.getPath(), '/');
