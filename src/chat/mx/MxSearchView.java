@@ -127,6 +127,6 @@ public class MxSearchView extends SearchView {
         prevShown.add(p.b);
       }
     }
-    m.msgsScroll.toLast(true);
+    m.msgsScroll.toYE(true);
   }
 }

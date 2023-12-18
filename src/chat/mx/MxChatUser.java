@@ -9,7 +9,8 @@ import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.types.StringNode;
-import dzaima.ui.node.types.editable.code.*;
+import dzaima.ui.node.types.editable.code.CodeAreaNode;
+import dzaima.ui.node.types.editable.code.langs.Lang;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
 import libMx.*;
@@ -106,16 +107,23 @@ public class MxChatUser extends ChatUser {
       
       Obj j = u0.s.requestV3("sync").prop("filter","{\"room\":{\"timeline\":{\"limit\":"+DEFAULT_MSGS+"}}}").token(u0.token).get().runJ();
       primary.add(() -> {
-        Obj rooms = j.obj("rooms", Obj.E);
-        for (Entry e : rooms.obj("join", Obj.E).entries()) {
-          roomMap.put(e.k, new MxChatroom(this, e.k, e.v.obj(), MyStatus.JOINED));
+        try {
+          Obj rooms = j.obj("rooms", Obj.E);
+          for (Entry e : rooms.obj("join", Obj.E).entries()) {
+            roomMap.put(e.k, new MxChatroom(this, e.k, e.v.obj(), MyStatus.JOINED));
+          }
+          for (Entry e : rooms.obj("invite", Obj.E).entries()) {
+            roomMap.put(e.k, new MxChatroom(this, e.k, e.v.obj(), MyStatus.INVITED));
+          }
+          
+          Arr storedStructure = data.arr("roomStructure", Arr.E);
+          restoreTree(storedStructure, data.arr("roomOrder", null));
+        } catch (Throwable t) {
+          m.disableSaving = true;
+          m.updInfo();
+          Log.error("mx", "Failed to load room structure. Not saving any profile changes!");
+          Log.stacktrace("mx", t);
         }
-        for (Entry e : rooms.obj("invite", Obj.E).entries()) {
-          roomMap.put(e.k, new MxChatroom(this, e.k, e.v.obj(), MyStatus.INVITED));
-        }
-        
-        Arr storedStructure = data.arr("roomStructure", Arr.E);
-        restoreTree(storedStructure, data.arr("roomOrder", null));
         if (data.has("roomOrder")) data.remove("roomOrder");
         saveRooms();
       });
@@ -325,7 +333,7 @@ public class MxChatUser extends ChatUser {
     
     m.gc.openLink(url);
   }
-  private void openText(String text, Language lang) {
+  private void openText(String text, Lang lang) {
     new Popup(m.ctx.win()) {
       protected void unfocused() { if (isVW) close(); }
       protected Rect fullRect() { return centered(m.ctx.vw(), 0.8, 0.8); }

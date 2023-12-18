@@ -195,6 +195,7 @@ public class ChatMain extends NodeWindow {
       if (info.length()>0) info.append("; ");
       info.append(c);
     }
+    if (info.length()==0 && disableSaving) info.append("Failed to load profile, saving disabled");
     infobar.replace(0, new StringNode(infobar.ctx, info.toString()));
   }
   
@@ -234,7 +235,10 @@ public class ChatMain extends NodeWindow {
     
     if (saveRequested) forceTrySaveNow();
   }
+  
+  public boolean disableSaving = false;
   private void forceTrySaveNow() {
+    if (disableSaving) return;
     saveRequested = false;
     
     Val[] accounts = new Val[users.sz];
@@ -324,7 +328,7 @@ public class ChatMain extends NodeWindow {
     }
   }
   
-  public boolean atEnd() { return msgsScroll.atEnd(5); }
+  public boolean atEnd() { return msgsScroll.atYE(5); }
   
   public Node makeInfo(EnumProp type, String cfg, Node body) {
     
@@ -358,8 +362,8 @@ public class ChatMain extends NodeWindow {
       }
     }
     msgs.insert(atEnd? msgs.ch.sz : 0, prep);
-    if (!atEnd) msgsScroll.ignoreStart();
-    if ( atEnd) msgsScroll.ignoreEnd();
+    if (!atEnd) msgsScroll.ignoreYS();
+    if ( atEnd) msgsScroll.ignoreYE();
   }
   
   public Node getMsgBody(Node n) {          Node b = n.ctx.id("body"); return b.ch.get(b.ch.sz-1); }
@@ -380,7 +384,7 @@ public class ChatMain extends NodeWindow {
     }
     msgs.add(msg);
     if (atEnd && toLast==0) toLast = 1;
-    if (atEnd) msgsScroll.ignoreEnd();
+    if (atEnd) msgsScroll.ignoreYE();
   }
   private Node makeExtra(ChatEvent ce) {
     HashMap<String, Integer> rs = ce.getReactions();

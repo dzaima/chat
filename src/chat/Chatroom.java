@@ -92,10 +92,10 @@ public abstract class Chatroom extends View {
   public void viewTick() {
     if (m.toLast!=0) {
       if (m.toLast==3) m.toHighlight.highlight(true); 
-      else m.msgsScroll.toLast(m.toLast==2);
+      else m.msgsScroll.toYE(m.toLast==2);
       m.toLast = 0;
     } else {
-      if (-m.msgsScroll.oy < m.endDist) older();
+      if (m.msgsScroll.atYS(m.endDist)) older();
     }
   }
   

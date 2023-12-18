@@ -83,8 +83,8 @@ public class RoomListNode extends ReorderableNode {
   public void noFancyScroll() {
     ScrollNode s = ScrollNode.nearestScrollNode(this);
     if (s==null) return;
-    s.ignoreFocus(true);
-    s.ignoreEnd();
+    s.ignoreFocus();
+    s.ignoreYE();
   }
   
   public boolean holdingRoom(RoomEntryNode r) {

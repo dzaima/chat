@@ -2,26 +2,27 @@ package chat.ui;
 
 import chat.*;
 import dzaima.ui.gui.Font;
+import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.types.editable.EditNode;
-import dzaima.ui.node.types.editable.code.*;
+import dzaima.ui.node.types.editable.code.langs.*;
 import dzaima.utils.Pair;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.paragraph.*;
 
 public class MDLang extends Lang {
-  public TextStyle[] styles;
-  public TextStyle style(byte v) {
-    return styles[v];
+  public GConfig gc;
+  public MDLang(ChatMain m, ChatTextArea ta) {
+    super(new MDState(m, ta));
+    gc = m.gc;
   }
   
-  public MDLang(Font f, ChatMain m, ChatTextArea ta) {
-    super(new MDState(m, ta));
-    styles = new TextStyle[39];
-    int defTextCol = m.gc.getProp("str.color").col();
-    int spoilerCol = m.gc.getProp("chat.preview.spoilerBg").col();
-    int codeCol = m.gc.getProp("chat.preview.codeBg").col(); // TODO separate bgInline and bgBlock
-    int escCol = m.gc.getProp("chat.preview.escape").col();
-    String codeFamily = m.gc.getProp("chat.preview.codeFamily").str();
+  protected TextStyle[] genStyles(Font f) {
+    TextStyle[] styles = new TextStyle[39];
+    int defTextCol = gc.getProp("str.color").col();
+    int spoilerCol = gc.getProp("chat.preview.spoilerBg").col();
+    int codeCol = gc.getProp("chat.preview.codeBg").col(); // TODO separate bgInline and bgBlock
+    int escCol = gc.getProp("chat.preview.escape").col();
+    String codeFamily = gc.getProp("chat.preview.codeFamily").str();
     for (int i = 0; i < styles.length; i++) {
       TextStyle s = new TextStyle().setFontSize(f.sz);
       int col = defTextCol;
@@ -37,13 +38,13 @@ public class MDLang extends Lang {
           bgCol = codeCol;
           family = codeFamily;
         }
-        if (i==MDParser.S_COMMAND) col = m.gc.getProp("chat.preview.commandCol").col(); 
+        if (i==MDParser.S_COMMAND) col = gc.getProp("chat.preview.commandCol").col();
         if (i==MDParser.S_CODE_ESC || i==MDParser.S_DEF_ESC) col = escCol;
-        if (i==MDParser.S_LINK) col = m.gc.getProp("chat.link.col").col();
-        if (i==MDParser.S_QUOTE) col = m.gc.getProp("chat.preview.quoteCol").col();
+        if (i==MDParser.S_LINK) col = gc.getProp("chat.link.col").col();
+        if (i==MDParser.S_QUOTE) col = gc.getProp("chat.preview.quoteCol").col();
         if (i==MDParser.S_QUOTE_LEAD) {
-          bgCol = m.gc.getProp("chat.preview.quoteLeadBg").col();
-          col = m.gc.getProp("chat.preview.quoteLeadCol").col();
+          bgCol = gc.getProp("chat.preview.quoteLeadBg").col();
+          col = gc.getProp("chat.preview.quoteLeadCol").col();
         }
       }
       if (bgCol!=0) s.setBackground(new Paint().setColor(bgCol));
@@ -51,8 +52,8 @@ public class MDLang extends Lang {
       s.setColor(col);
       styles[i] = s;
     }
+    return styles;
   }
-  public Lang font(Font f) { return new TextLang(f); }
   
   static class MDState extends LangState<MDState> {
     private final ChatMain m;
@@ -83,7 +84,7 @@ public class MDLang extends Lang {
     public int hashCode() { return 0; }
   }
   
-  public static Language makeLanguage(ChatMain m, ChatTextArea ta) {
-    return new Language("Markdown", new String[0], (font) -> new MDLang(font, m, ta));
+  public static Lang makeLanguage(ChatMain m, ChatTextArea ta) {
+    return new MDLang(m, ta);
   }
 }
