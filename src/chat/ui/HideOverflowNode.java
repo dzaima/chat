@@ -3,16 +3,16 @@ package chat.ui;
 import dzaima.ui.gui.Graphics;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.prop.Prop;
+import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.FrameNode;
 import dzaima.utils.Tools;
 
 public class HideOverflowNode extends FrameNode {
-  public HideOverflowNode(Ctx ctx, String[] ks, Prop[] vs) {
-    super(ctx, ks, vs);
+  public HideOverflowNode(Ctx ctx, Props props) {
+    super(ctx, props);
   }
   
-  public int fillW() { int w = id("w"); return w==-1? 0 : vs[w].len(); }
+  public int fillW() { Prop w = getPropN("w"); return w==null? 0 : w.len(); }
   public int fillH(int w) { return ch.get(0).minH(Tools.BIG); }
   
   

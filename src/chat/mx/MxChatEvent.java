@@ -5,7 +5,8 @@ import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.*;
+import dzaima.ui.node.prop.Prop;
+import dzaima.ui.node.types.InlineNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 import libMx.*;
@@ -83,9 +84,9 @@ public abstract class MxChatEvent extends ChatEvent {
       while (true) {
         Node nn = cn.findCh(x, y);
         if (nn==null) break;
-        int cid = nn.id("class");
-        if (cid!=-1) {
-          String v = nn.vs[cid].val();
+        Prop cl = nn.getPropN("class");
+        if (cl!=null) {
+          String v = cl.val();
           if (v.equals("inlineCode") || v.equals("blockCode")) code = nn;
         }
         x-= nn.dx;

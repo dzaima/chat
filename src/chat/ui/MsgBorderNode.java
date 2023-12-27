@@ -4,19 +4,19 @@ import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.prop.Prop;
+import dzaima.ui.node.prop.Props;
 import dzaima.utils.Tools;
 import io.github.humbleui.skija.Paint;
 
 public class MsgBorderNode extends Node {
   MsgNode n;
   private int bgCol;
-  public MsgBorderNode(Ctx ctx, String[] ks, Prop[] vs) {
-    super(ctx, ks, vs);
+  public MsgBorderNode(Ctx ctx, Props props) {
+    super(ctx, props);
   }
   
   public void propsUpd() { mRedraw(); // no super call; only redraw is needed
-    bgCol = vs[id("bg")].col();
+    bgCol = getProp("bg").col();
   }
   
   public int minW() { return ch.get(0).minW()+2; }

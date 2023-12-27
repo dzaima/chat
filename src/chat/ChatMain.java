@@ -1,6 +1,6 @@
 package chat;
 
-import chat.mx.*;
+import chat.mx.MxChatUser;
 import chat.ui.*;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
@@ -311,8 +311,8 @@ public class ChatMain extends NodeWindow {
     nextTimeUpdate = 0;
     if (msgs.ch.sz>0) {
       Node n = msgs.ch.peek();
-      int pos = n.id("infoType");
-      if (pos>=0 && n.vs[pos]==lastTimeProp) {
+      Prop infoType = n.getPropN("infoType");
+      if (infoType!=null && infoType==lastTimeProp) {
         msgs.ch.removeAt(msgs.ch.sz - 1);
         lastTimeStr = null;
       }
@@ -333,7 +333,7 @@ public class ChatMain extends NodeWindow {
   public Node makeInfo(EnumProp type, String cfg, Node body) {
     
     Node msg = ctx.make(gc.getProp("chat.info.mainP").gr());
-    msg.set(msg.id("infoType"), type);
+    msg.setProp("infoType", type);
     msg.ctx.id("body").add(ctx.makeKV(gc.getProp(cfg).gr(), "body", body));
     return msg;
   }
@@ -392,10 +392,10 @@ public class ChatMain extends NodeWindow {
     boolean edit = newEdit(ce) && ce.edited;
       return rs!=null || vs!=null || edit? new MsgExtraNode(ctx, ce.room(), rs, vs) : new InlineNode.LineEnd(ctx, false);
   }
-  private static final String[] col_ibeam = new String[]{"ibeam","color"};
+  private static final Props.Gen col_ibeam = Props.keys("ibeam","color");
   private Node mkSText(ChatEvent e) {
     if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
-    return new STextNode(ctx, col_ibeam, new Prop[]{EnumProp.TRUE, gc.getProp("chat.search.ctx.color")});
+    return new STextNode(ctx, col_ibeam.values(EnumProp.TRUE, gc.getProp("chat.search.ctx.color")));
   }
   private boolean newEdit(ChatEvent e) {
     return e.n.ctx.idNullable("edit")==null;
@@ -504,7 +504,7 @@ public class ChatMain extends NodeWindow {
     boolean merge = h<5f/60 && at.userEq(bt) && gc.getProp("chat.mergeMessages").b() && newDate==null;
     ((UserTagNode) b.ctx.id("user").ch.get(0)).setVis(!merge);
     Node padU = b.ctx.id("padU");
-    padU.set(padU.id("u"), merge? new LenProp(gc, 0, "px") : gc.getProp("chat.msg.sep"));
+    padU.setProp("u", merge? new LenProp(gc, 0, "px") : gc.getProp("chat.msg.sep"));
     if (between || newDate!=null) {
       if (newDate==null) return makeInfo(laterProp, "chat.info.$textP", new StringNode(ctx, timeDelta(h)+(before? " earlier..?" : " later...")));
       else return makeInfo(laterProp, "chat.info.$titleP", new StringNode(ctx, df.format(newDate)));

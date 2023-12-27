@@ -4,6 +4,7 @@ import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
+import dzaima.ui.node.prop.Props;
 import dzaima.utils.Tools;
 import io.github.humbleui.skija.Image;
 
@@ -12,7 +13,7 @@ public abstract class ImageNode extends Node {
   Image f0;
   
   public ImageNode(Ctx ctx, byte[] data) {
-    super(ctx, KS_NONE, VS_NONE);
+    super(ctx, Props.none());
     this.data = data;
     try {
       if (data!=null) f0 = Image.makeDeferredFromEncodedBytes(data);

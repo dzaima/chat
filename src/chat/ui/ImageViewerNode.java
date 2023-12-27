@@ -4,11 +4,11 @@ import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.prop.Prop;
+import dzaima.ui.node.prop.Props;
 
 public class ImageViewerNode extends Node {
-  public ImageViewerNode(Ctx ctx, String[] ks, Prop[] vs) {
-    super(ctx, ks, vs);
+  public ImageViewerNode(Ctx ctx, Props props) {
+    super(ctx, props);
     lastMs = System.currentTimeMillis();
     aTick();
   }

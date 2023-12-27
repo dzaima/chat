@@ -1,9 +1,10 @@
 package chat.mx;
 
 import chat.*;
-import chat.ui.*;
 import chat.ui.Extras.LinkType;
+import chat.ui.*;
 import dzaima.ui.node.Node;
+import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 import dzaima.utils.*;
 import libMx.*;
@@ -145,7 +146,7 @@ public class MxChatMessage extends MxChatEvent {
       default:
         Node disp = HTMLParser.parse(r, bodyPrefix+body);
         if (type.equals("m.emote")) {
-          Node n = new TextNode(disp.ctx, Node.KS_NONE, Node.VS_NONE);
+          Node n = new TextNode(disp.ctx, Props.none());
           n.add(new StringNode(disp.ctx, "· "+username+" "));
           n.add(disp);
           disp = n;

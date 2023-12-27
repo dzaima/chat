@@ -1,12 +1,13 @@
 package chat.ui;
 
-import chat.*;
+import chat.Chatroom;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.node.ctx.Ctx;
+import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 import dzaima.utils.*;
-import io.github.humbleui.skija.paragraph.*;
+import io.github.humbleui.skija.paragraph.Paragraph;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -17,7 +18,7 @@ public class MsgExtraNode extends InlineNode {
   private final ArrayList<Map.Entry<String, Integer>> reactions;
   
   public MsgExtraNode(Ctx ctx, Chatroom r, HashMap<String, Integer> reactions, HashSet<String> receipts) {
-    super(ctx, KS_NONE, VS_NONE);
+    super(ctx, Props.none());
     this.r = r;
     if (reactions==null) {
       this.reactions = null;

@@ -3,12 +3,13 @@ package chat.ui;
 import dzaima.ui.gui.Graphics;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
+import dzaima.ui.node.prop.Props;
 
 public class EmptyNode extends Node {
   private final Node n;
   
   public EmptyNode(Ctx ctx, Node n) {
-    super(ctx, KS_NONE, VS_NONE);
+    super(ctx, Props.none());
     this.n = n;
     add(n);
   }

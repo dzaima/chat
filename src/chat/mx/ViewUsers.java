@@ -5,11 +5,12 @@ import chat.ui.ImageNode;
 import dzaima.ui.gui.Graphics;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
+import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 import dzaima.utils.*;
 import libMx.MxServer;
 
-import java.util.*;
+import java.util.ArrayList;
 
 public class ViewUsers {
   final MxChatroom r;
@@ -47,7 +48,7 @@ public class ViewUsers {
     private final String mxc;
     private boolean loaded;
   
-    public LazyLoadedImg(Ctx ctx, String mxc) { super(ctx, KS_NONE, VS_NONE);
+    public LazyLoadedImg(Ctx ctx, String mxc) { super(ctx, Props.none());
       this.mxc = mxc;
     }
     

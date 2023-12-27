@@ -3,7 +3,7 @@ package chat.ui;
 import chat.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.prop.Prop;
+import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.MenuNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
@@ -16,8 +16,8 @@ public class ChatTextArea extends CodeAreaNode {
   public ChatEvent editing;
   public ChatEvent replying;
   
-  public ChatTextArea(Chatroom r, String[] ks, Prop[] vs) {
-    super(r.m.ctx, ks, vs);
+  public ChatTextArea(Chatroom r, Props props) {
+    super(r.m.ctx, props);
     this.r = r;
     this.m = r.m;
   }

@@ -4,6 +4,7 @@ import chat.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
+import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 
 public class UserTagNode extends TextNode {
@@ -14,7 +15,7 @@ public class UserTagNode extends TextNode {
   public boolean vis = true;
   
   public UserTagNode(ChatMain m, ChatEvent ev) {
-    super(m.ctx, KS_NONE, VS_NONE);
+    super(m.ctx, Props.none());
     this.r = ev.room();
     this.userString = ev.userString();
     mine = ev.mine;
@@ -29,11 +30,9 @@ public class UserTagNode extends TextNode {
   public void mouseStart(int x, int y, Click c) {
     if (vis && (c.bL() || c.bR())) c.register(this, x, y);
   }
-  
   public void mouseDown(int x, int y, Click c) {
     if (c.bR()) r.userMenu(c, x, y, userString);
   }
-  
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
     if (visible) r.mentionUser(userString);

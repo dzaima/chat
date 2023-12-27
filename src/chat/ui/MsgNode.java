@@ -1,7 +1,6 @@
 package chat.ui;
 
 import chat.*;
-import dzaima.ui.gui.Graphics;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.types.WrapNode;
@@ -11,7 +10,6 @@ public class MsgNode extends WrapNode {
   public final ChatEvent msg;
   public final MsgBorderNode border;
   
-  private final int bgId;
   public final boolean asContext;
   
   public MsgNode(Ctx ctx, MsgType type, ChatEvent msg, boolean asContext) {
@@ -20,7 +18,6 @@ public class MsgNode extends WrapNode {
     this.msg = msg;
     border = (MsgBorderNode) this.ctx.id("border");
     border.n = this;
-    bgId = border.id("bg");
     this.asContext = asContext;
     setBG();
   }
@@ -46,7 +43,7 @@ public class MsgNode extends WrapNode {
       ChatMain.warn("Unexpected mode "+mode+"!");
       return;
     }
-    border.setCfg(bgId, abg);
+    border.setProp("bg", gc.getProp(abg));
   }
   
   public static final long hlTime = 1000;

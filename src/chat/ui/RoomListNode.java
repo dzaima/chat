@@ -13,8 +13,8 @@ import dzaima.utils.*;
 public class RoomListNode extends ReorderableNode {
   public ChatUser u;
   
-  public RoomListNode(Ctx ctx, String[] ks, Prop[] vs) {
-    super(ctx, ks, vs);
+  public RoomListNode(Ctx ctx, Props props) {
+    super(ctx, props);
   }
   
   public int findRoomClosest(Chatroom r) {
@@ -49,6 +49,7 @@ public class RoomListNode extends ReorderableNode {
     return n instanceof RoomNode || n instanceof DirStartNode; // also excludes the placeholder before room list is loaded
   }
   
+  private static final Props DIR_V = Props.of("dir", new EnumProp("v"));
   public Node reorderSelect(Node sel) {
     if (!(sel instanceof DirStartNode)) return sel;
     DirStartNode s = (DirStartNode) sel;
@@ -60,7 +61,7 @@ public class RoomListNode extends ReorderableNode {
       r = new int[]{p, p+1};
     }
     
-    PackedListNode l = new PackedListNode(ctx, new String[]{"dir"}, new Prop[]{new EnumProp("v")});
+    PackedListNode l = new PackedListNode(ctx, DIR_V);
     Vec<Node> dir = Vec.ofReuse(ch.get(r[0], r[1], Node[].class));
     
     remove(r[0], r[1]);
@@ -156,7 +157,7 @@ public class RoomListNode extends ReorderableNode {
     public final ChatUser u;
     public int depth;
     public RoomEntryNode(ChatUser u, Node ch) {
-      super(ch.ctx, KS_NONE, VS_NONE);
+      super(ch.ctx, Props.none());
       this.u = u;
       add(ch);
     }
@@ -283,7 +284,7 @@ public class RoomListNode extends ReorderableNode {
     }
     
     public static class NameEditFieldNode extends TextFieldNode {
-      public NameEditFieldNode(Ctx ctx, String[] ks, Prop[] vs) { super(ctx, ks, vs); }
+      public NameEditFieldNode(Ctx ctx, Props props) { super(ctx, props); }
       
       public int action(Key key, KeyAction a) {
         switch (gc.keymap(key, a, "chat.rooms.folderRename")) {

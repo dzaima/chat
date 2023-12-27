@@ -28,7 +28,7 @@ public abstract class Chatroom extends View {
     
     node = new RoomListNode.RoomNode(this, u);
     setName("Unnamed room");
-    input = new ChatTextArea(this, new String[]{"family", "numbering"}, new Prop[]{new StrProp("Arial"), EnumProp.FALSE});
+    input = new ChatTextArea(this, Props.keys("family", "numbering").values(new StrProp("Arial"), EnumProp.FALSE));
     input.wrap = true;
     input.setFn(mod -> {
       if (mod==0) { m.send(); return true; }

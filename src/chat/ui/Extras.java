@@ -17,7 +17,7 @@ public class Extras {
   }
   
   public static class ClickableTextNode extends TextNode {
-    public ClickableTextNode(Ctx ctx, String[] ks, Prop[] vs) { super(ctx, ks, vs); }
+    public ClickableTextNode(Ctx ctx, Props props) { super(ctx, props); }
     public Runnable fn;
     public void mouseStart(int x, int y, Click c) { if (c.bL()) c.register(this, x, y); }
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
@@ -28,8 +28,9 @@ public class Extras {
     private final String url;
     private final LinkType type;
     private final byte[] data;
+    private static final Props.Gen KEYS = Props.keys("color", "hover");
     public LinkNode(ChatUser u, String url, LinkType type, byte[] data) {
-      super(u.m.base.ctx, new String[]{"color", "hover"}, new Prop[]{u.m.gc.getProp("chat.link.col"), EnumProp.TRUE});
+      super(u.m.base.ctx, KEYS.values(u.m.gc.getProp("chat.link.col"), EnumProp.TRUE));
       this.u = u;
       this.url = url;
       this.type = type;

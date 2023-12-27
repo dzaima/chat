@@ -2,7 +2,7 @@ package chat;
 
 import chat.ui.*;
 import chat.ui.Extras.LinkType;
-import dzaima.ui.eval.*;
+import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.gui.select.StringifiableNode;
@@ -24,20 +24,21 @@ public class HTMLParser {
     int l = s.length();
     int ss = 0; while (ss<l && Character.isWhitespace(s.charAt(ss  ))) ss++;
     int se = l; while (se>0 && Character.isWhitespace(s.charAt(se-1))) se--;
-    if (ss>=se) return new TextNode(r.m.base.ctx, Node.KS_NONE, Node.VS_NONE);
+    if (ss>=se) return new TextNode(r.m.base.ctx, Props.none());
     s = s.substring(ss, se);
     Element b = Jsoup.parse(s).body();
-    TextNode base = new TextNode(r.m.base.ctx, Node.KS_NONE, Node.VS_NONE);
+    TextNode base = new TextNode(r.m.base.ctx, Props.none());
     rec(b, base, false, null, r);
     return base;
   }
   
+  private static final Props WIDTH_MAX = Props.of("width", new EnumProp("max"));
   public static Node inlineImage(ChatUser u, String link, boolean dataIsFull, byte[] data, BiFunction<Ctx, byte[], ImageNode> ctor) {
     Ctx ctx = u.m.base.ctx;
     ImageNode img = ctor.apply(ctx, data);
     if (!img.loadableImage()) return null;
     TextNode l = Extras.textLink(u, link, LinkType.IMG, dataIsFull? data : null);
-    InlineNode.TANode v = new InlineNode.TANode(ctx, new String[]{"width"}, new Prop[]{new EnumProp("max")});
+    InlineNode.TANode v = new InlineNode.TANode(ctx, WIDTH_MAX);
     v.add(img);
     l.add(v);
     return l;
@@ -176,16 +177,16 @@ public class HTMLParser {
             wrap(p, c, true, link, r, "chat.code.inlineP");
             break;
           case "i": case "em":
-            wrap(p, c, mono, link, r, iKey, trueValue);
+            wrap(p, c, mono, link, r, I_PROP);
             break;
           case "strike": case "del":
-            wrap(p, c, mono, link, r, sKey, trueValue);
+            wrap(p, c, mono, link, r, S_PROP);
             break;
           case "b": case "strong":
-            wrap(p, c, mono, link, r, bKey, trueValue);
+            wrap(p, c, mono, link, r, B_PROP);
             break;
           case "u":
-            wrap(p, c, mono, link, r, uKey, trueValue);
+            wrap(p, c, mono, link, r, U_PROP);
             break;
           case "pre":
             p.add(InlineNode.FullBlock.wrap(pre(p.ctx, c.wholeText())));
@@ -199,28 +200,28 @@ public class HTMLParser {
             else if (c.hasAttr("data-mx-color")) colTxt = c.attr("data-mx-color");
             if (colTxt!=null) {
               Integer col = ColorUtils.parsePrefixed(colTxt);
-              if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, new String[]{"color"}, new Prop[]{new ColProp(col)}));
+              if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, Props.of("color", new ColProp(col))));
             }
             
             if (c.hasAttr("data-mx-bg-color")) {
               String bgTxt = c.attr("data-mx-bg-color");
               Integer col = ColorUtils.parsePrefixed(bgTxt);
-              if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, new String[]{"bg"}, new Prop[]{new ColProp(col)}));
+              if (col!=null) p1 = wrap(p1, new TextNode(p1.ctx, Props.of("bg", new ColProp(col))));
             }
             
             rec(c, p1, mono, link, r);
             break;
           }
           case "ins":
-            wrap(p, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
+            wrap(p, c, mono, link, r, Props.none());
             break;
           case "div": case "p":
-            wrap(p, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
+            wrap(p, c, mono, link, r, Props.none());
             p.add(new InlineNode.LineEnd(p.ctx, true));
             break;
           case "pill":
             if (c.hasAttr("mine") && c.hasAttr("id")) pill(r, p, c.text(), c.attr("id"), c.attr("mine").equals("true"));
-            else wrap(p, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
+            else wrap(p, c, mono, link, r, Props.none());
             break;
           case "ol":
             int num = c.hasAttr("start")? defInt(c.attr("start"), 1) : 1;
@@ -239,13 +240,13 @@ public class HTMLParser {
             }
             break;
           case "blockquote":
-            STextNode n = new STextNode(p.ctx, new String[]{"color"}, new Prop[]{p.gc.getCfgProp("chat.quote.color")});
-            wrap(n, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
+            STextNode n = new STextNode(p.ctx, Props.of("color", p.gc.getCfgProp("chat.quote.color")));
+            wrap(n, c, mono, link, r, Props.none());
             p.add(InlineNode.FullBlock.wrap(new QuoteNode(n)));
             break;
           default:
             ChatMain.warn("Unknown tag: "+c.tag());
-            wrap(p, c, mono, link, r, Node.KS_NONE, Node.VS_NONE);
+            wrap(p, c, mono, link, r, Props.none());
         }
       }
     }
@@ -260,7 +261,7 @@ public class HTMLParser {
   }
   
   public static Node pillLink(Chatroom r, Node ch, String uid) {
-    TextNode n = new TextNode(ch.ctx, Node.KS_NONE, Node.VS_NONE) {
+    TextNode n = new TextNode(ch.ctx, Props.none()) {
       public void mouseStart(int x, int y, Click c) { if (c.bR()) c.register(this, x, y); }
       public void mouseDown(int x, int y, Click c) { r.userMenu(c, x, y, uid); }
     };
@@ -275,7 +276,7 @@ public class HTMLParser {
     public final ChatUser u;
     public final String id, text;
     public Pill(Ctx ctx, ChatUser u, boolean mine, String id, String text) {
-      super(ctx, KS_NONE, VS_NONE);
+      super(ctx, Props.none());
       this.mine = mine;
       this.id = id;
       this.u = u;
@@ -329,10 +330,10 @@ public class HTMLParser {
   private static void wrap(TextNode n, Element c, boolean mono, String link, Chatroom r, String key) {
     PNodeGroup g = n.gc.getProp(key).gr();
     assert "text".equals(g.name);
-    wrap(n, c, mono, link, r, g.ks, n.ctx.finishProps(g, Ctx.NO_VARS));
+    wrap(n, c, mono, link, r, Props.ofKV(g.ks, n.ctx.finishProps(g, Ctx.NO_VARS)));
   }
-  private static void wrap(TextNode p, Element c, boolean mono, String link, Chatroom r, String[] k, Prop[] v) {
-    TextNode n = new TextNode(p.ctx, k, v);
+  private static void wrap(TextNode p, Element c, boolean mono, String link, Chatroom r, Props props) {
+    TextNode n = new TextNode(p.ctx, props);
     rec(c, n, mono, link, r);
     p.add(n);
   }
@@ -353,7 +354,8 @@ public class HTMLParser {
   }
   private static class SpoilerNode extends TextNode {
     boolean open;
-    public SpoilerNode(Ctx ctx) { super(ctx, new String[]{"hover", "xpad"}, new Prop[]{EnumProp.TRUE, ctx.gc.getProp("chat.spoiler.xpad")}); }
+    private static final Props.Gen KEYS = Props.keys("hover", "xpad");
+    public SpoilerNode(Ctx ctx) { super(ctx, KEYS.values(EnumProp.TRUE, ctx.gc.getProp("chat.spoiler.xpad"))); }
     
     public void drawCh(Graphics g, boolean full) {
       if (open) super.drawCh(g, full);
@@ -382,9 +384,8 @@ public class HTMLParser {
   
   
   
-  private static final String[] iKey = {"italics"};
-  private static final String[] bKey = {"bold"};
-  private static final String[] sKey = {"strike"};
-  private static final String[] uKey = {"underline"};
-  private static final Prop[] trueValue = {EnumProp.TRUE};
+  private static final Props I_PROP = Props.of("italics", EnumProp.TRUE);
+  private static final Props B_PROP = Props.of("bold", EnumProp.TRUE);
+  private static final Props S_PROP = Props.of("strike", EnumProp.TRUE);
+  private static final Props U_PROP = Props.of("underline", EnumProp.TRUE);
 }

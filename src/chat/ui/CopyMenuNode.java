@@ -1,16 +1,15 @@
 package chat.ui;
 
-import chat.ChatMain;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.prop.Prop;
+import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 
 public class CopyMenuNode extends WrapNode {
-  public CopyMenuNode(Ctx ctx, String[] ks, Prop[] vs) {
-    super(ctx, ks, vs);
+  public CopyMenuNode(Ctx ctx, Props props) {
+    super(ctx, props);
   }
   
   
@@ -24,7 +23,7 @@ public class CopyMenuNode extends WrapNode {
       PartialMenu pm = new PartialMenu(gc);
       
       PNodeGroup p = gc.getProp("chat.copyMI").gr().copy();
-      p.ch.add(new PNode.PNodeStr(vs[id("text")].str()));
+      p.ch.add(new PNode.PNodeStr(getProp("text").str()));
       
       pm.add(p, "copy", () -> {
         ctx.win().copyString(InlineNode.getNodeText(ch.get(0)));
