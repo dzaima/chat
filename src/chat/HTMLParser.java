@@ -26,6 +26,7 @@ public class HTMLParser {
     int se = l; while (se>0 && Character.isWhitespace(s.charAt(se-1))) se--;
     if (ss>=se) return new TextNode(r.m.base.ctx, Props.none());
     s = s.substring(ss, se);
+    s = s.replace("\u2028", "\n");
     Element b = Jsoup.parse(s).body();
     TextNode base = new TextNode(r.m.base.ctx, Props.none());
     rec(b, base, false, null, r);
@@ -269,7 +270,7 @@ public class HTMLParser {
     return n;
   }
   private static void pill(Chatroom r, Node p, String text, String id, boolean mine) {
-    p.add(pillLink(r, new Pill(p.ctx, r.user(), mine, id, "@"+text), id));
+    p.add(pillLink(r, new Pill(p.ctx, r.user(), mine, id, text.startsWith("@")? text : "@"+text), id));
   }
   public static class Pill extends Node implements StringifiableNode {
     public final boolean mine;
