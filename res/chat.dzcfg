@@ -416,7 +416,7 @@ chat {
         label { h { checkbox { id=mutePings } text{" Mute pings"} } for=mutePings }
         vsep{}
         v { pad=.4em
-          h { "Mute time: " chat.$sField { bg=chat.ly.bgUploadField id=time } }
+          h { alY=center "Mute time: " chat.$sField { bg=chat.ly.bgUploadField id=time } }
           h { pad=.4em alX=center
             chat.roomMenu.$muteBtn{c="15min" i=m15} chat.roomMenu.$muteBtn{c="30min" i=m30} chat.roomMenu.$muteBtn{c="1h" i=h1}
             chat.roomMenu.$muteBtn{c="3h" i=h3} chat.roomMenu.$muteBtn{c="24h" i=h24} chat.roomMenu.$muteBtn{c="∞" i=inf}
