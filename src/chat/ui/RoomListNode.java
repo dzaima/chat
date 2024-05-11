@@ -7,7 +7,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
-import dzaima.ui.node.types.editable.TextFieldNode;
+import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
 
 public class RoomListNode extends ReorderableNode {
@@ -257,8 +257,9 @@ public class RoomListNode extends ReorderableNode {
       if (editing()) return;
       Node rename = ctx.make(gc.getProp("chat.rooms.folderRename.field").gr());
       TextFieldNode f = (TextFieldNode) rename.ctx.id("val");
-      f.setFn(i -> {
-        if (i!=-1) setName(f.getAll());
+      f.setFn((a, m) -> {
+        if (!editing() || (!a.done && a!=EditNode.EditAction.CUSTOM1)) return false;
+        if (a.enter) setName(f.getAll());
         endEdit();
         return true;
       });
@@ -290,7 +291,7 @@ public class RoomListNode extends ReorderableNode {
         switch (gc.keymap(key, a, "chat.rooms.folderRename")) {
           default: return super.action(key, a);
           case "cancel":
-            fn.test(-1);
+            action(EditNode.EditAction.CUSTOM1, 0);
             return 1;
         }
       }

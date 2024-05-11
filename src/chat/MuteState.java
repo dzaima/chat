@@ -27,7 +27,7 @@ public abstract class MuteState {
     return (muted?'1':'0')+" "+(mutePings?'1':'0')+" "+(unmuteTime==null?"i":unmuteTime.toEpochMilli());
   }
   public void deserialize(String s) {
-    if (s==null || s.length()==0) { copyFrom(UNMUTED); return; }
+    if (s==null || s.isEmpty()) { copyFrom(UNMUTED); return; }
     String[] ps = Tools.split(s, ' ');
     muted = ps[0].equals("1");
     mutePings = ps[1].equals("1");
@@ -134,7 +134,7 @@ public abstract class MuteState {
       ChatTextFieldNode time;
       protected void setup() {
         time = (ChatTextFieldNode) node.ctx.id("time");
-        time.setFn(i -> { fixupTime(); return true; });
+        time.setFn((a, mod) -> { fixupTime(); return true; });
         time.onUnfocus = this::fixupTime;
         time.append(unmuteTime==null? "∞" : durationToString(Duration.between(Instant.now(), unmuteTime)));
         unmuteTime = null;

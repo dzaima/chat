@@ -67,13 +67,13 @@ public class MxChatUser extends ChatUser {
     while (true) {
       try {
         network.take().run();
-      } catch (InterruptedException e) {
+      } catch (InterruptedException | QInterruptedException e) {
         return;
       } catch (Throwable e) {
         Log.stacktrace("mx networkThread", e);
       }
     }
-  });
+  }, true);
   MediaThread media = new MediaThread();
   
   public MxChatUser(ChatMain m, Obj dataIn) {

@@ -17,8 +17,8 @@ public abstract class SearchView extends View {
     for (String c : new String[]{"showContext", "allRooms", /*"serverSide",*/ "caseSensitive", "exactMatch"}) {
       ((CheckboxNode) n.ctx.id(c)).setFn(n -> updatedBtns());
     }
-    textInput().setFn(n -> { runSearch(); return true; });
-    userInput().setFn(n -> { runSearch(); return true; });
+    textInput().setFn((a,mod) -> { runSearch(); return true; });
+    userInput().setFn((a,mod) -> { runSearch(); return true; });
     ((BtnNode) n.ctx.id("closeBtn")).setFn(n -> close());
   }
   

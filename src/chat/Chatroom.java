@@ -5,6 +5,7 @@ import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.StringNode;
+import dzaima.ui.node.types.editable.EditNode;
 import dzaima.utils.*;
 
 public abstract class Chatroom extends View {
@@ -30,8 +31,8 @@ public abstract class Chatroom extends View {
     setName("Unnamed room");
     input = new ChatTextArea(this, Props.keys("family", "numbering").values(new StrProp("Arial"), EnumProp.FALSE));
     input.wrap = true;
-    input.setFn(mod -> {
-      if (mod==0) { m.send(); return true; }
+    input.setFn((a,mod) -> {
+      if (a==EditNode.EditAction.ENTER && mod==0) { m.send(); return true; }
       return false;
     });
     cfgUpdated();
