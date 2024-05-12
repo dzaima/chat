@@ -67,7 +67,7 @@ public class MxChatUser extends ChatUser {
     while (true) {
       try {
         network.take().run();
-      } catch (InterruptedException | QInterruptedException e) {
+      } catch (InterruptedException e) {
         return;
       } catch (Throwable e) {
         Log.stacktrace("mx networkThread", e);
