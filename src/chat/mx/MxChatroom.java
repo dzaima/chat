@@ -274,7 +274,7 @@ public class MxChatroom extends Chatroom {
       HashSet<String> rs = pm.receipts;
       if (rs!=null) {
         rs.remove(uid);
-        if (rs.size()==0) pm.receipts = null;
+        if (rs.isEmpty()) pm.receipts = null;
       }
       m.updateExtra(pm);
     }

@@ -1,10 +1,12 @@
 package chat.ui;
 
 import chat.*;
+import chat.mx.MxChatroom;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.MenuNode;
+import dzaima.ui.node.types.editable.Cursor;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 
@@ -65,49 +67,66 @@ public class ChatTextArea extends CodeAreaNode {
   }
   
   TextCompletionPopup psP;
-  String selText;
+  String prevTag;
   public void tickC() {
     super.tickC();
     // TODO move to some "on modified" method
     doCompletion(true);
   }
   public void doCompletion(boolean visible) {
-    String newSelText = null;
+    String tag = null;
     int selY = -1;
     int selSX = -1;
     int selEX = -1;
-    if (m.view!=null && visible && (m.focusedVW==(psP==null? null : psP.vw) || m.focusNode()==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
-      int y0 = cs.get(0).sy;
-      int ei = cs.get(0).sx;
-      int si = ei;
-      ChrVec ln = lns.get(y0).a;
-      char[] lnA = ln.arr;
-      if (ei>=ln.sz || lnA[ei]==' ') {
-        while (si>0 && lnA[si-1]!=' ') si--;
-        if (si+1<ei && lnA[si]=='@') {
-          si++;
-          newSelText = new String(lnA, si, ei-si);
-          selY = y0;
-          selSX = si-1;
-          selEX = ei;
+    Vec<Pair<String, String>> entries = Vec.of(); // list of {displayed, inserted}
+    findComplete: if (m.view!=null && visible && (m.focusedVW==(psP==null? null : psP.vw) || m.focusNode()==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
+      Cursor c = cs.get(0);
+      Line line = lns.get(c.sy);
+      
+      // user completion
+      if (c.sx>=line.sz() || line.get(c.sx)==' ') {
+        int sx = c.sx;
+        while (sx>0 && line.get(sx-1)!=' ') sx--;
+        if (sx+1<c.sx && line.get(sx)=='@') {
+          sx++;
+          String text = new String(line.get(sx, c.sx));
+          for (Chatroom.UserRes u : m.view.room().autocompleteUsers(text)) entries.add(new Pair<>(u.disp, u.src));
+          if (entries.sz > 0) {
+            tag = "user;"+text;
+            selY = c.sy;
+            selSX = sx-1;
+            selEX = c.sx;
+            break findComplete;
+          }
+        }
+      }
+      
+      if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && r instanceof MxChatroom) {
+        String curr = get(1, 0, c.sx, 0);
+        Vec<String> cmds = Vec.ofCollection(((MxChatroom) r).commands.keySet()).filter(cmd -> cmd.startsWith(curr));
+        cmds.sort();
+        for (String cmd : cmds) entries.add(new Pair<>("/"+cmd, "/"+cmd));
+        if (entries.sz > 0) {
+          tag = "cmd;"+curr;
+          selY = 0;
+          selSX = 0;
+          selEX = c.sx;
+          break findComplete;
         }
       }
     }
     
     
-    if (!Objects.equals(selText, newSelText)) {
+    if (!Objects.equals(prevTag, tag)) {
       if (psP!=null) { psP.close(); psP=null; }
-      if (newSelText!=null) {
-        Vec<Chatroom.UserRes> r = m.view.room().autocompleteUsers(newSelText);
-        if (r.sz>0) {
-          psP = new TextCompletionPopup(this, selSX, selEX, selY);
-          
-          NodeVW vw = psP.openVW();
-          for (Chatroom.UserRes c : r) psP.node.add(new MenuNode.MINode(psP.node.ctx, c.disp, c.src));
-          vw.newRect();
-        }
+      if (entries.sz > 0) {
+        psP = new TextCompletionPopup(this, selSX, selEX, selY);
+        
+        NodeVW vw = psP.openVW();
+        for (Pair<String, String> e : entries) psP.node.add(new MenuNode.MINode(psP.node.ctx, e.a, e.b)); 
+        vw.newRect();
       }
-      selText = newSelText;
+      prevTag = tag;
     }
   }
   
