@@ -45,6 +45,7 @@ public class RoomTree {
         RoomTree t = map.get(k);
         t.got = v;
         if (t.o.has("mute")) v.muteState.deserialize(t.o.str("mute"));
+        if (t.o.has("name")) v.setCustomName(t.o.str("name"));
       } else {
         if (v.spaceInfo!=null) spacesLeft.put(k, v);
         else roomsLeft.put(k, v);
@@ -188,6 +189,9 @@ public class RoomTree {
     HashMap<String, JSON.Val> m = new HashMap<>();
     m.put("id", new JSON.Str(((MxChatroom) e.r).r.rid));
     m.put("mute", new JSON.Str(e.r.muteState.serialize()));
+    if (e.r.customName!=null) {
+      m.put("name", new JSON.Str(e.r.customName));
+    }
     // TODO custom name
     return new Obj(m);
   }

@@ -12,10 +12,11 @@ import dzaima.utils.*;
 public abstract class Chatroom extends View {
   public final ChatMain m;
   public RoomListNode.RoomNode node;
-  public String name;
+  public String officialName;
   public String typing = "";
   
   public final MuteState muteState;
+  public String customName;
   public final RoomEditing editor;
   public int unread;
   public boolean ping;
@@ -30,7 +31,7 @@ public abstract class Chatroom extends View {
     };
     
     node = new RoomListNode.RoomNode(this, u);
-    setName("Unnamed room");
+    setOfficialName("Unnamed room");
     input = new ChatTextArea(this, Props.keys("family", "numbering").values(new StrProp("Arial"), EnumProp.FALSE));
     input.wrap = true;
     input.setFn((a,mod) -> {
@@ -40,9 +41,7 @@ public abstract class Chatroom extends View {
     editor = new RoomEditing(u, "chat.rooms.rename.roomField") {
       protected String getName() { return title(); }
       protected Node entryPlace() { return node.ctx.id("entryPlace"); }
-      protected void rename(String newName) {
-        Log.stacktraceHere("TODO "+newName);
-      }
+      protected void rename(String newName) { setCustomName(newName); }
     };
     cfgUpdated();
   }
@@ -118,20 +117,27 @@ public abstract class Chatroom extends View {
   }
   
   
-  public void setName(String name) {
-    this.name = name;
-    node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
-    if (open) m.setCurrentName(name);
+  public void setOfficialName(String name) {
+    this.officialName = name;
+    titleUpdated();
+  }
+  public void setCustomName(String name) {
+    this.customName = name;
+    titleUpdated();
+  }
+  public void titleUpdated() {
+    node.ctx.id("name").replace(0, new StringNode(node.ctx, title()));
+    if (open) m.setCurrentRoomTitle(title());
   }
   
-  public String title() { return name; }
+  public String title() { return customName!=null? customName : officialName; }
   public abstract void viewRoomInfo();
   
   public abstract ChatUser user();
   public Chatroom room() { return this; }
   
   public boolean open;
-  public /*open*/ void show() { open=true; node.updBG(); unreadChanged(); m.setCurrentName(name); input.roomShown(); }
+  public /*open*/ void show() { open=true; node.updBG(); unreadChanged(); m.setCurrentRoomTitle(title()); input.roomShown(); }
   public /*open*/ void hide() { open=false;node.updBG(); input.roomHidden(); }
   
   public abstract void readAll();

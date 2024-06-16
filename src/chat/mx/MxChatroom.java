@@ -67,7 +67,7 @@ public class MxChatroom extends Chatroom {
           n.append(parts.get(i));
         }
         nameState = 1;
-        setName(n.toString());
+        setOfficialName(n.toString());
       }
     }
     if (status0!=MyStatus.INVITED) { ping = false; unread = 0; unreadChanged(); }
@@ -157,7 +157,7 @@ public class MxChatroom extends Chatroom {
         String alias = ct.str("alias", null);
         if (alias!=null) {
           if (nameState<=2) {
-            setName(alias);
+            setOfficialName(alias);
             nameState = 2;
           }
           this.canonicalAlias = alias;
@@ -165,7 +165,7 @@ public class MxChatroom extends Chatroom {
         break;
       case "m.room.name":
         nameState = 3;
-        if (ct.hasStr("name")) setName(ct.str("name"));
+        if (ct.hasStr("name")) setOfficialName(ct.str("name"));
         break;
       case "m.room.power_levels":
         powerLevels.update(ct);
@@ -600,7 +600,7 @@ public class MxChatroom extends Chatroom {
     return new URLRes(src, safety>1);
   }
   
-  public String toString() { return name; }
+  public String toString() { return officialName; }
   
   
   public String pill(MxEvent m, String id, String username) {
@@ -691,13 +691,13 @@ public class MxChatroom extends Chatroom {
       nameUpdated();
     }
     public void nameUpdated() {
-      if (node!=null) node.setName(getName());
+      if (node!=null) node.setName(getTitle());
     }
-    public String getName() {
+    public String getTitle() {
       return customName!=null? customName : officialName();
     }
     public String officialName() {
-      return r.name;
+      return r.officialName;
     }
     
     public void addToMenu(PartialMenu pm) {
@@ -725,8 +725,8 @@ public class MxChatroom extends Chatroom {
   public RoomListNode.ExternalDirInfo asDir() {
     return spaceInfo;
   }
-  public void setName(String name) {
-    super.setName(name);
+  public void setOfficialName(String name) {
+    super.setOfficialName(name);
     if (spaceInfo!=null) spaceInfo.nameUpdated();
   }
   

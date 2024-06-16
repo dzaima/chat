@@ -65,7 +65,7 @@ public abstract class SearchView extends View {
     p.clearCh();
     p.add(n);
     textInput().focusMe();
-    m.setCurrentName(title());
+    m.setCurrentRoomTitle(title());
   }
   
   public void hide() {

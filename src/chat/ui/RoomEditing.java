@@ -19,7 +19,7 @@ public abstract class RoomEditing {
   
   protected abstract String getName();
   protected abstract Node entryPlace();
-  protected abstract void rename(String newName); // null means canceled
+  protected abstract void rename(String newName); // null means to restore to default name
   
   public void startEdit() {
     if (editing()) return;
@@ -41,7 +41,7 @@ public abstract class RoomEditing {
     u.preRoomListChange();
     entryPlace().replace(0, afterEditReplacement);
     afterEditReplacement = null;
-    if (name!=null) rename(name);
+    if (name!=null) rename(name.isEmpty()? null : name);
     u.roomListChanged();
   }
   

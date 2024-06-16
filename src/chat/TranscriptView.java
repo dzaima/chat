@@ -7,11 +7,11 @@ public abstract class TranscriptView extends View {
   public abstract void newer();
   
   protected boolean open;
-  public /*open*/ void show() { open = true; room().m.setCurrentName(title()); }
+  public /*open*/ void show() { open = true; room().m.setCurrentRoomTitle(title()); }
   public /*open*/ void hide() { open = false; }
   
   public String title() {
-    return "Transcript of "+room().name;
+    return "Transcript of "+room().title();
   }
   
   public /*open*/ void viewTick() {

@@ -237,7 +237,7 @@ public class RoomListNode extends ReorderableNode {
         protected String getName() { return getTitle(); }
         protected Node entryPlace() { return ch.get(0).ctx.id("entryPlace"); }
         protected void rename(String newName) {
-          if (external!=null) external.setLocalName(newName.isEmpty()? null : newName);
+          if (external!=null) external.setLocalName(newName);
           else setName(newName);
         }
       };

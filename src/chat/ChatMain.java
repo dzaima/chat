@@ -146,7 +146,7 @@ public class ChatMain extends NodeWindow {
     toRoom(c, null);
   }
   public void toRoom(Chatroom c, ChatEvent toHighlight) {
-    Log.fine("chat", "Moving to room "+c.name+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
+    Log.fine("chat", "Moving to room "+c.officialName+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     if (c==view && gc.getProp("chat.read.doubleClickToRead").b()) c.markAsRead();
     hideCurrent();
     view = c;
@@ -157,7 +157,7 @@ public class ChatMain extends NodeWindow {
     this.toHighlight = toHighlight;
   }
   public void toTranscript(TranscriptView v) {
-    Log.fine("chat", "Moving to transcript of room "+v.room().name);
+    Log.fine("chat", "Moving to transcript of room "+v.room().officialName);
     hideCurrent();
     view = v;
     inputPlace.replace(0, v.room().input);
@@ -202,7 +202,7 @@ public class ChatMain extends NodeWindow {
     infobar.replace(0, new StringNode(infobar.ctx, info.toString()));
   }
   
-  public void setCurrentName(String s) {
+  public void setCurrentRoomTitle(String s) {
     base.ctx.id("roomName").replace(0, new StringNode(base.ctx, s));
     updateTitle();
   }
