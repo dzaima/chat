@@ -64,19 +64,18 @@ public class ChatTextArea extends CodeAreaNode {
     super.typed(codepoint);
   }
   
-  Popup psP;
-  NodeVW psV;
+  TextCompletionPopup psP;
   String prevSearch;
   public void tickC() {
     super.tickC();
+    // TODO move to some "on modified" method
     userSearch(true);
   }
   public void userSearch(boolean visible) {
-    // TODO move to some "on modified" method
     String newSearch = null;
     int si=-1, ei=-1;
     int y0=-1;
-    if (m.view!=null && visible && (m.focusedVW==psV || m.focusNode()==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
+    if (m.view!=null && visible && (m.focusedVW==(psP==null? null : psP.vw) || m.focusNode()==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
       y0 = cs.get(0).sy;
       ei = cs.get(0).sx;
       si = ei;
@@ -95,31 +94,15 @@ public class ChatTextArea extends CodeAreaNode {
     int toRemoveS = si-1;
     int toRemoveE = ei;
     if (!Objects.equals(prevSearch, newSearch)) {
-      if (psP!=null) { psP.close(); psP=null; psV=null; }
+      if (psP!=null) { psP.close(); psP=null; }
       if (newSearch!=null) {
         Vec<Chatroom.UserRes> r = m.view.room().autocompleteUsers(newSearch);
         if (r.sz>0) {
-          psP = new Popup(m) {
-            protected void setup() { ((MenuNode) node).obj = this; }
-            protected void unfocused() { }
-            protected XY pos(XY size, Rect bounds) { return ChatTextArea.this.p.relPos(null).add(0, -size.y-gc.em/3); }
-            public void stopped() { if (psP==this) { psP=null; psV=null; } }
-            
-            protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
-            
-            public void menuItem(String id) {
-              um.pushL("insert username");
-              remove(toRemoveS, toRemoveY, toRemoveE, toRemoveY);
-              insert(toRemoveS, toRemoveY, id);
-              um.pop();
-              close();
-              ChatTextArea.this.focusMe();
-            }
-          };
+          psP = new TextCompletionPopup(this, toRemoveS, toRemoveY, toRemoveE);
           
-          psV = psP.openVW(gc, ctx, gc.getProp("chat.userAutocompleteUI").gr(), false);
+          NodeVW vw = psP.openVW();
           for (Chatroom.UserRes c : r) psP.node.add(new MenuNode.MINode(psP.node.ctx, c.disp, c.src));
-          psV.newRect();
+          vw.newRect();
         }
       }
       prevSearch = newSearch;
@@ -199,4 +182,5 @@ public class ChatTextArea extends CodeAreaNode {
     if (replying!=null) markReply(replying);
     if (editing!=null) markEdit(editing);
   }
+  
 }
