@@ -6,17 +6,15 @@ import dzaima.ui.node.types.MenuNode;
 import dzaima.utils.*;
 
 class TextCompletionPopup extends Popup {
-  private final int toRemoveS;
-  private final int toRemoveY;
-  private final int toRemoveE;
+  private final int selSX, selEX, selY;
   private final ChatTextArea area;
   public NodeVW vw;
   
-  public TextCompletionPopup(ChatTextArea area, int toRemoveS, int toRemoveY, int toRemoveE) {
+  public TextCompletionPopup(ChatTextArea area, int selSX, int selEX, int selY) {
     super(area.m);
-    this.toRemoveS = toRemoveS;
-    this.toRemoveY = toRemoveY;
-    this.toRemoveE = toRemoveE;
+    this.selSX = selSX;
+    this.selY = selY;
+    this.selEX = selEX;
     this.area = area;
   }
   
@@ -42,8 +40,8 @@ class TextCompletionPopup extends Popup {
   
   public void menuItem(String id) {
     area.um.pushL("insert completion");
-    area.remove(toRemoveS, toRemoveY, toRemoveE, toRemoveY);
-    area.insert(toRemoveS, toRemoveY, id);
+    area.remove(selSX, selY, selEX, selY);
+    area.insert(selSX, selY, id);
     area.um.pop();
     close();
     area.focusMe();

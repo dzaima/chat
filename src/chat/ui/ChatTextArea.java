@@ -26,7 +26,7 @@ public class ChatTextArea extends CodeAreaNode {
     String name = gc.keymap(key, a, "chat");
     switch (name) {
       case "editUp": case "editDn":
-        if (m.view instanceof Chatroom && (editing==null? getAll().length()==0 : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
+        if (m.view instanceof Chatroom && (editing==null? getAll().isEmpty() : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
           Chatroom room = (Chatroom) m.view;
           setEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
           return true;
@@ -65,47 +65,49 @@ public class ChatTextArea extends CodeAreaNode {
   }
   
   TextCompletionPopup psP;
-  String prevSearch;
+  String selText;
   public void tickC() {
     super.tickC();
     // TODO move to some "on modified" method
     doCompletion(true);
   }
   public void doCompletion(boolean visible) {
-    String newSearch = null;
-    int si=-1, ei=-1;
-    int y0=-1;
+    String newSelText = null;
+    int selY = -1;
+    int selSX = -1;
+    int selEX = -1;
     if (m.view!=null && visible && (m.focusedVW==(psP==null? null : psP.vw) || m.focusNode()==this) && cs.sz==1 && cs.get(0).sx!=0 && cs.get(0).reg() && gc.getProp("chat.userAutocomplete").b()) {
-      y0 = cs.get(0).sy;
-      ei = cs.get(0).sx;
-      si = ei;
+      int y0 = cs.get(0).sy;
+      int ei = cs.get(0).sx;
+      int si = ei;
       ChrVec ln = lns.get(y0).a;
       char[] lnA = ln.arr;
       if (ei>=ln.sz || lnA[ei]==' ') {
         while (si>0 && lnA[si-1]!=' ') si--;
         if (si+1<ei && lnA[si]=='@') {
           si++;
-          newSearch = new String(lnA, si, ei-si);
+          newSelText = new String(lnA, si, ei-si);
+          selY = y0;
+          selSX = si-1;
+          selEX = ei;
         }
       }
     }
     
-    int toRemoveY = y0;
-    int toRemoveS = si-1;
-    int toRemoveE = ei;
-    if (!Objects.equals(prevSearch, newSearch)) {
+    
+    if (!Objects.equals(selText, newSelText)) {
       if (psP!=null) { psP.close(); psP=null; }
-      if (newSearch!=null) {
-        Vec<Chatroom.UserRes> r = m.view.room().autocompleteUsers(newSearch);
+      if (newSelText!=null) {
+        Vec<Chatroom.UserRes> r = m.view.room().autocompleteUsers(newSelText);
         if (r.sz>0) {
-          psP = new TextCompletionPopup(this, toRemoveS, toRemoveY, toRemoveE);
+          psP = new TextCompletionPopup(this, selSX, selEX, selY);
           
           NodeVW vw = psP.openVW();
           for (Chatroom.UserRes c : r) psP.node.add(new MenuNode.MINode(psP.node.ctx, c.disp, c.src));
           vw.newRect();
         }
       }
-      prevSearch = newSearch;
+      selText = newSelText;
     }
   }
   
@@ -149,7 +151,7 @@ public class ChatTextArea extends CodeAreaNode {
   
   public void send() {
     String s = getAll();
-    if (s.length() <= 0) return;
+    if (s.isEmpty()) return;
     
     if (editing!=null) r.edit(editing, s);
     else r.post(s, replying==null? null : replying.id);
