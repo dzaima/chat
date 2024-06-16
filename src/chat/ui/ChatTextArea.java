@@ -27,6 +27,9 @@ public class ChatTextArea extends CodeAreaNode {
   public boolean keyF2(Key key, int scancode, KeyAction a) {
     String name = gc.keymap(key, a, "chat");
     switch (name) {
+      case "send":
+        m.send();
+        return true;
       case "editUp": case "editDn":
         if (m.view instanceof Chatroom && (editing==null? getAll().isEmpty() : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
           Chatroom room = (Chatroom) m.view;

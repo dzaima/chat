@@ -20,12 +20,15 @@ chat {
   }
   
   keys {
+    send = { "enter" }
+    
     editUp = { "up" }
     editDn = { "down" }
     replyUp = { "alt+up" }
     replyDn = { "alt+down" }
     roomUp = { "ctrl+up" }
     roomDn = { "ctrl+down" }
+    
     deleteMsg = { "ctrl+alt+shift+del" }
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }

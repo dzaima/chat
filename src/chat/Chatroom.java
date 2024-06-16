@@ -34,10 +34,6 @@ public abstract class Chatroom extends View {
     setOfficialName("Unnamed room");
     input = new ChatTextArea(this, Props.keys("family", "numbering").values(new StrProp("Arial"), EnumProp.FALSE));
     input.wrap = true;
-    input.setFn((a,mod) -> {
-      if (a==EditNode.EditAction.ENTER && mod==0) { m.send(); return true; }
-      return false;
-    });
     editor = new RoomEditing(u, "chat.rooms.rename.roomField") {
       protected String getName() { return title(); }
       protected Node entryPlace() { return node.ctx.id("entryPlace"); }
