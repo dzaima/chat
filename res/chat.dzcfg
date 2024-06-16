@@ -572,8 +572,12 @@ chat {
   }
   rooms.folderName = text { color=chat.folder.nameCol id=name "…" }
   rooms.folderEnd = v { bg=#0000 id=bg h=chat.folder.endH }
-  rooms.folderRename.field = scroll { y=off x=hidden nameEditField { family=str.defaultFont bg=#0000 id=val color=chat.folder.nameCol } }
-  rooms.folderRename.keys { cancel = chat.keys.cancel }
+  rooms.rename {
+    $field = scroll { y=off x=hidden nameEditField { family=str.defaultFont bg=#0000 id=val color=$color } }
+    folderField = chat.rooms.rename.$field{ color=chat.folder.nameCol }
+    roomField = chat.rooms.rename.$field{ color=str.color }
+    keys { cancel = chat.keys.cancel }
+  }
   
   rooms.unreadP = text { " " text { bg=chat.ly.bgUnread id=num } }
   rooms.unreadHiddenP = text { color=chat.ly.bgHidden " (h)" }

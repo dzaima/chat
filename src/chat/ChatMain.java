@@ -696,7 +696,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("imageViewer", ImageViewerNode::new);
       ctx.put("roomList", RoomListNode::new);
       ctx.put("clickableText", Extras.ClickableTextNode::new);
-      ctx.put("nameEditField", RoomListNode.DirStartNode.NameEditFieldNode::new);
+      ctx.put("nameEditField", RoomEditing.NameEditFieldNode::new);
       ctx.put("chatfield", ChatTextFieldNode::new);
       ctx.put("copymenu", CopyMenuNode::new);
       

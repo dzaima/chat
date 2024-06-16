@@ -222,7 +222,7 @@ public class RoomListNode extends ReorderableNode {
     public final ExternalDirInfo external;
     Node nameObj;
     public String name;
-    public Node afterEditReplacement;
+    public RoomEditing editor;
     
     public int unread;
     public boolean ping;
@@ -234,6 +234,14 @@ public class RoomListNode extends ReorderableNode {
     }
     public DirStartNode(ChatUser r, ExternalDirInfo external) {
       super(r, r.m.ctx.make(r.m.gc.getProp("chat.rooms.roomP").gr()));
+      editor = new RoomEditing(u) {
+        protected String getName() { return name; }
+        protected Node entryPlace() { return ch.get(0).ctx.id("entryPlace"); }
+        protected void editEnded(String newName) {
+          if (external!=null) external.setLocalName(newName.isEmpty()? null : newName);
+          else setName(newName);
+        }
+      };
       this.external = external;
       nameObj = ctx.make(gc.getProp("chat.rooms.folderName").gr());
       ch.get(0).ctx.id("name").replace(0, nameObj);
@@ -244,57 +252,17 @@ public class RoomListNode extends ReorderableNode {
       }
     }
     
-    public boolean editing() {
-      return afterEditReplacement!=null;
-    }
     public void setName(String name) {
       this.name = name;
-      if (editing()) return;
+      if (editor.editing()) return;
       String disp = name!=null? name : gc.getProp("chat.folder.defaultName").str();
       nameObj.ctx.id("name").replace(0, new StringNode(ctx, (isOpen()? "" : "["+subRooms().sz+"] ") + disp));
     }
-    public void startEdit() {
-      if (editing()) return;
-      Node rename = ctx.make(gc.getProp("chat.rooms.folderRename.field").gr());
-      TextFieldNode f = (TextFieldNode) rename.ctx.id("val");
-      f.setFn((a, m) -> {
-        if (!editing() || (!a.done && a!=EditNode.EditAction.CUSTOM1)) return false;
-        if (a.enter) setName(f.getAll());
-        endEdit();
-        return true;
-      });
-      f.append(name);
-      Node e = ch.get(0).ctx.id("entryPlace");
-      afterEditReplacement = e.ch.get(0);
-      e.replace(0, rename);
-      f.focusMe();
-    }
-    private void endEdit() {
-      u.preRoomListChange();
-      ch.get(0).ctx.id("entryPlace").replace(0, afterEditReplacement);
-      afterEditReplacement = null;
-      if (external!=null) external.setLocalName(name.isEmpty()? null : name);
-      else setName(name);
-      u.roomListChanged();
-    }
   
     public void updateUnread() {
-      if (editing()) return;
+      if (editor.editing()) return;
       boolean closed = !isOpen();
       RoomListNode.setUnread(u.m, ch.get(0), MuteState.UNMUTED, closed && ping, closed? unread : 0);
-    }
-    
-    public static class NameEditFieldNode extends TextFieldNode {
-      public NameEditFieldNode(Ctx ctx, Props props) { super(ctx, props); }
-      
-      public int action(Key key, KeyAction a) {
-        switch (gc.keymap(key, a, "chat.rooms.folderRename")) {
-          default: return super.action(key, a);
-          case "cancel":
-            action(EditNode.EditAction.CUSTOM1, 0);
-            return 1;
-        }
-      }
     }
     
     public boolean isOpen() {
@@ -363,7 +331,7 @@ public class RoomListNode extends ReorderableNode {
       if (external==null) {
         pm.add(gc.getProp("chat.roomMenu.localFolder").gr(), s -> {
           switch (s) {
-            case "rename": startEdit(); return true;
+            case "rename": editor.startEdit(); return true;
             case "delete":
               if (!isOpen()) open();
               int[] r = getRange();

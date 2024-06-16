@@ -706,7 +706,7 @@ public class MxChatroom extends Chatroom {
     }
     
     public void addToMenu(PartialMenu pm) {
-      pm.add(pm.gc.getProp("chat.roomMenu.renameLocally").gr(), "localRename", () -> node.startEdit());
+      pm.add(pm.gc.getProp("chat.roomMenu.renameLocally").gr(), "localRename", () -> node.editor.startEdit());
       pm.add(pm.gc.getProp("chat.mx.roomMenu.space").gr(), (s) -> {
         switch (s) {
           case "copyLink": r.actionCopyLink(); return true;
