@@ -46,7 +46,7 @@ public class MxLogin {
     s.handleError(j, "delete message");
   }
   
-  public String sendState(MxRoom r, String type, String data) {
+  public String sendUserState(MxRoom r, String type, String data) {
     Obj j = r.request("state", type, uidURI).token(token).put(data).runJ();
     if (s.handleError(j, "send "+type)) return null;
     return j.str("event_id");
@@ -75,6 +75,6 @@ public class MxLogin {
   }
   
   public String setRoomNick(MxRoom r, String nick) {
-    return sendState(r, "m.room.member", Obj.fromKV("membership","join", "displayname",nick).toString());
+    return sendUserState(r, "m.room.member", Obj.fromKV("membership","join", "displayname",nick).toString());
   }
 }

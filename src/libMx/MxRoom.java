@@ -71,6 +71,12 @@ public class MxRoom {
     request("receipt","m.read",id).gToken().post(Obj.E).runJ();
   }
   
+  public String sendState(String type, String data) {
+    Obj j = request("state", type).gToken().put(data).runJ();
+    if (s.handleError(j, "send "+type)) return null;
+    return j.str("event_id");
+  }
+  
   public void kick(String uid, String reason) { kickBan("kick", uid, reason); }
   public void ban(String uid, String reason) { kickBan("ban", uid, reason); }
   public void unban(String uid) { kickBan("unban", uid, null); }
