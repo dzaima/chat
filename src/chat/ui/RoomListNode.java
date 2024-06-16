@@ -2,12 +2,11 @@ package chat.ui;
 
 import chat.*;
 import dzaima.ui.gui.*;
-import dzaima.ui.gui.io.*;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
-import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
 
 public class RoomListNode extends ReorderableNode {
@@ -221,7 +220,7 @@ public class RoomListNode extends ReorderableNode {
   public static class DirStartNode extends SelRoomEntryNode {
     public final ExternalDirInfo external;
     Node nameObj;
-    public String name;
+    public String rawName;
     public RoomEditing editor;
     
     public int unread;
@@ -234,10 +233,10 @@ public class RoomListNode extends ReorderableNode {
     }
     public DirStartNode(ChatUser r, ExternalDirInfo external) {
       super(r, r.m.ctx.make(r.m.gc.getProp("chat.rooms.roomP").gr()));
-      editor = new RoomEditing(u) {
-        protected String getName() { return name; }
+      editor = new RoomEditing(u, "chat.rooms.rename.folderField") {
+        protected String getName() { return getTitle(); }
         protected Node entryPlace() { return ch.get(0).ctx.id("entryPlace"); }
-        protected void editEnded(String newName) {
+        protected void rename(String newName) {
           if (external!=null) external.setLocalName(newName.isEmpty()? null : newName);
           else setName(newName);
         }
@@ -252,11 +251,13 @@ public class RoomListNode extends ReorderableNode {
       }
     }
     
+    public String getTitle() {
+      return rawName!=null? rawName : gc.getProp("chat.folder.defaultName").str();
+    }
     public void setName(String name) {
-      this.name = name;
+      this.rawName = name;
       if (editor.editing()) return;
-      String disp = name!=null? name : gc.getProp("chat.folder.defaultName").str();
-      nameObj.ctx.id("name").replace(0, new StringNode(ctx, (isOpen()? "" : "["+subRooms().sz+"] ") + disp));
+      nameObj.ctx.id("name").replace(0, new StringNode(ctx, (isOpen()? "" : "["+subRooms().sz+"] ") + getTitle()));
     }
   
     public void updateUnread() {
@@ -272,14 +273,14 @@ public class RoomListNode extends ReorderableNode {
       assert isOpen();
       closedCh = p.ch.get(s+1, e, Node[].class);
       p.remove(s+1, e);
-      setName(name);
+      setName(rawName);
       u.updateFolderUnread();
     }
     public void open() {
       assert !isOpen();
       p.insert(getPos()+1, Vec.ofReuse(closedCh));
       closedCh = null;
-      setName(name);
+      setName(rawName);
       u.updateFolderUnread();
     }
     public void leftClick() {

@@ -10,18 +10,20 @@ import dzaima.ui.node.types.editable.*;
 public abstract class RoomEditing {
   private final ChatUser u;
   public Node afterEditReplacement;
+  private final String fieldName;
   
-  public RoomEditing(ChatUser u) {
+  public RoomEditing(ChatUser u, String name) {
     this.u = u;
+    fieldName = name;
   }
   
   protected abstract String getName();
   protected abstract Node entryPlace();
-  protected abstract void editEnded(String newName); // null means canceled
+  protected abstract void rename(String newName); // null means canceled
   
   public void startEdit() {
     if (editing()) return;
-    Node rename = u.node.ctx.make(u.node.gc.getProp("chat.rooms.rename.folderField").gr());
+    Node rename = u.node.ctx.make(u.node.gc.getProp(fieldName).gr());
     TextFieldNode f = (TextFieldNode) rename.ctx.id("val");
     f.setFn((a, m) -> {
       if (!editing() || (!a.done && a!= EditNode.EditAction.CUSTOM1)) return false;
@@ -39,7 +41,7 @@ public abstract class RoomEditing {
     u.preRoomListChange();
     entryPlace().replace(0, afterEditReplacement);
     afterEditReplacement = null;
-    editEnded(name);
+    if (name!=null) rename(name);
     u.roomListChanged();
   }
   

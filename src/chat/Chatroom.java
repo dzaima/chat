@@ -1,6 +1,7 @@
 package chat;
 
 import chat.ui.*;
+import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
@@ -15,6 +16,7 @@ public abstract class Chatroom extends View {
   public String typing = "";
   
   public final MuteState muteState;
+  public final RoomEditing editor;
   public int unread;
   public boolean ping;
   
@@ -35,6 +37,13 @@ public abstract class Chatroom extends View {
       if (a==EditNode.EditAction.ENTER && mod==0) { m.send(); return true; }
       return false;
     });
+    editor = new RoomEditing(u, "chat.rooms.rename.roomField") {
+      protected String getName() { return title(); }
+      protected Node entryPlace() { return node.ctx.id("entryPlace"); }
+      protected void rename(String newName) {
+        Log.stacktraceHere("TODO "+newName);
+      }
+    };
     cfgUpdated();
   }
   
@@ -84,7 +93,15 @@ public abstract class Chatroom extends View {
   }
   public abstract Vec<UserRes> autocompleteUsers(String prefix);
   
-  public abstract void roomMenu(Click c, int x, int y, Runnable onClose);
+  public void roomMenu(Click c, int x, int y, Runnable onClose) {
+    PartialMenu pm = new PartialMenu(m.gc);
+    addMenuItems(pm);
+    pm.open(node.ctx, c, onClose);
+  }
+  public /*open*/ void addMenuItems(PartialMenu pm) {
+    muteState.addMenuOptions(pm);
+    pm.add(pm.gc.getProp("chat.roomMenu.renameLocally").gr(), "localRename", editor::startEdit);
+  }
   public abstract void userMenu(Click c, int x, int y, String uid);
   public abstract void viewProfile(String uid);
   

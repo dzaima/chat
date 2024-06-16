@@ -658,13 +658,9 @@ public class MxChatroom extends Chatroom {
       }
     }.openVW(m.gc, m.ctx, m.gc.getProp("chat.mx.roomMenu.confirmLeave").gr(), true));
   }
-    public void roomMenu(Click c, int x, int y, Runnable onClose) {
-    PartialMenu pm = new PartialMenu(m.gc);
-    muteState.addMenuOptions(pm);
-    pm.add(pm.gc.getProp("chat.roomMenu.renameLocally").gr(), "localRename", () -> {
-      Log.stacktraceHere("TODO");
-    });
-    
+  
+  public void addMenuItems(PartialMenu pm) {
+    super.addMenuItems(pm);
     pm.addSep();
     confirmLeave(pm, "chat.mx.roomMenu.leave", "leave", r::selfLeave);
     // confirmLeave(pm, "chat.mx.roomMenu.forget", "forget", () -> { r.selfLeave(); r.selfForget(); });
@@ -676,7 +672,6 @@ public class MxChatroom extends Chatroom {
         default: return false;
       }
     });
-    pm.open(node.ctx, c, onClose);
   }
   
   public String prettyID() {

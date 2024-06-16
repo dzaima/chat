@@ -176,7 +176,7 @@ public class RoomTree {
       m.put("id", new JSON.Str(space.r.r.rid));
       if (space.customName!=null) m.put("name", new JSON.Str(space.customName));
     } else {
-      if (e0.name!=null) m.put("name", new JSON.Str(e0.name));
+      if (e0.rawName!=null) m.put("name", new JSON.Str(e0.rawName));
     }
     m.put("open", JSON.Bool.of(e0.isOpen()));
     Vec<Obj> list = saveList(s, true);
