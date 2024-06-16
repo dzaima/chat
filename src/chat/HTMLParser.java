@@ -143,6 +143,7 @@ public class HTMLParser {
         String tag = c.tagName();
         switch (tag) {
           case "br":
+          case "hr":
             p.add(new StringNode(p.ctx, "\n"));
             break;
           case "a":
