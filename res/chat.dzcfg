@@ -410,6 +410,10 @@ chat {
       mi { id=unmute "Unmute" }
       mi { id=muteEdit "Mute settings" }
     }
+    renameLocally = {
+      mi { id=localRename "Rename locally" key=chat.menuKeys.rename }
+    }
+    
     muteUI = pad { bg=bg.middle all=1em
       v { pad=.4em w=30em h=7em
         label { h { checkbox { id=mute      } text{" Enable"}     } for=mute }
@@ -447,7 +451,6 @@ chat {
       mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
     }
     space = {
-      mi { id=localRename "Rename locally" key=chat.menuKeys.rename }
       vsep{}
       chat.mx.roomMenu.$links{}
       mi { id=viewInternal "View internal Matrix room" }
