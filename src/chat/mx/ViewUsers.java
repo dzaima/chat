@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.ChatMain;
-import chat.ui.ImageNode;
+import chat.ui.*;
 import dzaima.ui.gui.Graphics;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
@@ -13,14 +13,17 @@ import libMx.MxServer;
 import java.util.ArrayList;
 
 public class ViewUsers {
-  final MxChatroom r;
-  final ChatMain m;
-  final Node base, list;
+  private final MxChatroom r;
+  private final ChatMain m;
+  private final Node base, list;
+  private final ChatTextFieldNode search;
   
   ViewUsers(MxChatroom r) {
     this.r = r;
     this.m = r.m;
     this.base = m.ctx.make(m.gc.getProp("chat.userList.ui").gr());
+    search = (ChatTextFieldNode) base.ctx.id("search");
+    search.onModified = this::updateList;
     this.list = base.ctx.id("list");
   }
   
@@ -30,7 +33,14 @@ public class ViewUsers {
   
   public void run() {
     m.rightPanel.make("info", r::viewRoomInfo).add(base);
+    updateList();
+  }
+  
+  public void updateList() {
+    list.clearCh();
     Vec<Pair<String, String>> l = new Vec<>(new ArrayList<>(r.userData.keySet())).map(id -> new Pair<>(id, r.getUsername(id)));
+    String search = this.search.getAll().toLowerCase();
+    if (search.length()>0) l.filterInplace(c -> c.a.toLowerCase().contains(search) || c.b.toLowerCase().contains(search));
     l.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.b, b.b));
     for (Pair<String, String> p : l) {
       MxChatroom.UserData d = r.userData.get(p.a);

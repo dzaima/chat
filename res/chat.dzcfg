@@ -338,7 +338,19 @@ chat {
   
   // user list
   userList {
-    ui = vl { id=list }
+    ui = v {
+      vl {
+        pad {
+          x=0.5em y=0.2em
+          chat.$sField { bg=chat.search.inputBg id=search }
+        }
+      }
+      scroll {
+        vl {
+          id=list
+        }
+      }
+    }
     avatarSz = 2em
     entry = btn { style=box w=inherit chat.info.userList.$props{} id=btn
       h { alY=center pad=.5em
