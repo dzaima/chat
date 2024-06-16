@@ -367,7 +367,9 @@ public class MxChatroom extends Chatroom {
         ((BtnNode) node.ctx.id("getLink")).setFn(c -> {
           String l = getUpload();
           if (l==null) return;
-          input.append(u.s.mxcToURL(l));
+          input.um.pushL("insert link");
+          input.pasteText(u.s.mxcToURL(l));
+          input.um.pop();
           close();
         });
         ((BtnNode) node.ctx.id("sendMessage")).setFn(c -> {
