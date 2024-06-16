@@ -69,9 +69,9 @@ public class ChatTextArea extends CodeAreaNode {
   public void tickC() {
     super.tickC();
     // TODO move to some "on modified" method
-    userSearch(true);
+    doCompletion(true);
   }
-  public void userSearch(boolean visible) {
+  public void doCompletion(boolean visible) {
     String newSearch = null;
     int si=-1, ei=-1;
     int y0=-1;
@@ -170,13 +170,13 @@ public class ChatTextArea extends CodeAreaNode {
           ((MenuNode.MINode) psP.node.ch.get(0)).run();
           return true;
         }
-        break;
+        return isFocused();
     }
     return false;
   }
   
   public void roomHidden() {
-    userSearch(false);
+    doCompletion(false);
   }
   public void roomShown() {
     if (replying!=null) markReply(replying);
