@@ -21,6 +21,8 @@ chat {
   
   keys {
     send = { "enter" }
+    pasteCode = { "ctrl+shift+v" } // paste clipboard as a markdown code block, escaping as necessary
+    cancel = { "esc" }
     
     editUp = { "up" }
     editDn = { "down" }
@@ -28,13 +30,11 @@ chat {
     replyDn = { "alt+down" }
     roomUp = { "ctrl+up" }
     roomDn = { "ctrl+down" }
-    
+    search = { "ctrl+f" }
     deleteMsg = { "ctrl+alt+shift+del" }
+    
     fontPlus = { "ctrl+shift+=" "ctrl+plus" }
     fontMinus = { "ctrl+minus" }
-    pasteCode = { "ctrl+shift+v" } // paste clipboard, escaping things
-    cancel = { "esc" }
-    search = { "ctrl+f" }
   }
   menuKeys {
     copyLink = { "l" }
