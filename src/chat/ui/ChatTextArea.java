@@ -103,7 +103,7 @@ public class ChatTextArea extends CodeAreaNode {
       
       if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && r instanceof MxChatroom) {
         String curr = get(1, 0, c.sx, 0);
-        Vec<String> cmds = Vec.ofCollection(((MxChatroom) r).commands.keySet()).filter(cmd -> cmd.startsWith(curr));
+        Vec<String> cmds = Vec.ofCollection(((MxChatroom) r).commands.keySet()).filter(cmd -> cmd.contains(curr));
         cmds.sort();
         for (String cmd : cmds) entries.add(new Pair<>("/"+cmd, "/"+cmd));
         if (entries.sz > 0) {

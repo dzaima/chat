@@ -89,6 +89,10 @@ public class MxChatroom extends Chatroom {
       u.openLink(left, Extras.LinkType.UNK, null);
       return null;
     });
+    commands.put("set-room-name", left -> {
+      u.queueNetwork(() -> r.setRoomName(left));
+      return null;
+    });
     commands.put("sort", left -> {
       MxLog l = null;
       if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).log;
@@ -106,11 +110,11 @@ public class MxChatroom extends Chatroom {
       }
       return null;
     });
-    commands.put("roomnick", left -> {
+    commands.put("room-nick", left -> {
       u.queueNetwork(() -> u.u.setRoomNick(r, left));
       return null;
     });
-    commands.put("globalnick", left -> {
+    commands.put("global-nick", left -> {
       u.queueNetwork(() -> u.u.setGlobalNick(left));
       return null;
     });
@@ -293,11 +297,15 @@ public class MxChatroom extends Chatroom {
   }
   private String[] command(String s) {
     if (!s.startsWith("/")) return new String[]{s};
-    int ss = 1;
-    while (!MDParser.border(s, ss)) ss++;
-    int se = ss;
+    int m = 1;
+    while (m < s.length()) {
+      char c = s.charAt(m);
+      if (!(Character.isLetterOrDigit(c) || c=='-')) break;
+      m++;
+    }
+    int se = m;
     if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
-    return new String[]{s.substring(1, ss), s.substring(se)};
+    return new String[]{s.substring(1, m), s.substring(se)};
   }
   public Pair<Boolean,Integer> highlight(String s) {
     String[] cmd = command(s);
