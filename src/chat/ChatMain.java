@@ -13,6 +13,7 @@ import dzaima.ui.node.types.*;
 import dzaima.ui.node.types.editable.EditNode;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
+import dzaima.utils.options.*;
 import io.github.humbleui.skija.*;
 import libMx.MxServer;
 
@@ -60,10 +61,12 @@ public class ChatMain extends NodeWindow {
     return r==null? null : r.input;
   }
   
-  public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile) {
+  public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile, Options o) {
     super(gc, pctx, g, new WindowInit("chat"));
     this.theme = theme;
     if (Tools.DBG) MxServer.LOG = true;
+    if (o.has("--disable-saving")) disableSaving = true;
+    
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
     actionbar = base.ctx.id("actionbar");
@@ -664,7 +667,14 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
-    Path profilePath = Paths.get(args.length==0? DEFAULT_PROFILE : args[0]);
+    AutoOptions o = new AutoOptions();
+    o.argBool("--disable-saving", "Disable saving profile");
+    o.autoHelp();
+    o.autoDebug(Log.Level.WARN);
+    o.acceptLeft(1);
+    Vec<String> left = o.run(args);
+    
+    Path profilePath = Paths.get(left.sz==0? DEFAULT_PROFILE : left.get(0));
     Obj loadedProfile;
     try {
       loadedProfile = JSON.parseObj(new String(Files.readAllBytes(profilePath), StandardCharsets.UTF_8));
@@ -674,7 +684,6 @@ public class ChatMain extends NodeWindow {
     }
     Box<Theme> theme = new Box<>(Theme.valueOf(loadedProfile.obj("global", Obj.E).str("theme", "dark")));
     
-    Log.level = Log.Level.WARN;
     MxServer.LOG_FN = Log::fine;
     MxServer.WARN_FN = Log::warn;
     Windows.setManager(Windows.Manager.JWM);
@@ -703,7 +712,7 @@ public class ChatMain extends NodeWindow {
         });
       });
       
-      mgr.start(new ChatMain(gc, ctx, gc.getProp("chat.ui").gr(), profilePath, theme, loadedProfile));
+      mgr.start(new ChatMain(gc, ctx, gc.getProp("chat.ui").gr(), profilePath, theme, loadedProfile, o.o));
     });
   }
   
