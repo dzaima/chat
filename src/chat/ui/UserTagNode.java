@@ -8,16 +8,18 @@ import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 
 public class UserTagNode extends TextNode {
-  private final LiveView v;
+  private final ChatMain m;
   private final String userString;
   private final boolean mine;
+  private final ChatEvent ev;
   public boolean vis = true;
   
   public UserTagNode(ChatMain m, ChatEvent ev) {
     super(m.ctx, Props.none());
-    this.v = ev.liveView();
+    this.m = m;
     this.userString = ev.userString();
     mine = ev.mine;
+    this.ev = ev;
     add(new StringNode(ctx, ev.username));
   }
   
@@ -29,11 +31,17 @@ public class UserTagNode extends TextNode {
     if (vis && (c.bL() || c.bR())) c.register(this, x, y);
   }
   public void mouseDown(int x, int y, Click c) {
-    if (c.bR()) v.room().userMenu(c, x, y, userString);
+    if (c.bR()) {
+      Chatroom r = m.room();
+      if (r!=null) r.userMenu(c, x, y, userString);
+    }
   }
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    if (visible) v.mentionUser(userString);
+    if (visible) {
+      LiveView lv = m.liveView();
+      if (lv!=null) lv.mentionUser(userString);
+    }
   }
   
   public void drawCh(Graphics g, boolean full) {
@@ -54,7 +62,7 @@ public class UserTagNode extends TextNode {
     }
     int pFG = sv.tcol;
     
-    sv.tcol = v.room().user().userCol(userString, mine, false);
+    sv.tcol = ev.room().user().userCol(userString, mine, false);
     
     for (Node c : ch) sv.add(c);
     sv.tcol = pFG;

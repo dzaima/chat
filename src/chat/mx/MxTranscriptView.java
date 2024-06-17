@@ -7,22 +7,26 @@ import libMx.MxRoom;
 public class MxTranscriptView extends TranscriptView {
   public final MxChatroom r;
   public final MxLog log;
-  private final String highlightID;
-  private int highlightTime = 2;
+  
+  private String highlightID;
+  private int highlightTime;
   
   
-  public MxTranscriptView(MxChatroom r, String highlightID, MxRoom.Chunk c) {
+  public MxTranscriptView(MxChatroom r, MxRoom.Chunk c) {
     this.r = r;
-    this.highlightID = highlightID;
-    this.log = new MxLog(r);
+    this.log = new MxLog(r, r.mainLiveView); // TODO thread
     tokB = c.sTok;
     tokF = c.eTok;
     log.addEvents(c.events, true);
   }
   
+  public void highlight(ChatEvent ev) {
+    this.highlightID = ev.id;
+    this.highlightTime = 2;
+  }
   
   public void openViewTick() {
-    if (highlightTime>=0) {
+    if (highlightTime>=0 && highlightID!=null) {
       highlightTime--;
       MxChatEvent m = log.get(highlightID);
       if (m!=null) m.highlight(true);
@@ -31,7 +35,11 @@ public class MxTranscriptView extends TranscriptView {
   }
   
   public LiveView baseLiveView() {
-    return r.mainLiveView; // TODO thread
+    return log.liveView();
+  }
+  
+  public boolean contains(ChatEvent ev) {
+    return log.contains(ev);
   }
   
   public void show() { super.show(); log.show(); highlightTime=2; }

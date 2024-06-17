@@ -4,17 +4,12 @@ import chat.*;
 import chat.ui.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
-import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
-import dzaima.ui.node.types.editable.*;
-import dzaima.utils.*;
 import dzaima.utils.JSON.*;
+import dzaima.utils.*;
 import dzaima.utils.options.TupleHashSet;
-import io.github.humbleui.skija.Image;
 import libMx.*;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.util.*;
 import java.util.function.*;
 
@@ -60,8 +55,9 @@ public class MxChatroom extends Chatroom {
     this.r = u.s.room(rid);
     m.dumpInitial.accept(rid, init);
     
-    liveLogs.put(null, new MxLog(this));
-    mainLiveView = new MxLiveView(this, myLog());
+    MxLog l0 = new MxLog(this, null);
+    mainLiveView = l0.liveView();
+    liveLogs.put(null, l0);
     if (!u.lazyLoadUsers) fullUserList = Promise.create(res -> res.set(userData));
     
     update(status0, init);
@@ -109,7 +105,7 @@ public class MxChatroom extends Chatroom {
     commands.put("sort", left -> {
       MxLog l = null;
       if (m.view instanceof MxLiveView) l = ((MxLiveView) m.view).log;
-      else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView)m.view).log;
+      else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView) m.view).log;
       if (l!=null) {
         l.list.sort(Comparator.comparing(k -> k.time));
         m.toView(m.view);
@@ -415,10 +411,14 @@ public class MxChatroom extends Chatroom {
   public MxLog myLog() { return liveLogs.get(null); }
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
-  public MxLog logOf(MxEvent e) {
-    return e.m==null || e.m.threadId==null? myLog() : liveLogs.computeIfAbsent(e.m.threadId, unused -> new MxLog(this));
+  private MxLog getThreadLog(String threadID) {
+    return liveLogs.computeIfAbsent(threadID, unused -> new MxLog(this, null));
   }
-    
+  public MxLog logOf(MxEvent e) {
+    return e.m==null || e.m.threadId==null? myLog() : getThreadLog(e.m.threadId);
+  }
+  
+  
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
     MxLog l = logOf(e);
@@ -545,15 +545,36 @@ public class MxChatroom extends Chatroom {
   }
   
   public static final Counter changeWindowCounter = new Counter();
-  public void openTranscript(String msgId, Consumer<Boolean> callback, boolean force) {
-    if (!force) {
-      MxChatEvent m = allKnownEvents.get(msgId);
-      if (m!=null) {
-        m.highlight(false);
-        callback.accept(true);
-        return;
+  public void openTranscript(String msgId, Consumer<Boolean> callback, boolean force) { // TODO fix no-op callbacks
+    gotoDirect: if (!force) {
+      MxChatEvent ev = allKnownEvents.get(msgId);
+      if (ev==null) break gotoDirect;
+      
+      // search first in current view, then main live view, then other views
+      Vec<MxLog> logs = Vec.ofCollection(liveLogs.values());
+      
+      logs.remove(mainLiveView.log);
+      logs.insert(0, mainLiveView.log);
+      
+      LiveView curr = u.m.liveView();
+      MxLog currLog = null;
+      if (curr instanceof MxLiveView && curr.room()==this) {
+        currLog = ((MxLiveView) curr).log;
+        logs.remove(currLog);
+        logs.insert(0, currLog);
+      }
+      
+      for (MxLog c : logs) {
+        if (c.lv!=null && c.contains(ev)) {
+          if (currLog == c) ev.highlight(false);
+          else m.toRoom(c.liveView(), ev);
+          
+          callback.accept(true);
+          return;
+        }
       }
     }
+    
     m.currentAction = "loading message context...";
     m.updInfo();
     u.queueRequest(changeWindowCounter, () -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
@@ -564,8 +585,14 @@ public class MxChatroom extends Chatroom {
       callback.accept(c!=null);
     });
   }
-  public void toTranscript(String highlightID, MxRoom.Chunk c) {
-    m.toTranscript(new MxTranscriptView(this, highlightID, c));
+  private void toTranscript(String highlightID, MxRoom.Chunk c) {
+    MxTranscriptView v = new MxTranscriptView(this, c);
+    m.toTranscript(v, v.log.get(highlightID));
+  }
+  
+  public MxLiveView currLiveView() {
+    LiveView v = m.liveView();
+    return v instanceof MxLiveView && ((MxLiveView) v).r==this? (MxLiveView) v : null;
   }
   
   public void viewRoomInfo() {

@@ -22,6 +22,8 @@ public abstract class SearchView extends View {
     ((BtnNode) n.ctx.id("closeBtn")).setFn(n -> close());
   }
   
+  public LiveView baseLiveView() { return null; }
+  
   public boolean allRooms() { return ((CheckboxNode) n.ctx.id("allRooms")).enabled; }
   public boolean showContext() { return ((CheckboxNode) n.ctx.id("showContext")).enabled; }
   public boolean serverSide() { return false; }

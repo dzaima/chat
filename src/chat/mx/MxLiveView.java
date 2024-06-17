@@ -74,6 +74,10 @@ public class MxLiveView extends LiveView {
     return r.asCodeblock(s);
   }
   
+  public boolean contains(ChatEvent ev) {
+    return log.contains(ev);
+  }
+  
   public View getSearch() {
     return new MxSearchView(r.m, this);
   }

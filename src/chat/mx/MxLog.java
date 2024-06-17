@@ -4,22 +4,36 @@ import chat.ChatEvent;
 import dzaima.utils.*;
 import libMx.MxEvent;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class MxLog {
   public final MxChatroom r;
   public final Vec<MxChatEvent> list = new Vec<>();
+  public final HashSet<MxChatEvent> set = new HashSet<>();
   public final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
   public final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
-  public static class Reaction { MxChatEvent to; String key; }
-  public HashMap<String, Reaction> reactions = new HashMap<>();
+  public MxLiveView lv;
   
-  public MxLog(MxChatroom r) { this.r = r; }
+  public static class Reaction { MxChatEvent to; String key; }
+  
+  public HashMap<String, Reaction> reactions = new HashMap<>();
+  public MxLog(MxChatroom r, MxLiveView liveView) {
+    this.r = r;
+    lv = liveView;
+  }
+  
+  public MxLiveView liveView() {
+    if (lv == null) lv = new MxLiveView(r, this);
+    return lv;
+  }
   
   
   
   public MxChatEvent get(String id) {
     return msgMap.get(id);
+  }
+  public boolean contains(ChatEvent ev) {
+    return ev instanceof MxChatEvent && set.contains(ev);
   }
   public Vec<String> getReplies(String id) {
     return msgReplies.get(id);
@@ -111,6 +125,7 @@ public class MxLog {
   
   private void putEvent(String id, MxChatEvent m) {
     msgMap.put(id, m);
+    set.add(m);
     r.allKnownEvents.put(m.id, m);
     if (m.e0.m!=null && m.e0.m.replyId!=null) {
       msgReplies.computeIfAbsent(m.e0.m.replyId, k->new Vec<>(2)).add(id);

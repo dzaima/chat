@@ -44,10 +44,6 @@ public abstract class MxChatEvent extends ChatEvent {
   
   public Chatroom room() { return r; }
   
-  public LiveView liveView() {
-    return r.mainView(); // TODO thread
-  }
-  
   public boolean isDeleted() {
     return type.equals("deleted");
   }
@@ -126,22 +122,28 @@ public abstract class MxChatEvent extends ChatEvent {
           r.m.copyString(r.r.linkMsg(id));
           break;
         case "edit": {
-          if (liveView() != r.m.view.baseLiveView()) break;
-          ChatTextArea input = liveView().input;
-          if (input.editing == null) input.setEdit(this);
-          input.focusMe();
+          LiveView lv = r.currLiveView();
+          if (lv != null) {
+            if (lv.input.editing==null) lv.input.setEdit(this);
+            lv.input.focusMe();
+          }
           break;
         }
         case "replyTo": {
-          if (liveView() != r.m.view.baseLiveView()) break;
-          ChatTextArea input = liveView().input;
-          input.markReply(this);
-          input.focusMe();
+          LiveView lv = r.m.liveView();
+          if (lv != null) {
+            lv.input.markReply(this);
+            lv.input.focusMe();
+          }
           break;
         }
-        case "goto": // for search
-          r.m.toRoom(liveView(), this);
+        case "goto": { // for search
+          if (!(r.m.view instanceof SearchView)) break;
+          View ov = ((SearchView) r.m.view).originalView;
+          if (ov.contains(this)) r.m.toView(ov, this);
+          else r.openTranscript(id, b -> {}, false);
           break;
+        }
         case "viewSource":
           new Popup(n.ctx.win()) {
             protected void unfocused() { if (isVW) close(); }

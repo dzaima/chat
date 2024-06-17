@@ -19,4 +19,6 @@ public abstract class View {
   public abstract String asCodeblock(String s);
   
   public abstract LiveView baseLiveView(); // may be null
+  
+  public abstract boolean contains(ChatEvent ev);
 }

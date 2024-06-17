@@ -254,13 +254,8 @@ public class MxChatUser extends ChatUser {
             MxChatroom r = findRoom(parts[0]);
             String msgId = parts[1];
             if (r!=null) {
-              MxChatEvent ev = r.allKnownEvents.get(msgId);
-              if (ev!=null) {
-                m.toRoom(r.mainView(), ev); // TODO thread?
-                return;
-              }
-              r.openTranscript(msgId, v -> {
-                if (!v) m.gc.openLink(url);
+              r.openTranscript(msgId, b -> {
+                if (!b) m.gc.openLink(url);
               }, false);
               return;
             }

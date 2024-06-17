@@ -1,6 +1,6 @@
 package chat.ui;
 
-import chat.ChatEvent;
+import chat.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.types.WrapNode;
@@ -69,7 +69,10 @@ public class MsgNode extends WrapNode {
   }
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    if (visible) msg.liveView().input.markReply(msg);
+    if (visible) {
+      LiveView v = msg.room().m.liveView();
+      if (v!=null) v.input.markReply(msg);
+    }
   }
   
   public void tickC() {

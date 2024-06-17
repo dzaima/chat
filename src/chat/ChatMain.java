@@ -153,9 +153,9 @@ public class ChatMain extends NodeWindow {
     removeAllMessages();
     lastTimeStr = null;
   }
-  public void toRoom(LiveView c) {
-    toRoom(c, null);
-  }
+  public void toRoom(LiveView c) { toRoom(c, null); }
+  public void toView(View v) { toView(v, null); }
+  
   public void toRoom(LiveView c, ChatEvent toHighlight) {
     Log.fine("chat", "Moving to room "+c.title()+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     if (c==view && gc.getProp("chat.read.doubleClickToRead").b()) c.markAsRead();
@@ -167,19 +167,21 @@ public class ChatMain extends NodeWindow {
     toLast = toHighlight!=null? 3 : 2;
     this.toHighlight = toHighlight;
   }
-  public void toTranscript(TranscriptView v) {
-    Log.fine("chat", "Moving to transcript of room "+v.room().officialName);
+  public void toTranscript(TranscriptView v, ChatEvent toHighlight) {
+    Log.fine("chat", "Moving to transcript of room "+v.room().officialName+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     hideCurrent();
     view = v;
+    if (toHighlight!=null) v.highlight(toHighlight);
     LiveView live = v.baseLiveView();
     inputPlace.replace(0, live==null? new StringNode(ctx, "TODO thread") : live.input);
     v.show();
     updActions();
     toLast = 0;
   }
-  public void toView(View v) {
-    if (v instanceof TranscriptView) toTranscript((TranscriptView) v);
-    else if (v instanceof LiveView) toRoom((LiveView) v);
+  
+  public void toView(View v, ChatEvent toHighlight) {
+    if (v instanceof TranscriptView) toTranscript((TranscriptView) v, toHighlight);
+    else if (v instanceof LiveView) toRoom((LiveView) v, toHighlight);
     else Log.error("chat", "toView called with unexpected type");
   }
   public void updActions() {

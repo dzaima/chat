@@ -16,8 +16,11 @@ public class MxSearchView extends SearchView {
     super.hide();
   }
   
+  public boolean contains(ChatEvent ev) {
+    return false;
+  }
+  
   public void upload() { }
-  public LiveView baseLiveView() { return null; }
   
   public void hidePrev() {
     for (MxChatEvent e : prevShown) e.hide();

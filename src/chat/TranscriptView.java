@@ -11,7 +11,7 @@ public abstract class TranscriptView extends View {
   public /*open*/ void hide() { open = false; }
   
   public String title() {
-    return "Transcript of "+room().title();
+    return "Transcript of "+baseLiveView().title();
   }
   
   public /*open*/ void openViewTick() {
@@ -23,6 +23,8 @@ public abstract class TranscriptView extends View {
   
   public boolean key(Key key, int scancode, KeyAction a) { return false; }
   public boolean typed(int codepoint) { return false; }
+  
+  public abstract void highlight(ChatEvent eventID);
   
   public abstract LiveView baseLiveView(); // never null
 }
