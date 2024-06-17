@@ -35,7 +35,8 @@ public class MxChatroom extends Chatroom {
   private Promise<HashMap<String, UserData>> fullUserList = null;
   private Vec<Obj> memberEventsToProcess = null; // held for the duration of fullUserList calculation
   public enum UserStatus { LEFT, INVITED, JOINED, BANNED, KNOCKING }
-  public static class UserData { public String username, avatar; UserStatus s = UserStatus.LEFT; }
+  public static class UserData { public String username, avatar; UserStatus s = UserStatus.LEFT; boolean questionable = true; }
+  private int joinedCount = 0;
   public final HashMap<String, UserData> userData = new HashMap<>(); // using directly may be problematic due to lazy loading!
   
   public final PowerLevelManager powerLevels = new PowerLevelManager();
@@ -59,6 +60,7 @@ public class MxChatroom extends Chatroom {
     m.dumpInitial.accept(rid, init);
     if (!u.lazyLoadUsers) fullUserList = Promise.create(res -> res.set(userData));
     update(status0, init);
+    joinedCount = Obj.path(init, Num.ZERO, "summary", "m.joined_member_count").asInt();
     if (status0!=MyStatus.INVITED) initPrevBatch(init);
     if (nameState==0) {
       ArrayList<String> parts = new ArrayList<>();
@@ -129,17 +131,25 @@ public class MxChatroom extends Chatroom {
     Obj timeline = init.obj("timeline", Obj.E);
     prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
   }
-  private void processMemberEvent(Obj ev) {
+  private void processMemberEvent(Obj ev, boolean isNew, boolean questionable) {
     Obj ct = ev.obj("content");
-    UserData d = this.userData.computeIfAbsent(ev.str(ev.hasStr("state_key")? "state_key" : "sender"), (s) -> new UserData());
+    String id = ev.str(ev.hasStr("state_key")? "state_key" : "sender");
+    assert id.startsWith("@") : id;
+    UserData d = this.userData.computeIfAbsent(id, (s) -> new UserData());
+    
+    if (questionable && !d.questionable) return;
+    d.questionable = questionable;
+    
     String m = ct.str("membership", "");
     if (m.equals("join")) {
       d.username = ct.str("displayname", null);
       d.avatar = ct.str("avatar_url", null);
     }
+    if (isNew && d.s == UserStatus.JOINED) joinedCount--;
+    
     switch (m) {
       case "invite": d.s = UserStatus.INVITED; break;
-      case "join": d.s = UserStatus.JOINED; break;
+      case "join": d.s = UserStatus.JOINED; if (isNew) joinedCount++; break;
       case "leave": d.s = UserStatus.LEFT; break;
       case "ban": d.s = UserStatus.BANNED; break;
       case "knock": d.s = UserStatus.KNOCKING; break;
@@ -153,7 +163,7 @@ public class MxChatroom extends Chatroom {
           memberEventsToProcess.add(ev);
           return;
         } else {
-          processMemberEvent(ev);
+          processMemberEvent(ev, true, false);
         }
         break;
       case "m.room.create":
@@ -452,6 +462,9 @@ public class MxChatroom extends Chatroom {
   private boolean hasFullUserList() {
     return fullUserList!=null && fullUserList.isResolved();
   }
+  public int getJoinedMemberCount() { // probably correct-ish even without full user list loaded
+    return joinedCount;
+  }
   public void retryOnFullUserList(Runnable then) {
     if (hasFullUserList()) return;
     getFullUserList().then(userData -> then.run());
@@ -465,14 +478,17 @@ public class MxChatroom extends Chatroom {
   
   public Promise<HashMap<String, UserData>> getFullUserList() {
     if (fullUserList==null) fullUserList = Promise.create(res -> {
+      Log.info("mx", "getting full user list of "+prettyID());
       assert memberEventsToProcess==null;
       String tk = u.currentSyncToken;
       memberEventsToProcess = new Vec<>();
       u.queueRequest(null, () -> r.getFullMemberState(tk), us -> {
-        for (Obj c : us.objs()) processMemberEvent(c);
-        for (Obj c : memberEventsToProcess) processMemberEvent(c);
+        for (Obj c : us.objs()) processMemberEvent(c, false, false);
+        for (Obj c : memberEventsToProcess) processMemberEvent(c, true, false);
+        Log.info("mx", "Got full user list of "+prettyID());
         memberEventsToProcess = null;
         res.set(userData);
+        joinedCount = Vec.ofCollection(userData.values()).filter(c -> c.s==MxChatroom.UserStatus.JOINED).sz;
       });
     });
     return fullUserList;
@@ -579,18 +595,23 @@ public class MxChatroom extends Chatroom {
   
   public ChatUser user() { return u; }
   
-  public volatile MxRoom.Chunk olderRes; // TODO move to queueRequest? (or atomic at least idk)
+  public MxRoom.Chunk olderRes; // TODO move to queueRequest? (or atomic at least idk)
   public long nextOlder;
   public void older() {
     if (msgLogToStart || prevBatch==null) return;
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
-    u.queueNetwork(() -> {
-      MxRoom.Chunk r = this.r.beforeTok(prevBatch, log.size()<50? 50 : 100);
+    u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, log.size()<50? 50 : 100), r -> {
       if (r==null) { ChatMain.warn("MxRoom::before failed on token "+prevBatch); return; }
+      loadQuestionableMemberState(r);
       olderRes = r;
     });
+  }
+  
+  private void loadQuestionableMemberState(MxRoom.Chunk r) {
+    if (r==null) return;
+    for (MxEvent c : r.states) if (c.type.equals("m.room.member")) processMemberEvent(c.o, false, true);
   }
   
   public void readAll() {
@@ -627,7 +648,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public String getUsername(String uid) {
-    assert uid.startsWith("@");
+    assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
     if (d==null || d.username==null) return uid.split(":")[0].substring(1);
     return d.username;
@@ -665,7 +686,8 @@ public class MxChatroom extends Chatroom {
     }
     m.currentAction = "loading message context...";
     m.updInfo();
-    u.queueRequest(changeWindowCounter, () -> r.msgContext(msgId, 100), c -> {
+    u.queueRequest(changeWindowCounter, () -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
+      loadQuestionableMemberState(c);
       m.currentAction = null;
       m.updInfo();
       if (c!=null) toTranscript(msgId, c);

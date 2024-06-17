@@ -1,6 +1,6 @@
 package libMx;
 
-import dzaima.utils.JSON;
+import dzaima.utils.*;
 
 import java.util.*;
 
@@ -37,34 +37,57 @@ public class MxRoom {
   
   public static class Chunk {
     public final ArrayList<MxEvent> events;
+    public final ArrayList<MxEvent> states;
     public final String sTok;
     public final String eTok; // token for next batch
     
-    public Chunk(ArrayList<MxEvent> events, String sTok, String eTok) { this.events = events; this.sTok = sTok; this.eTok = eTok; }
+    public Chunk(ArrayList<MxEvent> events, ArrayList<MxEvent> states, String sTok, String eTok) { this.events=events; this.states=states; this.sTok=sTok; this.eTok=eTok; }
   }
-  public Chunk beforeTok(String from, int am) { return beforeTok(from, null, am); }
-  public Chunk afterTok(String from, int am) { return getMessages(from, null, 'f', am); }
-  public Chunk beforeTok(String from, String to, int am) { return getMessages(from, to, 'b', am); }
-  public Chunk getMessages(String from, String to, char d, int am) {
-    Obj o = request("messages").prop("limit",am).prop("from",from).prop("dir",String.valueOf(d)).optProp("to",to).gToken().get().runJ();
-    ArrayList<MxEvent> res = new ArrayList<>();
+  public static Obj roomEventFilter(boolean lazyLoadMembers) {
+    return Obj.fromKV("lazy_load_members", lazyLoadMembers);
+  }
+  public Chunk beforeTok(Obj filter, String from, int am) { return beforeTok(filter, from, null, am); }
+  public Chunk afterTok(Obj filter, String from, int am) { return getMessages(filter, from, null, 'f', am); }
+  public Chunk beforeTok(Obj filter, String from, String to, int am) { return getMessages(filter, from, to, 'b', am); }
+  public Chunk getMessages(Obj filter, String from, String to, char d, int am) {
+    Obj o = request("messages")
+      .optProp("filter", filter==null? null : filter.toString())
+      .prop("limit", am)
+      .prop("from", from).prop("dir", String.valueOf(d)).optProp("to", to)
+      .gToken().get().runJ();
+    
+    ArrayList<MxEvent> events = new ArrayList<>();
     if (!o.has("chunk")) return null;
-    for (Obj c : o.arr("chunk").objs()) {
-      res.add(new MxEvent(this, c));
-    }
-    if (d=='b') Collections.reverse(res);
-    return new Chunk(res, o.str("start"), o.str("end", null));
+    for (Obj c : o.arr("chunk").objs()) events.add(new MxEvent(this, c));
+    
+    
+    if (d=='b') Collections.reverse(events);
+    return new Chunk(events, readState(o), o.str("start"), o.str("end", null));
   }
   
-  public Chunk msgContext(String id, int am) {
-    Obj o = request("context",id).prop("limit", am).gToken().get().runJ();
-    ArrayList<MxEvent> res = new ArrayList<>();
+  public Chunk msgContext(Obj filter, String id, int am) {
+    Obj o = request("context",id)
+      .optProp("filter", filter==null? null : filter.toString())
+      .prop("limit", am)
+      .gToken().get().runJ();
+    
+    ArrayList<MxEvent> events = new ArrayList<>();
+    
     if (!o.has("events_before")) return null;
-    for (Obj c : o.arr("events_before").objs()) res.add(new MxEvent(this, c));
-    Collections.reverse(res);
-    if (o.has("event")) res.add(new MxEvent(this, o.obj("event")));
-    for (Obj c : o.arr("events_after").objs()) res.add(new MxEvent(this, c));
-    return new Chunk(res, o.str("start", ""), o.str("end", ""));
+    for (Obj c : o.arr("events_before").objs()) events.add(new MxEvent(this, c));
+    Collections.reverse(events);
+    
+    if (o.has("event")) events.add(new MxEvent(this, o.obj("event")));
+    for (Obj c : o.arr("events_after").objs()) events.add(new MxEvent(this, c));
+    
+    return new Chunk(events, readState(o), o.str("start", ""), o.str("end", ""));
+  }
+  
+  private ArrayList<MxEvent> readState(Obj o) {
+    ArrayList<MxEvent> states = new ArrayList<>();
+    for (Obj c : o.arr("state", JSON.Arr.E).objs()) states.add(new MxEvent(this, c));
+    System.out.println(o.arr("state", JSON.Arr.E));
+    return states;
   }
   
   public JSON.Arr getFullMemberState(String token) {

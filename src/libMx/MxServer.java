@@ -211,9 +211,9 @@ public class MxServer {
   }
   
   
-  public static Obj syncFilter(int count, boolean lazy_load_members) {
+  public static Obj syncFilter(int count, boolean lazyLoadMembers) {
     return Obj.fromKV("room", Obj.fromKV(
-      "state", Obj.fromKV("lazy_load_members", lazy_load_members),
+      "state", Obj.fromKV("lazy_load_members", lazyLoadMembers),
       "timeline", Obj.fromKV("limit", count)
     ));
   }

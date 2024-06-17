@@ -45,8 +45,8 @@ public class MxTranscriptView extends TranscriptView {
     String tok = tokB;
     tokB = null;
     Log.fine("mx", "Loading older messages in transcript");
-    r.u.queueRequest(null, () -> r.r.beforeTok(tok, 50), r -> {
-      if (r.events.size()==0) return;
+    r.u.queueRequest(null, () -> r.r.beforeTok(null, tok, 50), r -> {
+      if (r.events.isEmpty()) return;
       log.addEvents(r.events, false);
       tokB = r.eTok;
     });
@@ -56,8 +56,8 @@ public class MxTranscriptView extends TranscriptView {
     String tok = tokF;
     tokF = null;
     Log.fine("mx", "Loading newer messages in transcript");
-    r.u.queueRequest(null, () -> r.r.afterTok(tok, 50), r -> {
-      if (r.events.size()==0) return;
+    r.u.queueRequest(null, () -> r.r.afterTok(null, tok, 50), r -> {
+      if (r.events.isEmpty()) return;
       log.addEvents(r.events, true);
       tokF = r.eTok;
     });
