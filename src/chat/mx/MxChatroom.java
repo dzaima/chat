@@ -507,7 +507,10 @@ public class MxChatroom extends Chatroom {
     if (olderRes!=null) {
       if (olderRes.events.isEmpty()) msgLogToStart = true;
       prevBatch = olderRes.eTok;
-      myLog().addEvents(Vec.ofCollection(olderRes.events).filter(c -> logOf(c)==myLog()), false);
+      Vec<MxEvent> evs = Vec.ofCollection(olderRes.events);
+      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(evs, this::logOf)) {
+        if (p.a.globalPaging) p.a.addEvents(p.b, false);
+      }
       olderRes = null;
       nextOlder = System.currentTimeMillis()+500;
     }

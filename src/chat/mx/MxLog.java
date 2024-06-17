@@ -9,6 +9,7 @@ import java.util.*;
 public class MxLog {
   public final MxChatroom r;
   public final String threadID;
+  public boolean globalPaging = true;
   public final Vec<MxChatEvent> list = new Vec<>();
   public final HashSet<MxChatEvent> set = new HashSet<>();
   public final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
