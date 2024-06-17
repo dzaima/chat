@@ -9,6 +9,7 @@ import dzaima.ui.node.types.*;
 import dzaima.ui.node.types.editable.*;
 import dzaima.utils.*;
 import dzaima.utils.JSON.*;
+import dzaima.utils.options.TupleHashSet;
 import io.github.humbleui.skija.Image;
 import libMx.*;
 
@@ -37,7 +38,8 @@ public class MxChatroom extends Chatroom {
   
   public final PowerLevelManager powerLevels = new PowerLevelManager();
   
-  public final HashMap<String, String> latestReceipts = new HashMap<>(); // map from user ID to ID of last message the user has a read receipt on
+  public final HashMap<String, String> latestReceipts = new HashMap<>(); // user ID → event ID of their receipt
+  public final TupleHashSet<String, String> messageReceipts = new TupleHashSet<>(); // event ID → set of users
   private static class EventInfo { String closestVisible; int monotonicID; }
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
@@ -52,6 +54,7 @@ public class MxChatroom extends Chatroom {
     this.log = new MxLog(this);
     this.u = u;
     this.r = u.s.room(rid);
+    m.dumpInitial.accept(rid, init);
     update(status0, init);
     if (status0!=MyStatus.INVITED) initPrevBatch(init);
     if (nameState==0) {
@@ -175,6 +178,7 @@ public class MxChatroom extends Chatroom {
   
   private int monotonicCounter = 0;
   public void update(MyStatus ns, Obj sync) {
+    m.dumpAll.accept(r.rid, sync);
     MyStatus ps = myStatus;
     myStatus = ns;
     boolean pInv = ps==MyStatus.INVITED;
@@ -191,10 +195,12 @@ public class MxChatroom extends Chatroom {
     Arr ephemeralList = sync.obj("ephemeral",Obj.E).arr("events",Arr.E);
     Log.info("room-updates", "room "+prettyID()+" received "+stateList.size()+" states, "+eventList.size()+" events, "+ephemeralList.size()+" ephemerals");
     
+    // state
     for (Obj ev : stateList.objs()) {
       anyEvent(ev, ev.obj("content"));
     }
     
+    // regular timeline events
     HashSet<String> seen = new HashSet<>();
     for (Obj ev : eventList.objs()) {
       if (ev.hasStr("event_id")) {
@@ -231,6 +237,7 @@ public class MxChatroom extends Chatroom {
       }
     }
     
+    // ephemeral events
     for (Obj ev : ephemeralList.objs()) {
       Obj ct = ev.obj("content", Obj.E);
       switch (ev.str("type", "")) {
@@ -267,28 +274,27 @@ public class MxChatroom extends Chatroom {
     String prevID = latestReceipts.get(uid);
     MxChatEvent pm = prevID==null? null : find(prevID);
     MxChatEvent nm = find(visID);
-    Log.fine("mx receipt", uid+": "+prevID+(pm==null? " (not in log)" : "")+" → "+mid+" / "+(ei==null? "unknown" : visID)+(nm==null? " (not in log)" : ""));
+    
+    Log.fine("mx receipt", uid+" in "+prettyID()+": "+
+      prevID + (pm==null? " (not in log)" : "") +
+      " → " + mid +
+      (!Objects.equals(visID, mid)? " → "+visID : "") + (nm==null? " (not in log)" : ""));
+    
+    if (pm!=null && nm==null) {
+      Log.fine("mx receipt", "Cancelling read receipt update due to the target being unknown");
+      return;
+    }
     if (ei!=null && pm!=null && pm.monotonicID>ei.monotonicID) {
-      Log.fine("mx receipt", "cancelling read receipt update due to non-monotonic");
+      Log.fine("mx receipt", "Cancelling read receipt update due to non-monotonic");
       return;
     }
     latestReceipts.put(uid, visID);
     
-    if (pm!=null) {
-      HashSet<String> rs = pm.receipts;
-      if (rs!=null) {
-        rs.remove(uid);
-        if (rs.isEmpty()) pm.receipts = null;
-      }
-      m.updateExtra(pm);
-    }
+    messageReceipts.remove(prevID, uid);
+    messageReceipts.add(visID, uid);
     
-    if (nm!=null) {
-      HashSet<String> rs = nm.receipts;
-      if (rs==null) rs = nm.receipts = new HashSet<>();
-      rs.add(uid);
-      m.updateExtra(nm);
-    }
+    if (pm!=null) m.updateExtra(pm);
+    if (nm!=null) m.updateExtra(nm);
   }
   
   public MxFmt parse(String s) {

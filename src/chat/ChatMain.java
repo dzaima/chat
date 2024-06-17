@@ -24,10 +24,15 @@ import java.nio.file.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.function.*;
 
 public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
   public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
+  
+  public boolean disableSaving = false;
+  public final BiConsumer<String, Obj> dumpInitial;
+  public final BiConsumer<String, Obj> dumpAll;
   
   public enum Theme { light, dark }
   public final Box<Theme> theme;
@@ -66,6 +71,8 @@ public class ChatMain extends NodeWindow {
     this.theme = theme;
     if (Tools.DBG) MxServer.LOG = true;
     if (o.has("--disable-saving")) disableSaving = true;
+    dumpInitial = makeDumpConsumer(o.optList("--dump-initial-sync"));
+    dumpAll = makeDumpConsumer(o.optList("--dump-all-sync"));
     
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -239,7 +246,6 @@ public class ChatMain extends NodeWindow {
     if (saveRequested) forceTrySaveNow();
   }
   
-  public boolean disableSaving = false;
   private void forceTrySaveNow() {
     if (disableSaving) return;
     saveRequested = false;
@@ -669,6 +675,8 @@ public class ChatMain extends NodeWindow {
   public static void main(String[] args) {
     AutoOptions o = new AutoOptions();
     o.argBool("--disable-saving", "Disable saving profile");
+    o.argString("--dump-initial-sync", "Dump initial sync JSON of rooms with matching ID");
+    o.argString("--dump-all-sync", "Dump all sync JSON of rooms with matching ID");
     o.autoHelp();
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);
@@ -715,6 +723,17 @@ public class ChatMain extends NodeWindow {
       mgr.start(new ChatMain(gc, ctx, gc.getProp("chat.ui").gr(), profilePath, theme, loadedProfile, o.o));
     });
   }
+  private BiConsumer<String, Obj> makeDumpConsumer(Vec<OptionItem> items) {
+    if (items.sz == 0) return (s, o) -> {};
+    return (id, obj) -> {
+      if (items.some(c -> id.contains(c.v))) {
+        Log.info("Dump of sync of "+id+":");
+        Log.info(obj.toString(2));
+      }
+    };
+  }
+  
+  
   
   public long readMinViewMs;
   public float altViewMult;

@@ -87,7 +87,8 @@ public class AutoOptions {
   }
   
   public void argString(String a, String helpText) {
-    addHelpText(a, helpText);
+    addHelpText(a+"=…", helpText);
+    putArg(a, (arg, i, get) -> o.put(arg, i, get.get()));
   }
   
   public void argStringRunOne(String a, String helpText, Consumer<String> take) {

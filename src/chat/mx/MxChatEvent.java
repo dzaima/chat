@@ -166,7 +166,7 @@ public abstract class MxChatEvent extends ChatEvent {
     if (nv!=0) reactions.put(key, nv);
     else {
       reactions.remove(key);
-      if (reactions.size()==0) reactions = null;
+      if (reactions.isEmpty()) reactions = null;
     }
     r.m.updateExtra(this);
   }
@@ -175,8 +175,7 @@ public abstract class MxChatEvent extends ChatEvent {
     return reactions;
   }
   
-  public HashSet<String> receipts;
   public HashSet<String> getReceipts() {
-    return receipts;
+    return r.messageReceipts.getSetForA(id);
   }
 }
