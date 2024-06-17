@@ -95,6 +95,9 @@ chat {
   msg.removedCol = #5FFF // color of the "(removed)" text of removed messages
   msg.border = #888 // dashed border color
   quote.line  = #999 // color of line left of a quote
+  quote.lineWidth = 0.25em // width of quote line
+  quote.indent = 1em // total left indent size
+  quote.padY = 0.2em // vertical padding around quote
   quote.color = #999 // text color in quote
   image.maxW = 40em // maximum size of inline images (whichever is hit first will limit the scale)
   image.maxH = 20em
@@ -525,12 +528,15 @@ chat {
   info.$titleP = h { alX=center text { $body color=chat.ly.colInfoTitle } } // e.g. inline message date
   
   // message contents
+  quote.padFields = { l=chat.quote.indent y=chat.quote.padY }
+  
   code.inlineP = text { family=chat.code.family bg=chat.code.bgInline xpad=.2em class=inlineCode }
   code.$blockP = pad { r=.6em y=.3em
     pad { all=.2em bg=chat.code.bgBlock
       stext { family=chat.code.family $body ibeam=true class=blockCode }
     }
   }
+  
   msg.noticeP = text { id=ch italics=true color=chat.msg.noticeCol } // X joined/left/etc
   msg.editedEndP = pad { l=0.4em chat.icon.$edited{} }
   msg.removedP = text { "(removed)" color=chat.msg.removedCol }

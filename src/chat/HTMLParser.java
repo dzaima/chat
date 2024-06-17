@@ -45,9 +45,10 @@ public class HTMLParser {
     return l;
   }
   
-  static class QuoteNode extends PadCNode implements InlineNode.Scannable {
+  static class QuoteNode extends PadNode implements InlineNode.Scannable {
     public QuoteNode(Node ch) {
-      super(ch.ctx, ch, 1, 0, 0.2f, 0.2f);
+      super(ch.ctx, ch.ctx.finishProps(ch.gc.getProp("chat.quote.padFields").gr(), null));
+      add(ch);
     }
     
     public void bg(Graphics g, boolean full) {
@@ -340,7 +341,7 @@ public class HTMLParser {
   private static void wrap(TextNode n, Element c, boolean mono, String link, Chatroom r, String key) {
     PNodeGroup g = n.gc.getProp(key).gr();
     assert "text".equals(g.name);
-    wrap(n, c, mono, link, r, Props.ofKV(g.ks, n.ctx.finishProps(g, Ctx.NO_VARS)));
+    wrap(n, c, mono, link, r, Props.ofKV(g.ks, n.ctx.finishPropList(g, Ctx.NO_VARS)));
   }
   private static void wrap(TextNode p, Element c, boolean mono, String link, Chatroom r, Props props) {
     TextNode n = new TextNode(p.ctx, props);
