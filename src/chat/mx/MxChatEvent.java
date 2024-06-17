@@ -139,8 +139,8 @@ public abstract class MxChatEvent extends ChatEvent {
           input.focusMe();
           break;
         }
-        case "goto":
-          r.m.toRoom(liveView(), this); // TODO what why
+        case "goto": // for search
+          r.m.toRoom(liveView(), this);
           break;
         case "viewSource":
           new Popup(n.ctx.win()) {
