@@ -31,6 +31,14 @@ public abstract class LiveView extends View {
     } else {
       atEndStart = nowMs;
     }
+    
+    if (m.toLast!=0) {
+      if (m.toLast==3) m.toHighlight.highlight(true);
+      else m.msgsScroll.toYE(m.toLast==2);
+      m.toLast = 0;
+    } else {
+      if (m.msgsScroll.atYS(m.endDist)) older();
+    }
   }
   
   public boolean open;
@@ -46,6 +54,7 @@ public abstract class LiveView extends View {
     else input.setLang(m.gc.langs().defLang);
   }
   
+  public abstract void older();
   public abstract Node inputPlaceContent();
   
   public abstract void post(String s, String target);

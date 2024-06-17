@@ -31,10 +31,6 @@ public class MxLiveView extends LiveView {
     return r.muteState;
   }
   
-  public void openViewTick() {
-    
-  }
-  
   public MxLog myLog() { return log; } // TODO thread: inline
   
   public void show() { log.show(); super.show(); }
@@ -90,6 +86,10 @@ public class MxLiveView extends LiveView {
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return log.prevMsg(msg, mine); }
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return log.nextMsg(msg, mine); }
+  
+  public void older() {
+    r.older(); // TODO thread (if that's really possible)
+  }
   
   
   public String upload(byte[] data, String name, String mime) {

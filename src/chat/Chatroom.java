@@ -83,15 +83,6 @@ public abstract class Chatroom {
   
   public abstract RoomListNode.ExternalDirInfo asDir();
   
-  public void viewTick() {
-    if (m.toLast!=0) {
-      if (m.toLast==3) m.toHighlight.highlight(true); 
-      else m.msgsScroll.toYE(m.toLast==2);
-      m.toLast = 0;
-    } else {
-      if (m.msgsScroll.atYS(m.endDist)) older();
-    }
-  }
   
   
   public void setOfficialName(String name) {
