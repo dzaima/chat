@@ -529,11 +529,13 @@ public class MxChatroom extends Chatroom {
     lastEvent = e;
     MxChatEvent cm = log.processMessage(e, log.size(), true);
     if (open && cm!=null) m.addMessage(cm, true);
-    if (cm==null) {
-      if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
-      else if (unread==0) readAll();
-    } else if (cm.important()) {
-      changeUnread(1, false);
+    if (!e.uid.equals(u.id())) {
+      if (cm==null) {
+        if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
+        else if (unread==0) readAll();
+      } else if (cm.important()) {
+        changeUnread(1, false);
+      }
     }
     unreadChanged();
     return cm;
