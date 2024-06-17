@@ -1,6 +1,6 @@
 package chat.mx;
 
-import dzaima.utils.*;
+import dzaima.utils.JSON;
 
 import java.util.HashMap;
 

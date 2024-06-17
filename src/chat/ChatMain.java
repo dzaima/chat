@@ -24,7 +24,7 @@ import java.nio.file.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.BiConsumer;
 
 public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";

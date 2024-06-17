@@ -3,7 +3,7 @@ package chat.mx;
 import chat.ChatMain;
 import chat.ui.Extras;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.*;
+import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Vec;
 
 public class ViewRoom {

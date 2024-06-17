@@ -2,7 +2,7 @@ package chat.ui;
 
 import chat.*;
 import chat.mx.MxChatroom;
-import dzaima.ui.gui.*;
+import dzaima.ui.gui.NodeVW;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.MenuNode;

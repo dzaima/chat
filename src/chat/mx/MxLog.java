@@ -3,7 +3,7 @@ package chat.mx;
 import dzaima.utils.*;
 import libMx.MxEvent;
 
-import java.util.*;
+import java.util.HashMap;
 
 public class MxLog {
   public final MxChatroom r;

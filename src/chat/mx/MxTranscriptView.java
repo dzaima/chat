@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.*;
-import dzaima.utils.*;
+import dzaima.utils.Log;
 import libMx.MxRoom;
 
 public class MxTranscriptView extends TranscriptView {
