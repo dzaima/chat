@@ -10,7 +10,7 @@ public class MxSync {
   ConcurrentLinkedQueue<MxEvent> recv = new ConcurrentLinkedQueue<>();
   
   public MxSync(MxServer s, String since) {
-    this(s, s.messagesSince(since, 0));
+    this(s, s.messagesSince(null, since, 0));
   }
   
   MxSync(MxServer s, Obj prev) {
@@ -20,7 +20,7 @@ public class MxSync {
   }
   
   public MxSync(MxRoom r, String since) {
-    this(r.s, r.s.messagesSince(since, 0));
+    this(r.s, r.s.messagesSince(null, since, 0));
   }
   
   void update(Obj upd) {
@@ -45,14 +45,14 @@ public class MxSync {
       int failTime = 16;
       while (running.get()) {
         try {
-          Obj c = s.messagesSince(batch, MxServer.SYNC_TIMEOUT);
+          Obj c = s.messagesSince(null, batch, MxServer.SYNC_TIMEOUT);
           update(c);
           batch = c.str("next_batch");
           failTime = 16;
         } catch (Throwable t) {
           failTime = Math.min(2*failTime, 180);
           MxServer.warn("Failed to update:");
-          t.printStackTrace();
+          MxServer.warnStacktrace(t);
           MxServer.warn("Retrying in "+(failTime)+"s");
           Utils.sleep(failTime*1000);
         }

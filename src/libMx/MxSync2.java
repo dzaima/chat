@@ -7,22 +7,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MxSync2 {
   public final MxServer s;
+  public final Obj filter;
   ConcurrentLinkedQueue<Obj> recv = new ConcurrentLinkedQueue<>();
   
-  public MxSync2(MxServer s, String since) {
-    this(s, s.messagesSince(since, 0));
+  public MxSync2(MxServer s, String since, Obj filter) {
+    this(s, s.messagesSince(filter, since, 0), filter);
   }
   
-  MxSync2(MxServer s, Obj prev) {
+  MxSync2(MxServer s, Obj prev, Obj filter) {
     this.s = s;
+    this.filter = filter;
     recv.add(prev);
     stoppedBatchToken = prev.str("next_batch");
   }
   
-  @Deprecated
-  public MxSync2(MxRoom r, String since) {
-    this(r.s, r.s.messagesSince(since, 0));
-  }
   
   
   private final AtomicBoolean running = new AtomicBoolean(false);
@@ -37,7 +35,7 @@ public class MxSync2 {
       int failTime = 16;
       while (running.get()) {
         try {
-          Obj c = s.messagesSince(batch, MxServer.SYNC_TIMEOUT);
+          Obj c = s.messagesSince(filter, batch, MxServer.SYNC_TIMEOUT);
           batch = c.str("next_batch");
           recv.add(c);
           failTime = 16;

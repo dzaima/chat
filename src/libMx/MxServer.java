@@ -212,10 +212,9 @@ public class MxServer {
   
   
   public static Obj syncFilter(int count, boolean lazyLoadMembers) {
-    return Obj.fromKV("room", Obj.fromKV(
-      "state", Obj.fromKV("lazy_load_members", lazyLoadMembers),
-      "timeline", Obj.fromKV("limit", count)
-    ));
+    Obj room = Obj.fromKV("state", Obj.fromKV("lazy_load_members", lazyLoadMembers));
+    if (count!=-1) room.put("timeline", Obj.fromKV("limit", count));
+    return Obj.fromKV("room", room);
   }
   public Obj sync(Obj filter) {
     return requestV3("sync").prop("filter", filter.toString()).gToken().get().runJ();
@@ -251,8 +250,8 @@ public class MxServer {
   }
   
   
-  public Obj messagesSince(String since, int timeout) {
-    return requestV3("sync").prop("since",since).prop("timeout",timeout).gToken().get().runJ();
+  public Obj messagesSince(Obj filter, String since, int timeout) {
+    return requestV3("sync").prop("since",since).optProp("filter", filter==null? null : filter.toString()).prop("timeout",timeout).gToken().get().runJ();
   }
   
   

@@ -133,7 +133,7 @@ public class MxChatUser extends ChatUser {
         saveRooms();
       });
       
-      MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"));
+      MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"), MxServer.syncFilter(-1, lazyLoadUsers));
       sync0.start();
       sync = sync0;
     });
