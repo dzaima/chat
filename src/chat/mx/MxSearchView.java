@@ -70,10 +70,10 @@ public class MxSearchView extends SearchView {
     Vec<MxLog> logs = new Vec<>();
     
     if (allRooms()) {
-      for (ChatUser c : m.users) {
-        if (c instanceof MxChatUser) {
-          for (MxChatroom r : ((MxChatUser) c).roomSet) {
-            logs.addAll(Vec.ofCollection(r.liveLogs.values())); // TODO order??
+      for (ChatUser u : m.users) {
+        if (u instanceof MxChatUser) {
+          for (MxChatroom r : ((MxChatUser) u).roomSet) {
+            logs.addAll(Vec.ofCollection(r.liveLogs.values()));
           }
         }
       }

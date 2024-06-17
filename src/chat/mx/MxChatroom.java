@@ -55,7 +55,7 @@ public class MxChatroom extends Chatroom {
     this.r = u.s.room(rid);
     m.dumpInitial.accept(rid, init);
     
-    MxLog l0 = new MxLog(this, null);
+    MxLog l0 = new MxLog(this, null, null);
     mainLiveView = l0.liveView();
     liveLogs.put(null, l0);
     if (!u.lazyLoadUsers) fullUserList = Promise.create(res -> res.set(userData));
@@ -412,7 +412,7 @@ public class MxChatroom extends Chatroom {
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
   private MxLog getThreadLog(String threadID) {
-    return liveLogs.computeIfAbsent(threadID, unused -> new MxLog(this, null));
+    return liveLogs.computeIfAbsent(threadID, id -> new MxLog(this, id, null));
   }
   public MxLog logOf(MxEvent e) {
     return e.m==null || e.m.threadId==null? myLog() : getThreadLog(e.m.threadId);

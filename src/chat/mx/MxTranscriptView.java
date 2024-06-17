@@ -14,7 +14,7 @@ public class MxTranscriptView extends TranscriptView {
   
   public MxTranscriptView(MxChatroom r, MxRoom.Chunk c) {
     this.r = r;
-    this.log = new MxLog(r, r.mainLiveView); // TODO thread
+    this.log = new MxLog(r, r.mainLiveView.log.threadID, r.mainLiveView); // TODO thread
     tokB = c.sTok;
     tokF = c.eTok;
     log.addEvents(c.events, true);

@@ -8,6 +8,7 @@ import java.util.*;
 
 public class MxLog {
   public final MxChatroom r;
+  public final String threadID;
   public final Vec<MxChatEvent> list = new Vec<>();
   public final HashSet<MxChatEvent> set = new HashSet<>();
   public final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
@@ -17,8 +18,9 @@ public class MxLog {
   public static class Reaction { MxChatEvent to; String key; }
   
   public HashMap<String, Reaction> reactions = new HashMap<>();
-  public MxLog(MxChatroom r, MxLiveView liveView) {
+  public MxLog(MxChatroom r, String threadID, MxLiveView liveView) {
     this.r = r;
+    this.threadID = threadID;
     lv = liveView;
   }
   
