@@ -569,7 +569,7 @@ public class MxChatroom extends Chatroom {
       }
       
       for (MxLog c : logs) {
-        if (c.lv!=null && c.contains(ev)) {
+        if (c.contains(ev)) {
           if (currLog == c) ev.highlight(false);
           else m.toRoom(c.liveView(), ev);
           
