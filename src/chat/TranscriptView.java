@@ -7,14 +7,14 @@ public abstract class TranscriptView extends View {
   public abstract void newer();
   
   protected boolean open;
-  public /*open*/ void show() { open = true; room().m.setCurrentRoomTitle(title()); }
+  public /*open*/ void show() { open = true; room().m.setCurrentViewTitle(title()); }
   public /*open*/ void hide() { open = false; }
   
   public String title() {
     return "Transcript of "+room().title();
   }
   
-  public /*open*/ void viewTick() {
+  public /*open*/ void openViewTick() {
     ChatMain m = room().m;
     if (!m.msgsScroll.ignoresYS() && m.msgsScroll.atYS(m.endDist)) older();
     if (!m.msgsScroll.ignoresYE() && m.msgsScroll.atYE(m.endDist)) newer();
@@ -23,4 +23,6 @@ public abstract class TranscriptView extends View {
   
   public boolean key(Key key, int scancode, KeyAction a) { return false; }
   public boolean typed(int codepoint) { return false; }
+  
+  public abstract LiveView live();
 }

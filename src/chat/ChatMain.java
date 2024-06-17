@@ -1,6 +1,6 @@
 package chat;
 
-import chat.mx.MxChatUser;
+import chat.mx.*;
 import chat.ui.*;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
@@ -63,9 +63,11 @@ public class ChatMain extends NodeWindow {
   public Chatroom room() {
     return view==null? null : view instanceof SearchView? null : view.room();
   }
+  public LiveView liveView() {
+    return view==null? null : view.baseLiveView();
+  }
   public ChatTextArea input() {
-    Chatroom r = room();
-    return r==null? null : r.input;
+    return view instanceof LiveView? ((LiveView) view).input : null;
   }
   
   public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile, Options o) {
@@ -87,7 +89,8 @@ public class ChatMain extends NodeWindow {
     inputPlace = base.ctx.id("inputPlace");
     ((BtnNode) base.ctx.id("send")).setFn(c -> send());
     ((BtnNode) base.ctx.id("upload")).setFn(c -> {
-      if (view!=null) view.room().upload();
+      LiveView v = liveView();
+      if (v!=null) v.upload();
     });
     ((BtnNode) base.ctx.id("roomInfo")).setFn(c -> {
       Chatroom r = room();
@@ -150,11 +153,11 @@ public class ChatMain extends NodeWindow {
     removeAllMessages();
     lastTimeStr = null;
   }
-  public void toRoom(Chatroom c) {
+  public void toRoom(LiveView c) {
     toRoom(c, null);
   }
-  public void toRoom(Chatroom c, ChatEvent toHighlight) {
-    Log.fine("chat", "Moving to room "+c.officialName+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
+  public void toRoom(LiveView c, ChatEvent toHighlight) {
+    Log.fine("chat", "Moving to room "+c.title()+(toHighlight==null? "" : " with highlighting of "+toHighlight.id));
     if (c==view && gc.getProp("chat.read.doubleClickToRead").b()) c.markAsRead();
     hideCurrent();
     view = c;
@@ -168,14 +171,15 @@ public class ChatMain extends NodeWindow {
     Log.fine("chat", "Moving to transcript of room "+v.room().officialName);
     hideCurrent();
     view = v;
-    inputPlace.replace(0, v.room().input);
+    LiveView live = v.live();
+    inputPlace.replace(0, live==null? new StringNode(ctx, "TODO thread") : live.input);
     v.show();
     updActions();
     toLast = 0;
   }
   public void toView(View v) {
     if (v instanceof TranscriptView) toTranscript((TranscriptView) v);
-    else if (v instanceof Chatroom) toRoom((Chatroom) v);
+    else if (v instanceof LiveView) toRoom((LiveView) v);
     else Log.error("chat", "toView called with unexpected type");
   }
   public void updActions() {
@@ -210,7 +214,10 @@ public class ChatMain extends NodeWindow {
     infobar.replace(0, new StringNode(infobar.ctx, info.toString()));
   }
   
-  public void setCurrentRoomTitle(String s) {
+  public void updateCurrentViewTitle() {
+    setCurrentViewTitle(view.title());
+  }
+  public void setCurrentViewTitle(String s) { // TODO use less?
     base.ctx.id("roomName").replace(0, new StringNode(base.ctx, s));
     updateTitle();
   }
@@ -235,7 +242,7 @@ public class ChatMain extends NodeWindow {
     
     for (ChatUser c : users) c.tick();
     
-    if (view!=null) view.viewTick();
+    if (view!=null) view.openViewTick();
     if (msgExtra!=null) msgExtra.tickExtra();
     if (hoverPopup!=null && hoverPopup.shouldClose()) hoverPopup.close();
     
@@ -305,7 +312,7 @@ public class ChatMain extends NodeWindow {
   private String lastTimeStr;
   public String currDelta() {
     if (!gc.getProp("chat.timeSinceLast").b()) return null;
-    if (msgs.ch.sz==0 || !(view instanceof Chatroom)) return null;
+    if (msgs.ch.sz==0 || !(view instanceof MxLiveView)) return null;
     int n = msgs.ch.sz-1;
     Node a = msgs.ch.get(n);
     if (!(a instanceof MsgNode)) { n--; if(n>=0) a = msgs.ch.get(n); }
@@ -478,8 +485,8 @@ public class ChatMain extends NodeWindow {
     else setTitle(ct+view.title());
   }
   
-  public void updateUnread() {
-    if (view instanceof Chatroom) ((Chatroom) view).unreadChanged();
+  public void updateUnread() { // TODO how needed is this?
+    if (view instanceof LiveView) view.room().unreadChanged();
     else unreadChanged();
   }
   
@@ -632,7 +639,7 @@ public class ChatMain extends NodeWindow {
           }
         }
         if (res==null) res = edgeRoom(!up);
-        if (res!=null) toRoom(res);
+        if (res!=null) toRoom(res.mainView());
         return true;
       }
       case "search": {

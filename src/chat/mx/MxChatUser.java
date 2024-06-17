@@ -246,7 +246,7 @@ public class MxChatUser extends ChatUser {
           if (n==1) {
             MxChatroom r = findRoom(parts[0]);
             if (r!=null) {
-              m.toRoom(r);
+              m.toRoom(r.mainView());
               return;
             }
           }
@@ -256,7 +256,7 @@ public class MxChatUser extends ChatUser {
             if (r!=null) {
               MxChatEvent ev = r.allKnownEvents.get(msgId);
               if (ev!=null) {
-                m.toRoom(r, ev);
+                m.toRoom(r.mainView(), ev); // TODO thread?
                 return;
               }
               r.openTranscript(msgId, v -> {

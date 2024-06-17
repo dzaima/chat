@@ -1,7 +1,7 @@
 package chat.ui;
 
 import chat.*;
-import chat.mx.MxChatroom;
+import chat.mx.*;
 import dzaima.ui.gui.NodeVW;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.prop.Props;
@@ -14,14 +14,14 @@ import java.util.Objects;
 
 public class ChatTextArea extends CodeAreaNode {
   public final ChatMain m;
-  public final Chatroom r;
+  public final LiveView v;
   public ChatEvent editing;
   public ChatEvent replying;
   
-  public ChatTextArea(Chatroom r, Props props) {
-    super(r.m.ctx, props);
-    this.r = r;
-    this.m = r.m;
+  public ChatTextArea(LiveView v, Props props) {
+    super(v.room().m.ctx, props);
+    this.v = v;
+    this.m = v.room().m;
   }
   
   public boolean keyF2(Key key, int scancode, KeyAction a) {
@@ -31,16 +31,16 @@ public class ChatTextArea extends CodeAreaNode {
         m.send();
         return true;
       case "editUp": case "editDn":
-        if (m.view instanceof Chatroom && (editing==null? getAll().isEmpty() : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
-          Chatroom room = (Chatroom) m.view;
-          setEdit(name.equals("editUp")? room.prevMsg(editing, true) : room.nextMsg(editing, true));
+        if (m.view instanceof LiveView && (editing==null? getAll().isEmpty() : getAll().equals(editing.getSrc())&&um.us.sz==0)) {
+          LiveView v = (LiveView) m.view;
+          setEdit(name.equals("editUp")? v.prevMsg(editing, true) : v.nextMsg(editing, true));
           return true;
         }
         break;
       case "replyUp": case "replyDn":
-        if (m.view instanceof Chatroom && editing==null) {
-          Chatroom room = (Chatroom) m.view;
-          markReply(name.equals("replyUp")? room.prevMsg(replying, false) : room.nextMsg(replying, false));
+        if (m.view instanceof LiveView && editing==null) {
+          LiveView v = (LiveView) m.view;
+          markReply(name.equals("replyUp")? v.prevMsg(replying, false) : v.nextMsg(replying, false));
           return true;
         }
         break;
@@ -48,7 +48,7 @@ public class ChatTextArea extends CodeAreaNode {
         m.pasteString(g -> {
           if (g==null) return;
           um.pushL("paste code");
-          pasteText(r.asCodeblock(g));
+          pasteText(v.asCodeblock(g));
           um.pop();
         });
         return true;
@@ -56,7 +56,7 @@ public class ChatTextArea extends CodeAreaNode {
         if (editing!=null) {
           ChatEvent toDel = editing;
           setEdit(null);
-          r.delete(toDel);
+          v.room().delete(toDel);
           removeAll(); um.clear();
         }
         return true;
@@ -91,7 +91,7 @@ public class ChatTextArea extends CodeAreaNode {
         int sx = c.sx;
         while (sx>0 && line.get(sx-1)!=' ') sx--;
         if (sx+1<c.sx && line.get(sx)=='@') {
-          r.retryOnFullUserList(() -> {
+          v.room().retryOnFullUserList(() -> {
             prevTag = null;
             doCompletion(true);
           });
@@ -108,9 +108,9 @@ public class ChatTextArea extends CodeAreaNode {
         }
       }
       
-      if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && r instanceof MxChatroom) {
+      if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && v instanceof MxLiveView) {
         String curr = get(1, 0, c.sx, 0);
-        Vec<String> cmds = Vec.ofCollection(((MxChatroom) r).commands.keySet()).filter(cmd -> cmd.contains(curr));
+        Vec<String> cmds = Vec.ofCollection(((MxLiveView) v).r.commands.keySet()).filter(cmd -> cmd.contains(curr));
         cmds.sort();
         for (String cmd : cmds) entries.add(new Pair<>("/"+cmd, "/"+cmd));
         if (entries.sz > 0) {
@@ -181,9 +181,9 @@ public class ChatTextArea extends CodeAreaNode {
     
     if (editing!=null) {
       if (getAll().equals(editing.getSrc())) return;
-      r.edit(editing, s);
+      v.edit(editing, s);
     } else {
-      r.post(s, replying==null? null : replying.id);
+      v.post(s, replying==null? null : replying.id);
     }
     
     markEdit(null);

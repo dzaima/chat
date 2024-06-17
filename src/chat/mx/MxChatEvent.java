@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.ui.ChatTextArea;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
@@ -42,6 +43,10 @@ public abstract class MxChatEvent extends ChatEvent {
   }
   
   public Chatroom room() { return r; }
+  
+  public LiveView liveView() {
+    return r.mainView(); // TODO thread
+  }
   
   public boolean isDeleted() {
     return type.equals("deleted");
@@ -120,16 +125,22 @@ public abstract class MxChatEvent extends ChatEvent {
         case "copyLink":
           r.m.copyString(r.r.linkMsg(id));
           break;
-        case "edit":
-          if (r.input.editing==null) r.input.setEdit(this);
-          r.input.focusMe();
+        case "edit": {
+          if (liveView() != r.m.view.baseLiveView()) break;
+          ChatTextArea input = liveView().input;
+          if (input.editing == null) input.setEdit(this);
+          input.focusMe();
           break;
-        case "replyTo":
-          r.input.markReply(this);
-          r.input.focusMe();
+        }
+        case "replyTo": {
+          if (liveView() != r.m.view.baseLiveView()) break;
+          ChatTextArea input = liveView().input;
+          input.markReply(this);
+          input.focusMe();
           break;
+        }
         case "goto":
-          r.m.toRoom(r, this);
+          r.m.toRoom(liveView(), this); // TODO what why
           break;
         case "viewSource":
           new Popup(n.ctx.win()) {

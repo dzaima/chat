@@ -16,6 +16,9 @@ public class MxSearchView extends SearchView {
     super.hide();
   }
   
+  public void upload() { }
+  public LiveView baseLiveView() { return null; }
+  
   public void hidePrev() {
     for (MxChatEvent e : prevShown) e.hide();
     prevShown.clear();
@@ -74,7 +77,7 @@ public class MxSearchView extends SearchView {
     } else {
       MxLog log;
       if (originalView instanceof MxTranscriptView) log = ((MxTranscriptView) originalView).log;
-      else if (originalView instanceof MxChatroom) log = ((MxChatroom) originalView).myLog();
+      else if (originalView instanceof MxLiveView) log = ((MxLiveView) originalView).log; // TODO thread: if no thread selected, search through all?
       else { Log.error("mx", "bad MxSearchView original view"); return; }
       logs.add(log);
     }

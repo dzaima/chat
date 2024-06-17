@@ -45,6 +45,7 @@ public abstract class ChatEvent {
     }
   }
   public abstract Chatroom room();
+  public abstract LiveView liveView();
   
   public abstract void toTarget();
   public abstract void markRel(boolean on);

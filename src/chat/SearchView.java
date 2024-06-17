@@ -49,7 +49,7 @@ public abstract class SearchView extends View {
   }
   
   String pText="", pUser="";
-  public void viewTick() {
+  public void openViewTick() {
     if (!serverSide()) {
       String nText = getText();
       String nUser = getUser();
@@ -65,7 +65,7 @@ public abstract class SearchView extends View {
     p.clearCh();
     p.add(n);
     textInput().focusMe();
-    m.setCurrentRoomTitle(title());
+    m.setCurrentViewTitle(title());
   }
   
   public void hide() {

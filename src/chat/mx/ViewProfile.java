@@ -98,7 +98,8 @@ public class ViewProfile {
       if (id!=null) r.openTranscript(id, b -> {}, false);
     };
     ((Extras.ClickableTextNode) base.ctx.id("mention")).fn = () -> {
-      r.mentionUser(uid);
+      LiveView view = r.m.view.baseLiveView();
+      if (view != null) view.mentionUser(uid);
     };
     
     int myLevel = r.powerLevels.userLevel(r.u.id());

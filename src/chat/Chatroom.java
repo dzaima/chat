@@ -4,11 +4,10 @@ import chat.ui.*;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.*;
 
-public abstract class Chatroom extends View {
+public abstract class Chatroom {
   public final ChatMain m;
   public RoomListNode.RoomNode node;
   public String officialName;
@@ -20,7 +19,6 @@ public abstract class Chatroom extends View {
   public int unread;
   public boolean ping;
   
-  public final ChatTextArea input;
   protected Chatroom(ChatUser u) {
     this.m = u.m;
     muteState = new MuteState(m) {
@@ -31,34 +29,17 @@ public abstract class Chatroom extends View {
     
     node = new RoomListNode.RoomNode(this, u);
     setOfficialName("Unnamed room");
-    input = new ChatTextArea(this, Props.keys("family", "numbering").values(new StrProp("Arial"), EnumProp.FALSE));
-    input.wrap = true;
     editor = new RoomEditing(u, "chat.rooms.rename.roomField") {
       protected String getName() { return title(); }
       protected Node entryPlace() { return node.ctx.id("entryPlace"); }
       protected void rename(String newName) { setCustomName(newName); }
     };
-    cfgUpdated();
   }
   
-  public abstract Node inputPlaceContent();
   public abstract void muteStateChanged();
-  public void cfgUpdated() {
-    if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));
-    else input.setLang(m.gc.langs().defLang);
-  }
   
-  public long atEndStart;
-  public long firstUnreadTime;
   public void tick() {
     muteState.tick();
-    long nowMs = m.gc.lastMs;
-    if (open && m.focused && m.atEnd() && !muteState.muted) {
-      long viewedMs = nowMs - atEndStart;
-      if (viewedMs > m.readMinViewMs  ||  viewedMs > (nowMs-firstUnreadTime)*m.altViewMult) markAsRead();
-    } else {
-      atEndStart = nowMs;
-    }
   }
   public void markAsRead() {
     if (unread==0 && !ping) return;
@@ -68,11 +49,11 @@ public abstract class Chatroom extends View {
     m.updateUnread();
   }
   
+  public abstract LiveView mainView();
   
   public abstract String getUsername(String uid);
   
-  public abstract void upload();
-  public abstract void mentionUser(String uid);
+  public abstract void cfgUpdated();
   
   public static class URLRes {
     public final String url;
@@ -123,7 +104,7 @@ public abstract class Chatroom extends View {
   }
   public void titleUpdated() {
     node.ctx.id("name").replace(0, new StringNode(node.ctx, title()));
-    if (open) m.setCurrentRoomTitle(title());
+    if (m.view!=null && m.view.room()==this) m.setCurrentViewTitle(title());
   }
   
   public String title() { return customName!=null? customName : officialName; }
@@ -132,15 +113,9 @@ public abstract class Chatroom extends View {
   public abstract ChatUser user();
   public Chatroom room() { return this; }
   
-  public boolean open;
-  public /*open*/ void show() { open=true; node.updBG(); unreadChanged(); m.setCurrentRoomTitle(title()); input.roomShown(); }
-  public /*open*/ void hide() { open=false;node.updBG(); input.roomHidden(); }
-  
   public abstract void readAll();
   public abstract void older();
   public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
-  public abstract void post(String s, String target);
-  public abstract void edit(ChatEvent m, String s);
   public abstract void delete(ChatEvent m);
   public abstract ChatEvent find(String id);
   
@@ -151,7 +126,7 @@ public abstract class Chatroom extends View {
   
   protected void changeUnread(int addUnread, boolean addPing) {
     if (addUnread==0 && !addPing) return;
-    if (unread==0 && !ping) firstUnreadTime = m.gc.lastMs;
+    if (unread==0 && !ping) mainView().firstUnreadTime = m.gc.lastMs; // TODO thread
     unread+= addUnread;
     ping|= addPing;
   }
@@ -161,7 +136,4 @@ public abstract class Chatroom extends View {
     m.unreadChanged();
     user().updateFolderUnread();
   }
-  
-  public abstract ChatEvent prevMsg(ChatEvent msg, boolean mine);
-  public abstract ChatEvent nextMsg(ChatEvent msg, boolean mine);
 }

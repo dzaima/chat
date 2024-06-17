@@ -32,6 +32,7 @@ public class MxChatroom extends Chatroom {
   public MxEvent lastEvent; // TODO per-thread-ify?
   public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>();
   public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
+  public final MxLiveView mainLiveView;
   
   private Promise<HashMap<String, UserData>> fullUserList = null;
   private Vec<Obj> memberEventsToProcess = null; // held for the duration of fullUserList calculation
@@ -55,13 +56,17 @@ public class MxChatroom extends Chatroom {
   public MxChatroom(MxChatUser u, String rid, Obj init, MyStatus status0) {
     super(u);
     this.myStatus = status0;
-    liveLogs.put(null, new MxLog(this));
     this.u = u;
     this.r = u.s.room(rid);
     m.dumpInitial.accept(rid, init);
+    
+    liveLogs.put(null, new MxLog(this));
+    mainLiveView = new MxLiveView(this, myLog());
     if (!u.lazyLoadUsers) fullUserList = Promise.create(res -> res.set(userData));
+    
     update(status0, init);
     joinedCount = Obj.path(init, Num.ZERO, "summary", "m.joined_member_count").asInt();
+    
     if (status0!=MyStatus.INVITED) initPrevBatch(init);
     if (nameState==0) {
       ArrayList<String> parts = new ArrayList<>();
@@ -80,7 +85,6 @@ public class MxChatroom extends Chatroom {
       }
     }
     if (status0!=MyStatus.INVITED) { ping = false; unread = 0; unreadChanged(); }
-    
     
     commands.put("md", left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname)));
     
@@ -104,7 +108,7 @@ public class MxChatroom extends Chatroom {
     });
     commands.put("sort", left -> {
       MxLog l = null;
-      if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).liveLogs.get(null);
+      if (m.view instanceof MxLiveView) l = ((MxLiveView) m.view).log;
       else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView)m.view).log;
       if (l!=null) {
         l.list.sort(Comparator.comparing(k -> k.time));
@@ -286,7 +290,7 @@ public class MxChatroom extends Chatroom {
       }
     }
     
-    if ((pInv || nInv) && m.view==this) m.toRoom(this); // refresh "input" field
+    if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field; TODO thread
   }
   
   public void setReceipt(String uid, String mid) {
@@ -323,7 +327,7 @@ public class MxChatroom extends Chatroom {
     if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, this::onlyDisplayname));
     else return new MxFmt(s, Utils.toHTML(s, true));
   }
-  private String[] command(String s) {
+  public String[] command(String s) {
     if (!s.startsWith("/")) return new String[]{s};
     int m = 1;
     while (m < s.length()) {
@@ -346,99 +350,11 @@ public class MxChatroom extends Chatroom {
   }
   
   public final HashMap<String, Function<String,MxFmt>> commands = new HashMap<>();
-  public void post(String s, String target) {
-    MxFmt f;
-    String[] cmd = command(s);
-    getF: {
-      if (cmd.length == 2) {
-        Function<String, MxFmt> fn = commands.get(cmd[0]);
-        if (fn != null) {
-          f = fn.apply(cmd[1]);
-          if (f == null) return;
-          break getF;
-        }
-      }
-      f = parse(s);
-    }
-    
-    if (target!=null) {
-      MxChatEvent tce = allKnownEvents.get(target);
-      if (tce!=null) f.reply(r, target, tce.e0.uid, tce.username);
-      else f.reply(r, target);
-    }
-    u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
-  }
-  public void edit(ChatEvent m, String s) {
-    MxFmt f = parse(s);
-    u.queueNetwork(() -> r.s.primaryLogin.editMessage(r, m.id, f));
-  }
   public void delete(ChatEvent m) {
     u.queueNetwork(() -> r.s.primaryLogin.deleteMessage(r, m.id));
   }
   
   
-  public void upload() {
-    new Popup(m) {
-      protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
-      protected void unfocused() { close(); }
-      protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a) || ChatMain.keyFocus(pw, key, a) || true; }
-      EditNode name, mime, path;
-      protected void setup() {
-        name = (EditNode) node.ctx.id("name");
-        mime = (EditNode) node.ctx.id("mime");
-        path = (EditNode) node.ctx.id("path");
-        ((BtnNode) node.ctx.id("choose")).setFn(c -> m.openFile(null, null, p -> {
-          if (p==null) return;
-          path.removeAll(); path.append(p.toString());
-          name.removeAll(); name.append(p.getFileName().toString());
-          String mimeType = null;
-          try {
-            mimeType = Files.probeContentType(p);
-          } catch (IOException e) {
-            Log.stacktrace("mx mime-type", e);
-          }
-          mime.removeAll();
-          mime.append(mimeType!=null? mimeType : "application/octet-stream");
-        }));
-        ((BtnNode) node.ctx.id("getLink")).setFn(c -> {
-          String l = getUpload();
-          if (l==null) return;
-          input.um.pushL("insert link");
-          input.pasteText(u.s.mxcToURL(l));
-          input.um.pop();
-          close();
-        });
-        ((BtnNode) node.ctx.id("sendMessage")).setFn(c -> {
-          String l = getUpload();
-          if (l==null) return;
-          int size = data.length;
-          int w = -1, h = -1;
-          try {
-            Image img = Image.makeDeferredFromEncodedBytes(data);
-            w = img.getWidth();
-            h = img.getHeight();
-            img.close();
-          } catch (Throwable e) {
-            Log.stacktrace("mx get image info", e);
-          }
-          
-          MxSendMsg f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
-          u.queueNetwork(() -> r.s.primaryLogin.sendMessage(r, f));
-          close();
-        });
-      }
-      byte[] data;
-      String getUpload() {
-        try {
-          data = Files.readAllBytes(Paths.get(path.getAll()));
-          return upload(data, name.getAll(), mime.getAll());
-        } catch (IOException e) {
-          Log.stacktrace("mx upload", e);
-          return null;
-        }
-      }
-    }.open(m.gc, m.ctx, m.gc.getProp("chat.mxUpload").gr());
-  }
   
   public Vec<UserRes> autocompleteUsers(String prefix) {
     String term = prefix.toLowerCase();
@@ -470,10 +386,8 @@ public class MxChatroom extends Chatroom {
     getFullUserList().then(userData -> then.run());
   }
   
-  public void mentionUser(String id) {
-    input.um.pushL("tag user");
-    input.pasteText(id+" ");
-    input.um.pop();
+  public void cfgUpdated() {
+    mainLiveView.cfgUpdated(); // TODO thread
   }
   
   public Promise<HashMap<String, UserData>> getFullUserList() {
@@ -498,18 +412,8 @@ public class MxChatroom extends Chatroom {
     getFullUserList().then(r -> b.accept(r, false));
   }
   
-  public String upload(byte[] data, String name, String mime) {
-    String req = r.s.url+"/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+r.s.gToken;
-    String res = Utils.postPut("POST", req, data, mime);
-    Obj o = JSON.parseObj(res);
-    
-    return o.str("content_uri");
-  }
-  
   public MxLog myLog() { return liveLogs.get(null); }
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
-  public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return myLog().prevMsg(msg, mine); }
-  public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return myLog().nextMsg(msg, mine); }
   
   public MxLog logOf(MxEvent e) {
     return e.m==null || e.m.threadId==null? myLog() : liveLogs.computeIfAbsent(e.m.threadId, unused -> new MxLog(this));
@@ -520,7 +424,7 @@ public class MxChatroom extends Chatroom {
     MxLog l = logOf(e);
     lastEvent = e;
     MxChatEvent cm = l.processMessage(e, l.size(), true);
-    if (open && cm!=null) m.addMessage(cm, true);
+    if (l.open && cm!=null) m.addMessage(cm, true);
     if (!e.uid.equals(u.id())) {
       if (cm==null) {
         if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
@@ -533,30 +437,8 @@ public class MxChatroom extends Chatroom {
     return cm;
   }
   
-  public void show() { myLog().show(); super.show(); }
-  public void hide() { super.hide(); myLog().hide(); }
-  
-  
   public void pinged() {
     changeUnread(0, true);
-  }
-  
-  public boolean key(Key key, int scancode, KeyAction a) {
-    return false;
-  }
-  
-  public boolean typed(int codepoint) {
-    if (codepoint=='`' && input.anySel()) {
-      input.um.pushL("backtick code");
-      for (Cursor c : input.cs) {
-        String s = input.getByCursor(c);
-        c.clearSel();
-        input.insert(c.sx, c.sy, asCodeblock(s));
-      }
-      input.um.pop();
-      return true;
-    }
-    return false;
   }
   
   public String asCodeblock(String s) {
@@ -616,16 +498,6 @@ public class MxChatroom extends Chatroom {
     }
   }
   
-  public Node inputPlaceContent() {
-    if (myStatus==MyStatus.INVITED) {
-      Node n = m.ctx.make(m.gc.getProp("chat.inviteOptions").gr());
-      ((BtnNode) n.ctx.id("accept")).setFn(b -> r.selfJoin());
-      ((BtnNode) n.ctx.id("deny")).setFn(b -> r.selfRejectInvite());
-      return n;
-    }
-    return input;
-  }
-  
   public void muteStateChanged() {
     u.saveRooms();
   }
@@ -639,6 +511,10 @@ public class MxChatroom extends Chatroom {
       olderRes = null;
       nextOlder = System.currentTimeMillis()+500;
     }
+  }
+  
+  public LiveView mainView() {
+    return mainLiveView;
   }
   
   public String getUsername(String uid) {
@@ -802,9 +678,5 @@ public class MxChatroom extends Chatroom {
   
   public void viewProfile(String uid) {
     ViewProfile.viewProfile(uid, this);
-  }
-  
-  public View getSearch() {
-    return new MxSearchView(m, this);
   }
 }

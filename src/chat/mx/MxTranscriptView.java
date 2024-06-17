@@ -21,13 +21,17 @@ public class MxTranscriptView extends TranscriptView {
   }
   
   
-  public void viewTick() {
+  public void openViewTick() {
     if (highlightTime>=0) {
       highlightTime--;
       MxChatEvent m = log.get(highlightID);
       if (m!=null) m.highlight(true);
     }
-    super.viewTick();
+    super.openViewTick();
+  }
+  
+  public LiveView live() {
+    return r.mainLiveView; // TODO thread
   }
   
   public void show() { super.show(); log.show(); highlightTime=2; }
@@ -36,6 +40,10 @@ public class MxTranscriptView extends TranscriptView {
   
   public String asCodeblock(String s) {
     return r.asCodeblock(s);
+  }
+  
+  public LiveView baseLiveView() {
+    return r.mainView(); // TODO thread
   }
   
   public String tokB;

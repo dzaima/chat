@@ -69,7 +69,7 @@ public class MsgNode extends WrapNode {
   }
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
-    if (visible) msg.room().input.markReply(msg);
+    if (visible) msg.liveView().input.markReply(msg);
   }
   
   public void tickC() {
