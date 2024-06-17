@@ -203,12 +203,7 @@ public class MxServer {
   
   private final HashMap<String, MxRoom> rooms = new HashMap<>();
   public MxRoom room(String rid) {
-    MxRoom r = rooms.get(rid);
-    if (r==null) {
-      r = new MxRoom(this, rid);
-      rooms.put(rid, r);
-    }
-    return r;
+    return rooms.computeIfAbsent(rid, r -> new MxRoom(this, r));
   }
   
   public MxUser user(String uid) {
@@ -216,11 +211,17 @@ public class MxServer {
   }
   
   
-  public Obj sync(int count) {
-    return requestV3("sync").prop("filter", "{\"room\":{\"timeline\":{\"limit\":"+count+"}}}").gToken().get().runJ();
+  public static Obj syncFilter(int count, boolean lazy_load_members) {
+    return Obj.fromKV("room", Obj.fromKV(
+      "state", Obj.fromKV("lazy_load_members", lazy_load_members),
+      "timeline", Obj.fromKV("limit", count)
+    ));
+  }
+  public Obj sync(Obj filter) {
+    return requestV3("sync").prop("filter", filter.toString()).gToken().get().runJ();
   }
   public String latestBatch() {
-    return sync(1).str("next_batch");
+    return sync(syncFilter(1, true)).str("next_batch");
   }
   
   public MxLogin register(String id, String device, String passwd) {
