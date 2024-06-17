@@ -42,11 +42,11 @@ public class MxSearchView extends SearchView {
       return true;
     }
     public boolean matchesUser(String username) {
-      return userSearch.length()==0 || username.toLowerCase(Locale.ROOT).contains(userSearch);
+      return userSearch.isEmpty() || username.toLowerCase(Locale.ROOT).contains(userSearch);
     }
     public boolean triviallyAll() {
       boolean noTextSearch = words.sz==1 && words.get(0).isEmpty();
-      boolean noUserSearch = userSearch.length()==0;
+      boolean noUserSearch = userSearch.isEmpty();
       return noTextSearch && noUserSearch;
     }
   }
@@ -67,14 +67,14 @@ public class MxSearchView extends SearchView {
       for (ChatUser c : m.users) {
         if (c instanceof MxChatUser) {
           for (MxChatroom r : ((MxChatUser) c).roomSet) {
-            logs.add(r.log);
+            logs.addAll(Vec.ofCollection(r.liveLogs.values())); // TODO order??
           }
         }
       }
     } else {
       MxLog log;
       if (originalView instanceof MxTranscriptView) log = ((MxTranscriptView) originalView).log;
-      else if (originalView instanceof MxChatroom) log = ((MxChatroom) originalView).log;
+      else if (originalView instanceof MxChatroom) log = ((MxChatroom) originalView).myLog();
       else { Log.error("mx", "bad MxSearchView original view"); return; }
       logs.add(log);
     }

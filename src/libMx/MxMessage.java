@@ -19,6 +19,7 @@ public final class MxMessage {
   public final String editsId; // null if none
   public final int edit; // 0 - not edited; 1 - informing about edit; 2 - full edited message
   public final MxFmted fmt;
+  public final String threadId; // null if none
   public final String replyId; // null if none
   public MxMessage(MxRoom r, Obj o) { // TODO do sane things for evil inputs
     this.r = r;
@@ -34,13 +35,19 @@ public final class MxMessage {
     int edit = 0;
     String replyId = null;
     Obj rel = ct.obj("m.relates_to", Obj.E);
-    if ("m.replace".equals(rel.str("rel_type", null))) {
+    String relType = rel.str("rel_type", null);
+    if ("m.replace".equals(relType)) {
       editsId = rel.str("event_id");
       edit = 1;
       if (ct.has("m.new_content")) fmtT = new MxFmted(ct.obj("m.new_content"));
-    } else if (rel.has("m.in_reply_to")) {
-      replyId = rel.obj("m.in_reply_to").str("event_id");
+    } else {
+      if (rel.has("m.in_reply_to") && !rel.bool("is_falling_back", false)) {
+        replyId = rel.obj("m.in_reply_to").str("event_id");
+      }
     }
+    if ("m.thread".equals(relType)) threadId = rel.str("event_id");
+    
+    else threadId = null;
     if (fmtT.html.startsWith("<mx-reply>")) {
       Document d = Jsoup.parse(fmtT.html);
       d.getElementsByTag("mx-reply").remove();

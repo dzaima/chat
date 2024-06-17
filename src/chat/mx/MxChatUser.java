@@ -254,7 +254,7 @@ public class MxChatUser extends ChatUser {
             MxChatroom r = findRoom(parts[0]);
             String msgId = parts[1];
             if (r!=null) {
-              MxChatEvent ev = r.log.get(msgId);
+              MxChatEvent ev = r.allKnownEvents.get(msgId);
               if (ev!=null) {
                 m.toRoom(r, ev);
                 return;

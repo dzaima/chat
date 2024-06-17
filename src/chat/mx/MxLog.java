@@ -1,5 +1,6 @@
 package chat.mx;
 
+import chat.ChatEvent;
 import dzaima.utils.*;
 import libMx.MxEvent;
 
@@ -27,16 +28,16 @@ public class MxLog {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
       MxChatEvent ev = processMessage(e, -1, false);
-      if (ev!=null) evs.add(ev);
+      if (ev!=null) {
+        r.allKnownEvents.put(ev.id, ev);
+        evs.add(ev);
+      }
     }
     insertLog(atEnd? list.sz : 0, evs);
     if (open) r.m.insertMessages(atEnd, evs);
   }
   public int size() {
     return list.sz;
-  }
-  public MxChatEvent find(String id) {
-    return msgMap.get(id);
   }
   public void insertLog(int i, Vec<MxChatEvent> msgs) {
     list.insert(i, msgs);
@@ -47,7 +48,7 @@ public class MxLog {
       if (o.str("rel_type","").equals("m.annotation")) {
         String key = o.str("key", "");
         String r_id = o.str("event_id", "");
-        MxChatEvent r_ce = find(r_id);
+        MxChatEvent r_ce = get(r_id);
         Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
         
         if (r_ce!=null) {
@@ -73,7 +74,7 @@ public class MxLog {
     if (e.m==null) {
       MxChatNotice cm = new MxChatNotice(this, e, live);
       if (cm.ignore()) return null;
-      putMsg(cm);
+      putEvent(cm.id, cm);
       if (pos>=0) list.insert(pos, cm);
       return cm;
     } else {
@@ -87,22 +88,35 @@ public class MxLog {
         return null;
       } else {
         MxChatEvent cm = new MxChatMessage(e.m, e, this, live);
-        putMsg(cm);
+        putEvent(cm.id, cm);
         if (pos>=0) list.insert(pos, cm);
         return cm;
       }
     }
   }
   
+  public ChatEvent prevMsg(ChatEvent msg, boolean mine) {
+    int i = list.indexOf((MxChatEvent) msg);
+    if (i==-1) i = list.sz;
+    while (--i>=0) if ((!mine || list.get(i).mine) && !list.get(i).isDeleted()) return list.get(i);
+    return msg;
+  }
+  
+  public ChatEvent nextMsg(ChatEvent msg, boolean mine) {
+    int i = list.indexOf((MxChatEvent) msg);
+    if (i==-1) return null;
+    while (++i< list.sz) if ((!mine || list.get(i).mine) && !list.get(i).isDeleted()) return list.get(i);
+    return null;
+  }
+  
   private void putEvent(String id, MxChatEvent m) {
     msgMap.put(id, m);
+    r.allKnownEvents.put(m.id, m);
     if (m.e0.m!=null && m.e0.m.replyId!=null) {
       msgReplies.computeIfAbsent(m.e0.m.replyId, k->new Vec<>(2)).add(id);
     }
   }
-  private void putMsg(MxChatEvent m) {
-    putEvent(m.id, m);
-  }
+  
   public void completelyClear() {
     list.clear();
     msgMap.clear();

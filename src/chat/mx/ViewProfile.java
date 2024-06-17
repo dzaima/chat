@@ -116,7 +116,7 @@ public class ViewProfile {
     
     if (myLevel >= r.powerLevels.redactReq()) link.apply("chat.profile.removeRecentUI", () -> confirm("chat.profile.removeRecentConfirmUI", p -> {
       Vec<MxChatEvent> es = new Vec<>();
-      for (MxChatEvent e : r.log.list) {
+      for (MxChatEvent e : r.allKnownEvents.values()) {
         if (!e.e0.uid.equals(uid)) continue; // only the offender's messages
         if (e.isDeleted()) continue; // only non-deleted
         String type = e.e0.type;

@@ -29,8 +29,9 @@ public class MxChatroom extends Chatroom {
   
   public boolean msgLogToStart = false;
   public String prevBatch;
-  public MxEvent lastEvent;
-  public final MxLog log;
+  public MxEvent lastEvent; // TODO per-thread-ify?
+  public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>();
+  public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
   
   private Promise<HashMap<String, UserData>> fullUserList = null;
   private Vec<Obj> memberEventsToProcess = null; // held for the duration of fullUserList calculation
@@ -54,7 +55,7 @@ public class MxChatroom extends Chatroom {
   public MxChatroom(MxChatUser u, String rid, Obj init, MyStatus status0) {
     super(u);
     this.myStatus = status0;
-    this.log = new MxLog(this);
+    liveLogs.put(null, new MxLog(this));
     this.u = u;
     this.r = u.s.room(rid);
     m.dumpInitial.accept(rid, init);
@@ -103,7 +104,7 @@ public class MxChatroom extends Chatroom {
     });
     commands.put("sort", left -> {
       MxLog l = null;
-      if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).log;
+      if (m.view instanceof MxChatroom) l = ((MxChatroom)m.view).liveLogs.get(null);
       else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView)m.view).log;
       if (l!=null) {
         l.list.sort(Comparator.comparing(k -> k.time));
@@ -209,7 +210,8 @@ public class MxChatroom extends Chatroom {
     if (nInv) pinged();
     boolean inviteToJoin = pInv && ns==MyStatus.JOINED;
     if (inviteToJoin) {
-      log.completelyClear();
+      allKnownEvents.clear();
+      for (MxLog l : liveLogs.values()) l.completelyClear();
       initPrevBatch(sync);
     }
     
@@ -251,10 +253,8 @@ public class MxChatroom extends Chatroom {
       switch (ev.str("type")) {
         case "m.room.redaction":
           String e = ev.str("redacts", "");
-          MxChatEvent m = log.get(e);
-          if (m!=null) {
-            m.delete(ev);
-          }
+          MxChatEvent m = allKnownEvents.get(e);
+          if (m!=null) m.delete(ev);
           break;
       }
     }
@@ -362,7 +362,7 @@ public class MxChatroom extends Chatroom {
     }
     
     if (target!=null) {
-      MxChatEvent tce = log.msgMap.get(target);
+      MxChatEvent tce = allKnownEvents.get(target);
       if (tce!=null) f.reply(r, target, tce.e0.uid, tce.username);
       else f.reply(r, target);
     }
@@ -506,28 +506,20 @@ public class MxChatroom extends Chatroom {
     return o.str("content_uri");
   }
   
-  public MxChatEvent find(String id) { return log.find(id); }
+  public MxLog myLog() { return liveLogs.get(null); }
+  public MxChatEvent find(String id) { return allKnownEvents.get(id); }
+  public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return myLog().prevMsg(msg, mine); }
+  public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return myLog().nextMsg(msg, mine); }
   
-  public ChatEvent prevMsg(ChatEvent msg, boolean mine) {
-    Vec<MxChatEvent> l = log.list;
-    int i = l.indexOf((MxChatEvent) msg);
-    if (i==-1) i = l.sz;
-    while (--i>=0) if ((!mine || l.get(i).mine) && !l.get(i).isDeleted()) return l.get(i);
-    return msg;
+  public MxLog logOf(MxEvent e) {
+    return e.m==null || e.m.threadId==null? myLog() : liveLogs.computeIfAbsent(e.m.threadId, unused -> new MxLog(this));
   }
-  
-  public ChatEvent nextMsg(ChatEvent msg, boolean mine) {
-    Vec<MxChatEvent> l = log.list;
-    int i = l.indexOf((MxChatEvent) msg);
-    if (i==-1) return null;
-    while (++i<l.sz) if ((!mine || l.get(i).mine) && !l.get(i).isDeleted()) return l.get(i);
-    return null;
-  }
-  
+    
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
+    MxLog l = logOf(e);
     lastEvent = e;
-    MxChatEvent cm = log.processMessage(e, log.size(), true);
+    MxChatEvent cm = l.processMessage(e, l.size(), true);
     if (open && cm!=null) m.addMessage(cm, true);
     if (!e.uid.equals(u.id())) {
       if (cm==null) {
@@ -541,8 +533,8 @@ public class MxChatroom extends Chatroom {
     return cm;
   }
   
-  public void show() { log.show(); super.show(); }
-  public void hide() { super.hide(); log.hide(); }
+  public void show() { myLog().show(); super.show(); }
+  public void hide() { super.hide(); myLog().hide(); }
   
   
   public void pinged() {
@@ -597,14 +589,14 @@ public class MxChatroom extends Chatroom {
   
   public ChatUser user() { return u; }
   
-  public MxRoom.Chunk olderRes; // TODO move to queueRequest? (or atomic at least idk)
+  public MxRoom.Chunk olderRes; // TODO move to queueRequest?
   public long nextOlder;
   public void older() {
     if (msgLogToStart || prevBatch==null) return;
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
-    u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, log.size()<50? 50 : 100), r -> {
+    u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, myLog().size()<50? 50 : 100), r -> {
       if (r==null) { Log.warn("mx", "MxRoom::before failed on token "+prevBatch); return; }
       loadQuestionableMemberState(r);
       olderRes = r;
@@ -643,7 +635,7 @@ public class MxChatroom extends Chatroom {
     if (olderRes!=null) {
       if (olderRes.events.isEmpty()) msgLogToStart = true;
       prevBatch = olderRes.eTok;
-      log.addEvents(olderRes.events, false);
+      myLog().addEvents(Vec.ofCollection(olderRes.events).filter(c -> logOf(c)==myLog()), false);
       olderRes = null;
       nextOlder = System.currentTimeMillis()+500;
     }
@@ -679,7 +671,7 @@ public class MxChatroom extends Chatroom {
   public static final Counter changeWindowCounter = new Counter();
   public void openTranscript(String msgId, Consumer<Boolean> callback, boolean force) {
     if (!force) {
-      MxChatEvent m = log.get(msgId);
+      MxChatEvent m = allKnownEvents.get(msgId);
       if (m!=null) {
         m.highlight(false);
         callback.accept(true);
