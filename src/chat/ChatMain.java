@@ -257,8 +257,8 @@ public class ChatMain extends NodeWindow {
   }
   
   private void forceTrySaveNow() {
-    if (disableSaving) return;
     saveRequested = false;
+    if (disableSaving) return;
     
     Val[] accounts = new Val[users.sz];
     for (int i = 0; i < accounts.length; i++) accounts[i] = users.get(i).data();
@@ -495,7 +495,7 @@ public class ChatMain extends NodeWindow {
   
   private boolean saveRequested;
   public void requestSave() {
-    if (!saveRequested) Log.info("chat", "account save requested");
+    if (!saveRequested) Log.info("chat", "account save requested"+(disableSaving? ", ignoring" : ""));
     saveRequested = true;
   }
   
