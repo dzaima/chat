@@ -58,7 +58,7 @@ public class MxLog {
           reactions.put(e.id, obj);
         } else Log.fine("mx reaction", "Reaction was for unknown message");
       } else if (o.size()!=0) {
-        Log.info("Bad content[\"m.relates_to\"].rel_type value");
+        Log.info("mx reaction", "Bad content[\"m.relates_to\"].rel_type value");
       }
       return null;
     } else if ("m.room.redaction".equals(e.type)) {

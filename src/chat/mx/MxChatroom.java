@@ -216,7 +216,7 @@ public class MxChatroom extends Chatroom {
     Arr stateList = sync.obj(nInv?"invite_state":"state", Obj.E).arr("events",Arr.E);
     Arr eventList = nInv? stateList : sync.obj("timeline").arr("events");
     Arr ephemeralList = sync.obj("ephemeral",Obj.E).arr("events",Arr.E);
-    Log.info("room-updates", "room "+prettyID()+" received "+stateList.size()+" states, "+eventList.size()+" events, "+ephemeralList.size()+" ephemerals");
+    Log.info("mx room-updates", "room "+prettyID()+" received "+stateList.size()+" states, "+eventList.size()+" events, "+ephemeralList.size()+" ephemerals");
     
     // state
     for (Obj ev : stateList.objs()) {
@@ -229,11 +229,11 @@ public class MxChatroom extends Chatroom {
       if (ev.hasStr("event_id")) {
         String evID = ev.str("event_id");
         if (!seen.add(evID) && !nInv) {
-          Log.info("skipping duplicate event with ID "+evID); // Synapse duplicates join event :|
+          Log.info("mx", "skipping duplicate event with ID "+evID); // Synapse duplicates join event :|
           continue;
         }
         if (eventInfo.containsKey(evID)) {
-          Log.info("skipping already-received event with ID "+evID);
+          Log.info("mx", "skipping already-received event with ID "+evID);
           continue;
         }
       }

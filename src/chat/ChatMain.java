@@ -490,7 +490,7 @@ public class ChatMain extends NodeWindow {
   
   private boolean saveRequested;
   public void requestSave() {
-    if (!saveRequested) Log.info("account save requested");
+    if (!saveRequested) Log.info("chat", "account save requested");
     saveRequested = true;
   }
   
@@ -734,8 +734,8 @@ public class ChatMain extends NodeWindow {
     if (items.sz == 0) return (s, o) -> {};
     return (id, obj) -> {
       if (items.some(c -> id.contains(c.v))) {
-        Log.info("Dump of sync of "+id+":");
-        Log.info(obj.toString(2));
+        Log.info("mx dump", "Dump of sync of "+id+":");
+        Log.info("mx dump", obj.toString(2));
       }
     };
   }
