@@ -151,6 +151,11 @@ public abstract class MxChatEvent extends ChatEvent {
             
             protected void setup() {
               CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
+              if (lastEvent!=e0) {
+                e.append("// initial event:\n");
+                e.append(e0.o.toString(2));
+                e.append("\n\n\n// latest edit:\n");
+              }
               e.append(lastEvent.o.toString(2));
               e.setLang(n.gc.langs().fromName("java"));
               e.um.clear();
