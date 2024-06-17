@@ -34,6 +34,7 @@ public class ChatMain extends NodeWindow {
   public boolean disableSaving = false;
   public final BiConsumer<String, Obj> dumpInitial;
   public final BiConsumer<String, Obj> dumpAll;
+  public final int artificialNetworkDelay; // in milliseconds
   
   public enum Theme { light, dark }
   public final Box<Theme> theme;
@@ -75,6 +76,8 @@ public class ChatMain extends NodeWindow {
     if (o.has("--disable-saving")) disableSaving = true;
     dumpInitial = makeDumpConsumer(o.optList("--dump-initial-sync"));
     dumpAll = makeDumpConsumer(o.optList("--dump-all-sync"));
+    String delay = o.optOne("--network-delay");
+    artificialNetworkDelay = delay==null? 0 : Integer.parseInt(delay);
     
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -679,6 +682,7 @@ public class ChatMain extends NodeWindow {
     o.argBool("--disable-saving", "Disable saving profile");
     o.argString("--dump-initial-sync", "Dump initial sync JSON of rooms with matching ID");
     o.argString("--dump-all-sync", "Dump all sync JSON of rooms with matching ID");
+    o.argString("--network-delay", "Introduce artificial network delay, in milliseconds");
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
     o.autoHelp();
     o.autoDebug(Log.Level.WARN);
