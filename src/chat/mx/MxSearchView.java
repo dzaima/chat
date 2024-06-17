@@ -80,7 +80,10 @@ public class MxSearchView extends SearchView {
     } else {
       MxLog log;
       if (originalView instanceof MxTranscriptView) log = ((MxTranscriptView) originalView).log;
-      else if (originalView instanceof MxLiveView) log = ((MxLiveView) originalView).log; // TODO thread: if no thread selected, search through all?
+      else if (originalView instanceof MxLiveView) {
+        log = ((MxLiveView) originalView).log;
+        if (log == log.r.mainLiveView.log) logs.addAll(Vec.ofCollection(log.r.liveLogs.values()).filter(c -> c!=log));
+      }
       else { Log.error("mx", "bad MxSearchView original view"); return; }
       logs.add(log);
     }
