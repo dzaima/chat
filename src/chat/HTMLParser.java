@@ -256,7 +256,7 @@ public class HTMLParser {
             break;
           }
           default:
-            ChatMain.warn("Unknown tag: "+c.tag());
+            Log.warn("chat", "Unknown tag: "+c.tag());
             wrap(p, c, mono, link, r, Props.none());
         }
       }

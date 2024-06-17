@@ -605,7 +605,7 @@ public class MxChatroom extends Chatroom {
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
     u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, log.size()<50? 50 : 100), r -> {
-      if (r==null) { ChatMain.warn("MxRoom::before failed on token "+prevBatch); return; }
+      if (r==null) { Log.warn("mx", "MxRoom::before failed on token "+prevBatch); return; }
       loadQuestionableMemberState(r);
       olderRes = r;
     });
@@ -799,7 +799,7 @@ public class MxChatroom extends Chatroom {
   
   public void userMenu(Click c, int x, int y, String uid) {
     Popup.rightClickMenu(m.gc, m.ctx, "chat.profile.menu", cmd -> {
-      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+      switch (cmd) { default: Log.warn("chat", "Unknown menu option "+cmd); break;
         case "(closed)": break;
         case "view": viewProfile(uid); break;
         case "copyID": m.ctx.win().copyString(uid); break;

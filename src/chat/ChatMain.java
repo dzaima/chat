@@ -118,12 +118,8 @@ public class ChatMain extends NodeWindow {
     if (p.equals("none")) return 0;
     if (p.equals("safe")) return 1;
     if (p.equals("all")) return 2;
-    Log.warn("invalid chat.loadImgs value");
+    Log.warn("chat", "invalid chat.loadImgs value");
     return 2;
-  }
-  
-  public static void warn(String s) { // TODO more properly replace logger
-    Log.warn(s);
   }
   
   public void send() {
@@ -268,7 +264,7 @@ public class ChatMain extends NodeWindow {
     try {
       Files.write(profilePath, res.toString(2).getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
-      Log.warn("Failed to write profile file");
+      Log.warn("chat", "Failed to write profile file");
       throw new RuntimeException("Failed to write profile file");
     }
   }

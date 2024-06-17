@@ -1,9 +1,10 @@
 package chat.ui;
 
-import chat.*;
+import chat.ChatEvent;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.types.WrapNode;
+import dzaima.utils.Log;
 
 public class MsgNode extends WrapNode {
   public final MsgType type;
@@ -40,7 +41,7 @@ public class MsgNode extends WrapNode {
     } else if (mode==1) {
       abg = "chat.msg.edit";
     } else {
-      ChatMain.warn("Unexpected mode "+mode+"!");
+      Log.warn("chat", "Unexpected mode "+mode+"!");
       return;
     }
     border.setProp("bg", gc.getProp(abg));

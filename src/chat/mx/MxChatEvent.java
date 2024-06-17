@@ -103,7 +103,7 @@ public abstract class MxChatEvent extends ChatEvent {
     
     Node finalCode = code;
     Popup.rightClickMenu(n.gc, n.ctx, gr, cmd -> {
-      switch (cmd) { default: ChatMain.warn("Unknown menu option "+cmd); break;
+      switch (cmd) { default: Log.warn("chat", "Unknown menu option "+cmd); break;
         case "(closed)":
           if (n!=null) n.border.openMenu(false);
           break;

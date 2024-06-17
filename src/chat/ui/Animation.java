@@ -1,6 +1,5 @@
 package chat.ui;
 
-import chat.ChatMain;
 import dzaima.utils.Log;
 import io.github.humbleui.skija.*;
 
@@ -87,7 +86,7 @@ public class Animation {
         else c.readPixels(b, cFrame);
         pFrame = cFrame;
         pImage = Image.makeRasterFromBitmap(b);
-      } catch (Throwable e) { ChatMain.warn("Failed to animate:"); e.printStackTrace(); valid = false; }
+      } catch (Throwable e) { Log.warn("chat", "Failed to animate:"); Log.stacktraceHere("chat"); valid = false; }
     }
     return pImage;
   }

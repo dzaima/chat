@@ -1,11 +1,12 @@
 package chat.ui;
 
-import chat.*;
+import chat.ChatUser;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.TextNode;
+import dzaima.utils.Log;
 
 public class Extras {
   public enum LinkType { EXT, UNK, IMG, TEXT }
@@ -43,7 +44,7 @@ public class Extras {
     
     public void mouseDown(int x, int y, Click c) {
       if (c.bR()) Popup.rightClickMenu(gc, ctx, "chat.linkMenu", cmd -> {
-        switch (cmd) { default: ChatMain.warn("bad cmd " + cmd); break;
+        switch (cmd) { default: Log.warn("chat", "bad cmd " + cmd); break;
           case "(closed)":
             break;
           case "copy":
