@@ -73,7 +73,7 @@ public class ChatTextArea extends CodeAreaNode {
   String prevTag;
   public void tickC() {
     super.tickC();
-    // TODO move to some "on modified" method
+    // TODO move to some "on modified" method (need some "on cursor moved" too?)
     doCompletion(true);
   }
   public void doCompletion(boolean visible) {
@@ -91,6 +91,10 @@ public class ChatTextArea extends CodeAreaNode {
         int sx = c.sx;
         while (sx>0 && line.get(sx-1)!=' ') sx--;
         if (sx+1<c.sx && line.get(sx)=='@') {
+          r.retryOnFullUserList(() -> {
+            prevTag = null;
+            doCompletion(true);
+          });
           sx++;
           String text = new String(line.get(sx, c.sx));
           for (Chatroom.UserRes u : m.view.room().autocompleteUsers(text)) entries.add(new Pair<>(u.disp, u.src));

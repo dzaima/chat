@@ -6,7 +6,6 @@ import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.StringNode;
-import dzaima.ui.node.types.editable.EditNode;
 import dzaima.utils.*;
 
 public abstract class Chatroom extends View {
@@ -86,6 +85,7 @@ public abstract class Chatroom extends View {
     public final String disp, src;
     public UserRes(String disp, String src) { this.disp = disp; this.src = src; }
   }
+  public abstract void retryOnFullUserList(Runnable then); // if full user list not already loaded, initiate full user list loading and then.run() afterward
   public abstract Vec<UserRes> autocompleteUsers(String prefix);
   
   public void roomMenu(Click c, int x, int y, Runnable onClose) {

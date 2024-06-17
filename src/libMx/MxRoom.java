@@ -67,6 +67,11 @@ public class MxRoom {
     return new Chunk(res, o.str("start", ""), o.str("end", ""));
   }
   
+  public JSON.Arr getFullMemberState(String token) {
+    Obj o = request("members").gToken().prop("at", token).get().runJ();
+    return o.has("chunk")? o.arr("chunk") : null;
+  }
+  
   public void readTo(String id) {
     request("receipt","m.read",id).gToken().post(Obj.E).runJ();
   }

@@ -30,6 +30,7 @@ public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
   public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
   
+  public Options options;
   public boolean disableSaving = false;
   public final BiConsumer<String, Obj> dumpInitial;
   public final BiConsumer<String, Obj> dumpAll;
@@ -68,6 +69,7 @@ public class ChatMain extends NodeWindow {
   
   public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile, Options o) {
     super(gc, pctx, g, new WindowInit("chat"));
+    this.options = o;
     this.theme = theme;
     if (Tools.DBG) MxServer.LOG = true;
     if (o.has("--disable-saving")) disableSaving = true;
@@ -677,6 +679,7 @@ public class ChatMain extends NodeWindow {
     o.argBool("--disable-saving", "Disable saving profile");
     o.argString("--dump-initial-sync", "Dump initial sync JSON of rooms with matching ID");
     o.argString("--dump-all-sync", "Dump all sync JSON of rooms with matching ID");
+    o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
     o.autoHelp();
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);

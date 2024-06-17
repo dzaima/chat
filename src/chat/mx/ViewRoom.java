@@ -4,6 +4,7 @@ import chat.ChatMain;
 import chat.ui.Extras;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
+import dzaima.utils.Vec;
 
 public class ViewRoom {
   final MxChatroom r;
@@ -22,7 +23,11 @@ public class ViewRoom {
     }
     
     ((Extras.ClickableTextNode) base.ctx.id("userList")).fn = r::viewUsers;
-    base.ctx.id("memberCount").add(new StringNode(base.ctx, String.valueOf(r.memberCount())));
+    Node count = base.ctx.id("memberCount");
+    r.doubleUserList((userData, lazy) -> {
+      int n = Vec.ofCollection(userData.values()).filter(c -> c.s==MxChatroom.UserStatus.JOINED).sz;
+      count.replace(0, new StringNode(base.ctx, n + (lazy? "+" : "")));
+    });
   }
   
   public static void viewRooms(MxChatroom r) {

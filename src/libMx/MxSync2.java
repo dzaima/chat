@@ -38,8 +38,8 @@ public class MxSync2 {
       while (running.get()) {
         try {
           Obj c = s.messagesSince(batch, MxServer.SYNC_TIMEOUT);
-          recv.add(c);
           batch = c.str("next_batch");
+          recv.add(c);
           failTime = 16;
         } catch (Throwable t) {
           failTime = Math.min(2*failTime, 180);

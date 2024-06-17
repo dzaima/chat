@@ -32,9 +32,11 @@ public class MxChatroom extends Chatroom {
   public MxEvent lastEvent;
   public final MxLog log;
   
+  private Promise<HashMap<String, UserData>> fullUserList = null;
+  private Vec<Obj> memberEventsToProcess = null; // held for the duration of fullUserList calculation
   public enum UserStatus { LEFT, INVITED, JOINED, BANNED, KNOCKING }
   public static class UserData { public String username, avatar; UserStatus s = UserStatus.LEFT; }
-  public final HashMap<String, UserData> userData = new HashMap<>();
+  public final HashMap<String, UserData> userData = new HashMap<>(); // using directly may be problematic due to lazy loading!
   
   public final PowerLevelManager powerLevels = new PowerLevelManager();
   
@@ -55,6 +57,7 @@ public class MxChatroom extends Chatroom {
     this.u = u;
     this.r = u.s.room(rid);
     m.dumpInitial.accept(rid, init);
+    if (!u.lazyLoadUsers) fullUserList = Promise.create(res -> res.set(userData));
     update(status0, init);
     if (status0!=MyStatus.INVITED) initPrevBatch(init);
     if (nameState==0) {
@@ -126,21 +129,31 @@ public class MxChatroom extends Chatroom {
     Obj timeline = init.obj("timeline", Obj.E);
     prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
   }
-  public void anyEvent(Obj ev, Obj ct) {
+  private void processMemberEvent(Obj ev) {
+    Obj ct = ev.obj("content");
+    UserData d = this.userData.computeIfAbsent(ev.str(ev.hasStr("state_key")? "state_key" : "sender"), (s) -> new UserData());
+    String m = ct.str("membership", "");
+    if (m.equals("join")) {
+      d.username = ct.str("displayname", null);
+      d.avatar = ct.str("avatar_url", null);
+    }
+    switch (m) {
+      case "invite": d.s = UserStatus.INVITED; break;
+      case "join": d.s = UserStatus.JOINED; break;
+      case "leave": d.s = UserStatus.LEFT; break;
+      case "ban": d.s = UserStatus.BANNED; break;
+      case "knock": d.s = UserStatus.KNOCKING; break;
+    }
+  }
+  public void anyEvent(Obj ev) {
+    Obj ct = ev.obj("content");
     switch (ev.str("type")) {
       case "m.room.member":
-        UserData d = this.userData.computeIfAbsent(ev.str(ev.hasStr("state_key")? "state_key" : "sender"), (s) -> new UserData());
-        String m = ct.str("membership", "");
-        if (m.equals("join")) {
-          d.username = ct.str("displayname", null);
-          d.avatar = ct.str("avatar_url", null);
-        }
-        switch (m) {
-          case "invite": d.s = UserStatus.INVITED; break;
-          case "join": d.s = UserStatus.JOINED; break;
-          case "leave": d.s = UserStatus.LEFT; break;
-          case "ban": d.s = UserStatus.BANNED; break;
-          case "knock": d.s = UserStatus.KNOCKING; break;
+        if (memberEventsToProcess!=null) {
+          memberEventsToProcess.add(ev);
+          return;
+        } else {
+          processMemberEvent(ev);
         }
         break;
       case "m.room.create":
@@ -197,7 +210,7 @@ public class MxChatroom extends Chatroom {
     
     // state
     for (Obj ev : stateList.objs()) {
-      anyEvent(ev, ev.obj("content"));
+      anyEvent(ev);
     }
     
     // regular timeline events
@@ -214,7 +227,6 @@ public class MxChatroom extends Chatroom {
           continue;
         }
       }
-      Obj ct = ev.obj("content", null);
       MxEvent mxEv = new MxEvent(r, ev);
       MxChatEvent newObj = pushMsg(mxEv);
       if (newObj!=null) lastVisible = mxEv.id;
@@ -225,7 +237,7 @@ public class MxChatroom extends Chatroom {
       eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) setReceipt(ev.str("sender"), mxEv.id);
       //noinspection SwitchStatementWithTooFewBranches
-      anyEvent(ev, ct);
+      anyEvent(ev);
       switch (ev.str("type")) {
         case "m.room.redaction":
           String e = ev.str("redacts", "");
@@ -437,10 +449,37 @@ public class MxChatroom extends Chatroom {
     return res;
   }
   
+  private boolean hasFullUserList() {
+    return fullUserList!=null && fullUserList.isResolved();
+  }
+  public void retryOnFullUserList(Runnable then) {
+    if (hasFullUserList()) return;
+    getFullUserList().then(userData -> then.run());
+  }
+  
   public void mentionUser(String id) {
     input.um.pushL("tag user");
     input.pasteText(id+" ");
     input.um.pop();
+  }
+  
+  public Promise<HashMap<String, UserData>> getFullUserList() {
+    if (fullUserList==null) fullUserList = Promise.create(res -> {
+      assert memberEventsToProcess==null;
+      String tk = u.currentSyncToken;
+      memberEventsToProcess = new Vec<>();
+      u.queueRequest(null, () -> r.getFullMemberState(tk), us -> {
+        for (Obj c : us.objs()) processMemberEvent(c);
+        for (Obj c : memberEventsToProcess) processMemberEvent(c);
+        memberEventsToProcess = null;
+        res.set(userData);
+      });
+    });
+    return fullUserList;
+  }
+  public void doubleUserList(BiConsumer<HashMap<String, UserData>, Boolean> b) { // true on lazy result; a non-lazy result will always be given, but lazy may be omitten
+    if (!hasFullUserList()) b.accept(userData, true);
+    getFullUserList().then(r -> b.accept(r, false));
   }
   
   public String upload(byte[] data, String name, String mime) {
@@ -643,9 +682,7 @@ public class MxChatroom extends Chatroom {
   public void viewUsers() {
     ViewUsers.viewUsers(this);
   }
-  public int memberCount() {
-    return new Vec<>(new ArrayList<>(userData.values())).filter(c -> c.s==UserStatus.JOINED).sz;
-  }
+  
   
   
   public void confirmLeave(PartialMenu pm, String path, String id, Runnable run) {

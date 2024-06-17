@@ -29,7 +29,9 @@ public class MxChatUser extends ChatUser {
   public MxServer s = null;
   public MxLogin u = null;
   
+  public boolean lazyLoadUsers;
   public MxSync2 sync;
+  public String currentSyncToken;
   
   public HashMap<String, MxChatroom> roomMap = new HashMap<>();
   public Collection<MxChatroom> roomSet = roomMap.values();
@@ -89,6 +91,7 @@ public class MxChatUser extends ChatUser {
         m.requestSave();
       }
     };
+    lazyLoadUsers = !m.options.takeBool("--no-lazy-load-members");
     node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
     queueNetwork(() -> {
       MxServer s0 = MxServer.of(login);
@@ -105,7 +108,8 @@ public class MxChatUser extends ChatUser {
         node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
       });
       
-      Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(DEFAULT_MSGS, false).toString()).token(u0.token).get().runJ();
+      Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(DEFAULT_MSGS, lazyLoadUsers).toString()).token(u0.token).get().runJ();
+      Log.info("mx stats", () -> "Initial sync of "+u0.uid+": "+j.toString().length()+" characters");
       primary.add(() -> {
         try {
           Obj rooms = j.obj("rooms", Obj.E);
@@ -163,6 +167,7 @@ public class MxChatUser extends ChatUser {
     
     while (true) {
       Obj m = sync.poll(); if (m==null) break;
+      currentSyncToken = m.str("next_batch");
       Box<Boolean> newRooms = new Box<>(false);
       
       BiConsumer<MyStatus, Obj> processRoomList = (status, data) -> {
