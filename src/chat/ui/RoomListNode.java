@@ -377,8 +377,6 @@ public class RoomListNode extends ReorderableNode {
     
     public void propsUpd() { super.propsUpd(); updBG(); }
     
-    boolean openMenu;
-    public void openMenu(boolean v) { openMenu = v; updBG(); }
     public boolean isSelected() { return r.mainView().open; }
     
     public void leftClick() { r.m.toRoom(r.mainView()); }
