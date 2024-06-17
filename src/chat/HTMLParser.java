@@ -45,7 +45,7 @@ public class HTMLParser {
     return l;
   }
   
-  static class QuoteNode extends PadCNode {
+  static class QuoteNode extends PadCNode implements InlineNode.Scannable {
     public QuoteNode(Node ch) {
       super(ch.ctx, ch, 1, 0, 0.2f, 0.2f);
     }
@@ -53,6 +53,10 @@ public class HTMLParser {
     public void bg(Graphics g, boolean full) {
       pbg(g, full);
       g.rect(0, 0, gc.em/4f, h, gc.getProp("chat.quote.line").col());
+    }
+    
+    public Iterable<Node> scannableCh() {
+      return ch;
     }
   }
   
@@ -191,7 +195,8 @@ public class HTMLParser {
             wrap(p, c, mono, link, r, U_PROP);
             break;
           case "pre":
-            p.add(InlineNode.FullBlock.wrap(pre(p.ctx, c.wholeText())));
+            Node n2 = pre(p.ctx, c.wholeText());
+            p.add(new InlineNode.FullBlock(n2));
             break;
           case "span": case "font": {
             TextNode p1 = p;
@@ -217,10 +222,12 @@ public class HTMLParser {
           case "ins":
             wrap(p, c, mono, link, r, Props.none());
             break;
-          case "div": case "p":
-            wrap(p, c, mono, link, r, Props.none());
-            p.add(new InlineNode.LineEnd(p.ctx, true));
+          case "div": case "p": {
+            TextNode n = new TextNode(p.ctx, Props.none());
+            rec(c, n, mono, link, r);
+            p.add(new InlineNode.FullBlock(n));
             break;
+          }
           case "pill":
             if (c.hasAttr("mine") && c.hasAttr("id")) pill(r, p, c.text(), c.attr("id"), c.attr("mine").equals("true"));
             else wrap(p, c, mono, link, r, Props.none());
@@ -241,11 +248,12 @@ public class HTMLParser {
               p.add(new InlineNode.LineEnd(p.ctx, true));
             }
             break;
-          case "blockquote":
-            STextNode n = new STextNode(p.ctx, Props.of("color", p.gc.getCfgProp("chat.quote.color")));
-            wrap(n, c, mono, link, r, Props.none());
-            p.add(InlineNode.FullBlock.wrap(new QuoteNode(n)));
+          case "blockquote": {
+            TextNode n = new TextNode(p.ctx, Props.of("color", p.gc.getCfgProp("chat.quote.color")));
+            rec(c, n, mono, link, r);
+            p.add(new InlineNode.FullBlock(new QuoteNode(n)));
             break;
+          }
           default:
             ChatMain.warn("Unknown tag: "+c.tag());
             wrap(p, c, mono, link, r, Props.none());
@@ -364,7 +372,7 @@ public class HTMLParser {
     }
     public void bg(Graphics g, boolean full) {
       int bg = gc.getProp("chat.spoiler.bg").col();
-      if (sY1==eY1) {
+      if (isSingleLine()) {
         g.rect(sX, sY1, eX, eY2, bg);
       } else {
         g.rect(sX, sY1, w, sY2, bg);
