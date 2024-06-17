@@ -24,5 +24,5 @@ public abstract class TranscriptView extends View {
   public boolean key(Key key, int scancode, KeyAction a) { return false; }
   public boolean typed(int codepoint) { return false; }
   
-  public abstract LiveView live();
+  public abstract LiveView baseLiveView(); // never null
 }

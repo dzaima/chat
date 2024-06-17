@@ -31,8 +31,6 @@ public class MxLiveView extends LiveView {
     return r.muteState;
   }
   
-  public MxLog myLog() { return log; } // TODO thread: inline
-  
   public void show() { log.show(); super.show(); }
   public void hide() { super.hide(); log.hide(); }
   

@@ -171,7 +171,7 @@ public class ChatMain extends NodeWindow {
     Log.fine("chat", "Moving to transcript of room "+v.room().officialName);
     hideCurrent();
     view = v;
-    LiveView live = v.live();
+    LiveView live = v.baseLiveView();
     inputPlace.replace(0, live==null? new StringNode(ctx, "TODO thread") : live.input);
     v.show();
     updActions();

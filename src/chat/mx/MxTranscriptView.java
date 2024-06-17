@@ -30,7 +30,7 @@ public class MxTranscriptView extends TranscriptView {
     super.openViewTick();
   }
   
-  public LiveView live() {
+  public LiveView baseLiveView() {
     return r.mainLiveView; // TODO thread
   }
   
@@ -40,10 +40,6 @@ public class MxTranscriptView extends TranscriptView {
   
   public String asCodeblock(String s) {
     return r.asCodeblock(s);
-  }
-  
-  public LiveView baseLiveView() {
-    return r.mainView(); // TODO thread
   }
   
   public String tokB;

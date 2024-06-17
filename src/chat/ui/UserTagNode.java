@@ -11,7 +11,6 @@ public class UserTagNode extends TextNode {
   private final LiveView v;
   private final String userString;
   private final boolean mine;
-  private final ChatEvent ev; // TODO thread: remove?
   public boolean vis = true;
   
   public UserTagNode(ChatMain m, ChatEvent ev) {
@@ -19,7 +18,6 @@ public class UserTagNode extends TextNode {
     this.v = ev.liveView();
     this.userString = ev.userString();
     mine = ev.mine;
-    this.ev = ev;
     add(new StringNode(ctx, ev.username));
   }
   
