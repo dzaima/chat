@@ -86,7 +86,6 @@ public class MxRoom {
   private ArrayList<MxEvent> readState(Obj o) {
     ArrayList<MxEvent> states = new ArrayList<>();
     for (Obj c : o.arr("state", JSON.Arr.E).objs()) states.add(new MxEvent(this, c));
-    System.out.println(o.arr("state", JSON.Arr.E));
     return states;
   }
   
