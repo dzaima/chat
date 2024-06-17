@@ -131,7 +131,7 @@ public class ViewProfile {
         Runnable[] next = new Runnable[1];
         next[0] = () -> r.u.queueRequest(null, () -> {
           MxChatEvent e = es.pop();
-          Log.info("remove recent", "Deleting message "+e.id);
+          Log.info("mod", "Deleting message "+e.id);
           r.delete(e);
           return es.sz>0;
         }, v -> {
