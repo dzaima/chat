@@ -254,7 +254,7 @@ public class MxChatUser extends ChatUser {
             MxChatroom r = findRoom(parts[0]);
             String msgId = parts[1];
             if (r!=null) {
-              r.openTranscript(msgId, b -> {
+              r.highlightMessage(msgId, b -> {
                 if (!b) m.gc.openLink(url);
               }, false);
               return;

@@ -545,7 +545,11 @@ public class MxChatroom extends Chatroom {
   }
   
   public static final Counter changeWindowCounter = new Counter();
-  public void openTranscript(String msgId, Consumer<Boolean> callback, boolean force) { // TODO fix no-op callbacks
+  public void highlightMessage(String msgId, Consumer<Boolean> found0, boolean force) {
+    Consumer<Boolean> found = found0!=null? found0 : (b) -> {
+      if (!b) Log.warn("mx", "Expected to find message " + msgId + ", but didn't");
+    };
+    
     gotoDirect: if (!force) {
       MxChatEvent ev = allKnownEvents.get(msgId);
       if (ev==null) break gotoDirect;
@@ -569,7 +573,7 @@ public class MxChatroom extends Chatroom {
           if (currLog == c) ev.highlight(false);
           else m.toRoom(c.liveView(), ev);
           
-          callback.accept(true);
+          found.accept(true);
           return;
         }
       }
@@ -582,7 +586,7 @@ public class MxChatroom extends Chatroom {
       m.currentAction = null;
       m.updInfo();
       if (c!=null) toTranscript(msgId, c);
-      callback.accept(c!=null);
+      found.accept(c!=null);
     });
   }
   private void toTranscript(String highlightID, MxRoom.Chunk c) {

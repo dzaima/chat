@@ -47,7 +47,7 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   public void toTarget() {
-    r.openTranscript(target, b -> {}, false);
+    r.highlightMessage(target, null, false);
   }
   
   private int bodyUpdateCtr = 0;

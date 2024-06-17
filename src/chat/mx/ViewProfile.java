@@ -95,7 +95,7 @@ public class ViewProfile {
     
     ((Extras.ClickableTextNode) base.ctx.id("toReadReceipt")).fn = () -> {
       String id = r.latestReceipts.get(uid);
-      if (id!=null) r.openTranscript(id, b -> {}, false);
+      if (id!=null) r.highlightMessage(id, null, false);
     };
     ((Extras.ClickableTextNode) base.ctx.id("mention")).fn = () -> {
       LiveView view = r.m.view.baseLiveView();

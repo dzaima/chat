@@ -1,7 +1,6 @@
 package chat.mx;
 
 import chat.*;
-import chat.ui.ChatTextArea;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
@@ -141,7 +140,7 @@ public abstract class MxChatEvent extends ChatEvent {
           if (!(r.m.view instanceof SearchView)) break;
           View ov = ((SearchView) r.m.view).originalView;
           if (ov.contains(this)) r.m.toView(ov, this);
-          else r.openTranscript(id, b -> {}, false);
+          else r.highlightMessage(id, null, false);
           break;
         }
         case "viewSource":
