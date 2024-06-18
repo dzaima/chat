@@ -76,22 +76,25 @@ public final class MxMessage {
   }
   
   private MxMessage edits;
-  public MxMessage edits() {
+  public MxMessage loadEditBase() {
     if (!isEditEvent()) return null;
-    if (edits == null) edits = r.message(editsId);
+    if (edits == null) {
+      edits = r.loadMessage(editsId);
+      if (edits.isEditEvent()) edits = edits.loadEditBase();
+    }
     return edits;
   }
   
   private boolean gotReply;
   private MxMessage reply;
-  public MxMessage reply() {
+  public MxMessage loadReplyTarget() {
     if (!gotReply) {
       MxMessage c = this;
       //noinspection ConstantConditions
-      while (c.isEditEvent()) c = c.edits();
+      while (c.isEditEvent()) c = c.loadEditBase();
       String id = Obj.objPath(c.ct, Obj.E, "m.relates_to", "m.in_reply_to").str("event_id", null);
       try {
-        if (id!=null) reply = r.message(id);
+        if (id!=null) reply = r.loadMessage(id);
       } catch (Exception e) { MxServer.warn("Bad reply "+id); }
       gotReply = true;
     }

@@ -66,7 +66,7 @@ public class MxChatMessage extends MxChatEvent {
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
         Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
-        r.u.queueRequest(null, m0::reply, rm -> {
+        r.u.queueRequest(null, m0::loadReplyTarget, rm -> {
           if (rm==null) {
             bodyPrefix = "[unknown reply] ";
             Log.warn("mx", "Unknown reply ID "+m0.replyId);

@@ -16,7 +16,7 @@ public class MxRoom {
   }
   
   
-  public MxMessage message(String id) {
+  public MxMessage loadMessage(String id) {
     return new MxMessage(this, request("event",id).gToken().get().runJ());
   }
   
