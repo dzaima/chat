@@ -14,12 +14,12 @@ public class MxLog {
   
   public boolean globalPaging = true;
   public final Vec<MxChatEvent> list = new Vec<>();
-  public final HashSet<MxChatEvent> set = new HashSet<>();
-  public final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
+  private final HashSet<MxChatEvent> set = new HashSet<>();
+  private final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
   
-  public final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
+  private final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
   public static class Reaction { MxChatEvent to; String key; }
-  public HashMap<String, Reaction> reactions = new HashMap<>();
+  private final HashMap<String, Reaction> reactions = new HashMap<>();
   
   public MxLog(MxChatroom r, String threadID, MxLiveView liveView) {
     this.r = r;
@@ -48,9 +48,8 @@ public class MxLog {
   public void addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
-      MxChatEvent ev = processMessage(e, false);
+      MxChatEvent ev = putEvent(e, false);
       if (ev!=null) {
-        r.allKnownEvents.put(ev.id, ev);
         evs.add(ev);
       }
     }
@@ -60,16 +59,28 @@ public class MxLog {
   
   public MxChatEvent addEventAtEnd(MxEvent e) {
     int pos = size();
-    MxChatEvent cm = processMessage(e, true);
+    MxChatEvent cm = putEvent(e, true);
     if (cm!=null) {
-      putEvent(cm.id, cm);
       list.insert(pos, cm);
       if (open) r.m.addMessage(cm, true);
     }
     return cm;
   }
   
-  private MxChatEvent processMessage(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
+  private MxChatEvent putEvent(MxEvent e, boolean live) { // creates & adds message to unordered collections, but leaves ordered placements to callee
+    MxChatEvent ev = processEvent(e, live);
+    if (ev != null) {
+      msgMap.put(e.id, ev);
+      set.add(ev);
+      r.allKnownEvents.put(ev.id, ev);
+      if (ev.e0.m!=null && ev.e0.m.replyId!=null) {
+        msgReplies.computeIfAbsent(ev.e0.m.replyId, k->new Vec<>(2)).add(e.id);
+      }
+    }
+    return ev;
+  }
+  
+  private MxChatEvent processEvent(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
     if (e.type.equals("m.reaction")) {
       JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");
       if (live) {
@@ -108,7 +119,7 @@ public class MxLog {
         MxChatEvent prev = msgMap.get(e.m.editsId);
         if (prev instanceof MxChatMessage) {
           ((MxChatMessage) prev).edit(e, live);
-          putEvent(e.id, prev);
+          msgMap.put(e.id, prev);
         } // else, it's an edit of a message further back in the log
         return makeDebugNotice(e, live);
       } else {
@@ -139,15 +150,6 @@ public class MxLog {
     if (i==-1) return null;
     while (++i< list.sz) if ((!mine || list.get(i).mine) && !list.get(i).isDeleted()) return list.get(i);
     return null;
-  }
-  
-  private void putEvent(String id, MxChatEvent m) {
-    msgMap.put(id, m);
-    set.add(m);
-    r.allKnownEvents.put(m.id, m);
-    if (m.e0.m!=null && m.e0.m.replyId!=null) {
-      msgReplies.computeIfAbsent(m.e0.m.replyId, k->new Vec<>(2)).add(id);
-    }
   }
   
   public void completelyClear() {
