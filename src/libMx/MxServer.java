@@ -181,6 +181,7 @@ public class MxServer {
         } catch (Throwable e) {
           warn("Failed to parse JSON");
           warnStacktrace(e);
+          requestLogger.got(this, "exception", e);
           r = null;
         }
         if (r!=null && !"M_LIMIT_EXCEEDED".equals(r.str("errcode", null))) return new Pair<>(r, null);
