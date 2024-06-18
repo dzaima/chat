@@ -60,32 +60,7 @@ public class StatusMessage extends ChatEvent {
   
   public void rightClick(Click c, int x, int y) {
     PartialMenu pm = new PartialMenu(l.m.gc);
-    pm.add("events", () -> {
-      l.m.toViewDirect(new View() {
-        public Chatroom room() { return l.room; }
-        public void openViewTick() { }
-        public void show() {
-          for (NetworkLog.Event c : ri.events) {
-            l.m.addMessage(new StatusEvent(l, c), true);
-          }
-          l.m.updateCurrentViewTitle();
-        }
-        public void hide() { }
-        public String title() { return "Network log request details"; }
-        public boolean key(Key key, int scancode, KeyAction a) {
-          if (l.m.gc.keymap(key, a, "chat").equals("cancel")) {
-            l.m.toViewDirect(l);
-            highlight(true);
-            return true;
-          }
-          return false;
-        }
-        public boolean typed(int codepoint) { return false; }
-        public String asCodeblock(String s) { return s; }
-        public LiveView baseLiveView() { return l.baseLiveView(); }
-        public boolean contains(ChatEvent ev) { return false; } // TODO?
-      });
-    });
+    pm.add("events", () -> l.m.toViewDirect(new EventView(ri)));
     if (ri.rq.ct!=null) pm.add("request body", () -> {
       String ct = ri.rq.ct;
       try {
@@ -109,4 +84,37 @@ public class StatusMessage extends ChatEvent {
   public boolean isDeleted() { return false; }
   public HashMap<String, Integer> getReactions() { return null; }
   public HashSet<String> getReceipts() { return null; }
+  
+  public class EventView extends View {
+    public final NetworkLog.RequestInfo ri;
+    public EventView(NetworkLog.RequestInfo ri) { this.ri = ri; }
+    
+    public Chatroom room() { return l.room; }
+    public void openViewTick() { }
+    public void show() {
+      for (NetworkLog.Event c : ri.events) addEvent(c);
+      l.m.updateCurrentViewTitle();
+    }
+    
+    public void addEvent(NetworkLog.Event c) {
+      l.m.addMessage(new StatusEvent(l, c), true);
+    }
+    
+    public void hide() { }
+    public String title() { return "Network log request details"; }
+    public boolean key(Key key, int scancode, KeyAction a) {
+      if (l.m.gc.keymap(key, a, "chat").equals("cancel")) {
+        l.m.toViewDirect(l);
+        highlight(true);
+        return true;
+      }
+      return false;
+    }
+    
+    public boolean typed(int codepoint) { return false; }
+    public String asCodeblock(String s) { return s; }
+    public LiveView baseLiveView() { return l.baseLiveView(); }
+    public boolean contains(ChatEvent ev) { return false; } // TODO?
+    
+  }
 }

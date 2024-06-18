@@ -84,13 +84,13 @@ public class NetworkLog extends View {
       while (true) {
         e = todo.poll();
         if (e==null) break;
-        NetworkLog v = m.view instanceof NetworkLog? (NetworkLog) m.view : null;
+        NetworkLog lv = m.view instanceof NetworkLog? (NetworkLog) m.view : null;
         
         if (e.type.equals("new")) {
           RequestInfo ri = new RequestInfo(e.w, (MxServer) e.o, e.rq);
           list.add(ri);
           map.put(ri.rq, ri);
-          if (v!=null) v.addRI(ri);
+          if (lv!=null) lv.addRI(ri);
         } else {
           RequestInfo ri = map.get(e.rq);
           if (ri==null) { Log.warn("", "unknown request?"); return; }
@@ -99,9 +99,16 @@ public class NetworkLog extends View {
             case "retry":  ri.status = RequestInfo.Status.RETRYING; break;
             case "cancel": ri.status = RequestInfo.Status.CANCELED; break;
           }
-          if (detailed) ri.events.add(new Event(e.w, e.type, e.o));
-          if (v!=null) {
-            StatusMessage msg = v.statusMessages.get(ri);
+          if (detailed) {
+            Event ev = new Event(e.w, e.type, e.o);
+            ri.events.add(ev);
+            if (m.view instanceof StatusMessage.EventView) {
+              StatusMessage.EventView v = (StatusMessage.EventView) m.view;
+              if (v.ri == ri) v.addEvent(ev);
+            }
+          }
+          if (lv!=null) {
+            StatusMessage msg = lv.statusMessages.get(ri);
             if (msg!=null) msg.updateBody(true);
           }
         }
