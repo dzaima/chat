@@ -146,7 +146,7 @@ public class MxChatMessage extends MxChatEvent {
         }
         break;
       default:
-        Node disp = HTMLParser.parse(r, (m0.threadId==null? "" : "[tmp in thread] ")+bodyPrefix+body);
+        Node disp = HTMLParser.parse(r, bodyPrefix+body);
         if (type.equals("m.emote")) {
           Node n = new TextNode(disp.ctx, Props.none());
           n.add(new StringNode(disp.ctx, "· "+username+" "));
