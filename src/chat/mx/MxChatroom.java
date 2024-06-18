@@ -82,27 +82,27 @@ public class MxChatroom extends Chatroom {
     }
     if (status0!=MyStatus.INVITED) { ping = false; unread = 0; unreadChanged(); }
     
-    commands.put("md", left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname)));
+    commands.add(new MxCommand("md", true, left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname))));
     
     Function<String,MxFmt> text = left -> new MxFmt(left, Utils.toHTML(left, true));
-    commands.put("text", text);
-    commands.put("plain", text);
+    commands.add(new MxCommand("text", true, text));
+    commands.add(new MxCommand("plain", true, text));
     
-    commands.put("html", left -> new MxFmt(left, left));
-    commands.put("me", left -> {
+    commands.add(new MxCommand("html", true, left -> new MxFmt(left, left)));
+    commands.add(new MxCommand("me", true, left -> {
       MxFmt f = parse(left);
       f.type = MxFmt.Type.EMOTE;
       return f;
-    });
-    commands.put("goto", left -> {
+    }));
+    commands.add(new MxCommand("goto", true, left -> {
       u.openLink(left, Extras.LinkType.UNK, null);
       return null;
-    });
-    commands.put("set-room-name", left -> {
+    }));
+    commands.add(new MxCommand("set-room-name", true, left -> {
       u.queueNetwork(() -> r.setRoomName(left));
       return null;
-    });
-    commands.put("sort", left -> {
+    }));
+    commands.add(new MxCommand("sort", false, left -> {
       MxLog l = null;
       if (m.view instanceof MxLiveView) l = ((MxLiveView) m.view).log;
       else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView) m.view).log;
@@ -111,22 +111,22 @@ public class MxChatroom extends Chatroom {
         m.toView(m.view);
       }
       return null;
-    });
-    commands.put("theme", left -> {
+    }));
+    commands.add(new MxCommand("theme", true, left -> {
       switch (left) {
         case "light": m.setTheme(ChatMain.Theme.light); break;
         case "dark": m.setTheme(ChatMain.Theme.dark); break;
       }
       return null;
-    });
-    commands.put("room-nick", left -> {
+    }));
+    commands.add(new MxCommand("room-nick", true, left -> {
       u.queueNetwork(() -> u.u.setRoomNick(r, left));
       return null;
-    });
-    commands.put("global-nick", left -> {
+    }));
+    commands.add(new MxCommand("global-nick", true, left -> {
       u.queueNetwork(() -> u.u.setGlobalNick(left));
       return null;
-    });
+    }));
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
@@ -342,10 +342,21 @@ public class MxChatroom extends Chatroom {
     String c0 = cmd[0];
     if (c0.equals("me")) return new Pair<>(md, 0);
     md = c0.equals("md");
-    return new Pair<>(md, commands.get(c0)!=null? c0.length()+1 : 0);
+    return new Pair<>(md, commands.linearFind(c -> Objects.equals(c.name, c0))!=null? c0.length()+1 : 0);
   }
   
-  public final HashMap<String, Function<String,MxFmt>> commands = new HashMap<>();
+  public static class MxCommand {
+    public final String name;
+    public final boolean hasArgs;
+    public final Function<String, MxFmt> process;
+    
+    public MxCommand(String name, boolean hasArgs, Function<String, MxFmt> process) {
+      this.name = name;
+      this.hasArgs = hasArgs;
+      this.process = process;
+    }
+  }
+  public final Vec<MxCommand> commands = new Vec<>();
   public void delete(ChatEvent m) {
     u.queueNetwork(() -> r.s.primaryLogin.deleteMessage(r, m.id));
   }

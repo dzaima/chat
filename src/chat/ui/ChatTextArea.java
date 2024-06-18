@@ -10,7 +10,7 @@ import dzaima.ui.node.types.editable.Cursor;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 
-import java.util.Objects;
+import java.util.*;
 
 public class ChatTextArea extends CodeAreaNode {
   public final ChatMain m;
@@ -110,9 +110,10 @@ public class ChatTextArea extends CodeAreaNode {
       
       if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && v instanceof MxLiveView) {
         String curr = get(1, 0, c.sx, 0);
-        Vec<String> cmds = Vec.ofCollection(((MxLiveView) v).r.commands.keySet()).filter(cmd -> cmd.contains(curr));
-        cmds.sort();
-        for (String cmd : cmds) entries.add(new Pair<>("/"+cmd, "/"+cmd));
+        Vec<MxChatroom.MxCommand> cmds = ((MxLiveView) v).r.commands.filter(cmd -> cmd.name.contains(curr));
+        cmds.sort(Comparator.comparing(cmd -> cmd.name));
+        if (cmds.sz==1 && cmds.get(0).name.equals(curr)) cmds.clear();
+        for (MxChatroom.MxCommand cmd : cmds) entries.add(new Pair<>("/"+cmd.name, "/"+cmd.name+(cmd.hasArgs? " " : "")));
         if (entries.sz > 0) {
           tag = "cmd;"+curr;
           selY = 0;
