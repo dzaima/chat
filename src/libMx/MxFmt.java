@@ -1,10 +1,14 @@
 package libMx;
 
+import dzaima.utils.JSON.*;
+
 public class MxFmt extends MxSendMsg {
   public StringBuilder body;
   public StringBuilder html;
-  String replyId;
+  String replyID;
+  String threadID;
   public Type type = Type.TEXT;
+  
   public enum Type {
     TEXT("m.text"), EMOTE("m.emote"), NOTICE("m.notice");
     final String msgtype; Type(String msgtype) { this.msgtype = msgtype; }
@@ -19,15 +23,20 @@ public class MxFmt extends MxSendMsg {
     this.html = new StringBuilder(html);
   }
   
-  public void reply(MxRoom r, String mid) {
-    assert replyId==null;
-    replyId = mid;
+  public void replyTo(MxRoom r, String mid) {
+    assert replyID==null;
+    replyID = mid;
     html.insert(0, "<mx-reply><a href="+htmlQuote(r.linkMsg(mid))+"> ↰ </a> </mx-reply>");
   }
   public void reply(MxRoom r, String mid, String uid, String username) {
-    assert replyId==null;
-    replyId = mid;
+    assert replyID==null;
+    replyID = mid;
     html.insert(0, "<mx-reply><a href="+htmlQuote(r.linkMsg(mid))+"> ↰ </a> "+userHTML(uid, username)+" </mx-reply>");
+  }
+  
+  public void inThread(String id) {
+    assert threadID==null;
+    threadID = id;
   }
   
   public void txt(String text) {
@@ -123,22 +132,33 @@ public class MxFmt extends MxSendMsg {
     return f;
   }
   
-  private String msg(String text, String html) {
-    return "\"msgtype\":\""+type.msgtype+"\", \"body\":"+Utils.toJSON(text)+",\"format\":\"org.matrix.custom.html\",\"formatted_body\":"+Utils.toJSON(html);
+  private void addContent(Obj where, String text, String html) {
+    where.put("msgtype", new Str(type.msgtype));
+    where.put("body", new Str(text));
+    where.put("format", new Str("org.matrix.custom.html"));
+    where.put("formatted_body", new Str(html));
   }
   public String msgJSON() {
-    return "{" +
-      (replyId==null?"":"\"m.relates_to\":{\"m.in_reply_to\":{\"event_id\":"+Utils.toJSON(replyId)+"}},") +
-      msg(body.toString(), html.toString()) +
-    "}";
+    Obj ct = new Obj();
+    if (replyID!=null) {
+      ct.put("m.relates_to", Obj.fromKV("m.in_reply_to", Obj.fromKV("event_id", replyID)));
+    }
+    addContent(ct, body.toString(), html.toString());
+    return ct.toString();
   }
   public String editJSON(String orig) {
+    Obj ctNew = new Obj();
+    Obj ct = Obj.fromKV(
+      "m.relates_to", Obj.fromKV(
+        "rel_type", "m.replace",
+        "event_id", orig
+      ),
+      "m.new_content", ctNew
+    );
     String b = body.toString();
     String h = html.toString();
-    return "{" +
-      msg("* "+b, "* "+h)+"," +
-      "\"m.relates_to\":{\"rel_type\":\"m.replace\",\"event_id\":"+Utils.toJSON(orig)+"}," +
-      "\"m.new_content\":{"+msg(b,h)+"}" +
-    "}";
+    addContent(ct, "* "+b, "* "+h);
+    addContent(ctNew, b, h);
+    return ct.toString();
   }
 }

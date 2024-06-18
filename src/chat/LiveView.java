@@ -57,8 +57,8 @@ public abstract class LiveView extends View {
   public abstract void older();
   public abstract Node inputPlaceContent();
   
-  public abstract void post(String s, String target);
-  public abstract void edit(ChatEvent m, String s);
+  public abstract void post(String raw, String replyTo);
+  public abstract void edit(ChatEvent m, String raw);
   public abstract void upload(); // TODO rename to openUpload or something?
   
   public abstract void mentionUser(String uid);

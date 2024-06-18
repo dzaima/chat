@@ -102,9 +102,9 @@ public class MxLiveView extends LiveView {
     return o.str("content_uri");
   }
   
-  public void post(String s, String target) {
+  public void post(String raw, String replyTo) {
     MxFmt f;
-    String[] cmd = r.command(s);
+    String[] cmd = r.command(raw);
     getF: {
       if (cmd.length == 2) {
         Function<String, MxFmt> fn = r.commands.get(cmd[0]);
@@ -114,19 +114,22 @@ public class MxLiveView extends LiveView {
           break getF;
         }
       }
-      f = r.parse(s);
+      f = r.parse(raw);
     }
     
-    if (target!=null) {
-      MxChatEvent tce = r.allKnownEvents.get(target);
-      if (tce!=null) f.reply(r.r, target, tce.e0.uid, tce.username);
-      else f.reply(r.r, target);
+    if (replyTo!=null) {
+      MxChatEvent tce = r.allKnownEvents.get(replyTo);
+      if (tce!=null) f.reply(r.r, replyTo, tce.e0.uid, tce.username);
+      else f.replyTo(r.r, replyTo);
     }
-    r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f)); // TODO thread
+    
+    if (log.threadID!=null) f.inThread(log.threadID);
+    
+    r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f));
   }
   
-  public void edit(ChatEvent m, String s) {
-    MxFmt f = r.parse(s);
+  public void edit(ChatEvent m, String raw) {
+    MxFmt f = r.parse(raw);
     r.u.queueNetwork(() -> r.r.s.primaryLogin.editMessage(r.r, m.id, f));
   }
   

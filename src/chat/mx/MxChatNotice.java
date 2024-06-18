@@ -121,6 +121,6 @@ public class MxChatNotice extends MxChatEvent {
   }
   
   public boolean important() {
-    return e.type.equals("m.room.encrypted"); // maybe have some setting to set this to always true for rooms you're a mod/admin in?
+    return e.type.equals("m.room.encrypted"); // TODO maybe have some setting to set this to always true for rooms you're a mod/admin in?
   }
 }
