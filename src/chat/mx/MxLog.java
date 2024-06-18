@@ -10,16 +10,17 @@ public class MxLog {
   private static final boolean DEBUG_EVENTS = false;
   public final MxChatroom r;
   public final String threadID;
+  public MxLiveView lv;
+  
   public boolean globalPaging = true;
   public final Vec<MxChatEvent> list = new Vec<>();
   public final HashSet<MxChatEvent> set = new HashSet<>();
   public final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
+  
   public final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
-  public MxLiveView lv;
-  
   public static class Reaction { MxChatEvent to; String key; }
-  
   public HashMap<String, Reaction> reactions = new HashMap<>();
+  
   public MxLog(MxChatroom r, String threadID, MxLiveView liveView) {
     this.r = r;
     this.threadID = threadID;
@@ -31,17 +32,19 @@ public class MxLog {
     return lv;
   }
   
-  
-  
   public MxChatEvent get(String id) {
     return msgMap.get(id);
   }
   public boolean contains(ChatEvent ev) {
     return ev instanceof MxChatEvent && set.contains(ev);
   }
+  public int size() {
+    return list.sz;
+  }
   public Vec<String> getReplies(String id) {
     return msgReplies.get(id);
   }
+  
   public void addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
@@ -51,44 +54,48 @@ public class MxLog {
         evs.add(ev);
       }
     }
-    insertLog(atEnd? list.sz : 0, evs);
+    list.insert(atEnd? list.sz : 0, evs);
     if (open) r.m.insertMessages(atEnd, evs);
   }
-  public int size() {
-    return list.sz;
+  
+  public MxChatEvent addEventAtEnd(MxEvent e) {
+    MxChatEvent cm = processMessage(e, size(), true);
+    if (open && cm!=null) r.m.addMessage(cm, true);
+    return cm;
   }
-  public void insertLog(int i, Vec<MxChatEvent> msgs) {
-    list.insert(i, msgs);
-  }
-  public MxChatEvent processMessage(MxEvent e, int pos, boolean live) { // returns message that would be shown, or null if it's an edit
-    if ("m.reaction".equals(e.type) && live) {
+  
+  private MxChatEvent processMessage(MxEvent e, int pos, boolean live) { // returns message that would be shown, or null if it's not to be displayed
+    if (e.type.equals("m.reaction")) {
       JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");
-      if (o.str("rel_type","").equals("m.annotation")) {
-        String key = o.str("key", "");
-        String r_id = o.str("event_id", "");
-        MxChatEvent r_ce = get(r_id);
-        Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
-        
-        if (r_ce!=null) {
-          r_ce.addReaction(key, 1);
-          Reaction obj = new Reaction();
-          obj.to = r_ce;
-          obj.key = key;
-          reactions.put(e.id, obj);
-        } else Log.fine("mx reaction", "Reaction was for unknown message");
-      } else if (o.size()!=0) {
-        Log.info("mx reaction", "Bad content[\"m.relates_to\"].rel_type value");
+      if (live) {
+        if (o.str("rel_type","").equals("m.annotation")) {
+          String key = o.str("key", "");
+          String r_id = o.str("event_id", "");
+          MxChatEvent r_ce = get(r_id);
+          Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
+          
+          if (r_ce!=null) {
+            r_ce.addReaction(key, 1);
+            Reaction obj = new Reaction();
+            obj.to = r_ce;
+            obj.key = key;
+            reactions.put(e.id, obj);
+          } else Log.fine("mx reaction", "Reaction was for unknown message");
+        } else if (o.size()!=0) {
+          Log.warn("mx reaction", "Unknown content[\"m.relates_to\"].rel_type value");
+        }
       }
       return makeDebugNotice(e, pos, live);
-    } else if ("m.room.redaction".equals(e.type)) {
+    } else if (e.type.equals("m.room.redaction")) {
       Reaction r = reactions.get(e.o.str("redacts", ""));
-      if (r!=null) {
+      if (r != null) {
         Log.fine("mx reaction", "Reaction "+r.key+" removed from "+r.to.id);
         reactions.remove(e.id);
         r.to.addReaction(r.key, -1);
-        return makeDebugNotice(e, pos, live);
       }
+      return makeDebugNotice(e, pos, live);
     }
+    
     if (e.m==null) {
       return forceMakeNotice(e, pos, live);
     } else {

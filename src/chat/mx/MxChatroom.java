@@ -421,10 +421,8 @@ public class MxChatroom extends Chatroom {
   
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
-    MxLog l = logOf(e);
     lastEvent = e;
-    MxChatEvent cm = l.processMessage(e, l.size(), true);
-    if (l.open && cm!=null) m.addMessage(cm, true);
+    MxChatEvent cm = logOf(e).addEventAtEnd(e);
     if (!e.uid.equals(u.id())) {
       if (cm==null) {
         if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
