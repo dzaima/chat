@@ -5,6 +5,7 @@ import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
+import io.github.humbleui.skija.Image;
 
 public class ImageViewerNode extends Node {
   public ImageViewerNode(Ctx ctx, Props props) {
@@ -64,7 +65,9 @@ public class ImageViewerNode extends Node {
     g.translateLocal((int)(drx*sc), (int)(dry*sc));
     if (sc!=1) g.scaleLocal(sc, sc);
     
-    g.image(anim.frame(pFrame), 0, 0, anim.w, anim.h, sc<2? Graphics.Sampling.LINEAR_MIPMAP : Graphics.Sampling.NEAREST);
+    Image f = anim.frame(pFrame);
+    if (f!=null) g.image(f, 0, 0, anim.w, anim.h, sc<2? Graphics.Sampling.LINEAR_MIPMAP : Graphics.Sampling.NEAREST);
+    else g.rect(0, 0, anim.w, anim.h, 0xffFF00FF);
     g.pop();
     
     g.push();

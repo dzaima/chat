@@ -1,6 +1,6 @@
 package chat.ui;
 
-import dzaima.utils.Log;
+import dzaima.utils.*;
 import io.github.humbleui.skija.*;
 
 public class Animation {
@@ -86,7 +86,7 @@ public class Animation {
         else c.readPixels(b, cFrame);
         pFrame = cFrame;
         pImage = Image.makeRasterFromBitmap(b);
-      } catch (Throwable e) { Log.warn("chat", "Failed to animate:"); Log.stacktraceHere("chat"); valid = false; }
+      } catch (Throwable e) { Log.warn("chat", "Failed to read frame:"); Log.stacktrace("chat", e); valid = false; }
     }
     return pImage;
   }

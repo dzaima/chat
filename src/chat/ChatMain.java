@@ -38,6 +38,10 @@ public class ChatMain extends NodeWindow {
   public final Runnable networkLogTick;
   public final int artificialNetworkDelay; // in milliseconds
   
+  public void insertNetworkDelay() {
+    if (artificialNetworkDelay > 0) Tools.sleep(artificialNetworkDelay);
+  }
+  
   public enum Theme { light, dark }
   public final Box<Theme> theme;
   public final Path profilePath;

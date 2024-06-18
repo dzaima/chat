@@ -42,11 +42,15 @@ public class MxChatUser extends ChatUser {
   public static void logGet(String logText, String url) {
     MxServer.log("file", logText+" "+url);
   }
-  public static byte[] get(String logText, String url) {
+  private static byte[] rawCachedGet(ChatMain m, String logText, String url) {
     return CacheObj.compute(url, () -> {
       logGet(logText, url);
-      try { return Tools.get(url); } // TODO NetworkLog
-      catch (RuntimeException e) { Log.warn(logText, "Failed to load "+url); return null; }
+      try {
+        // TODO NetworkLog
+        byte[] r = Tools.get(url);
+        m.insertNetworkDelay();
+        return r;
+      } catch (RuntimeException e) { Log.warn(logText, "Failed to load "+url); m.insertNetworkDelay(); return null; }
     });
   }
   
@@ -61,7 +65,7 @@ public class MxChatUser extends ChatUser {
       try { r = network.get(); }
       catch (Throwable e) { Log.stacktrace("mx queueRequest", e); r = null; }
       T finalR = r;
-      if (m.artificialNetworkDelay > 0) Tools.sleep(m.artificialNetworkDelay);
+      m.insertNetworkDelay();
       this.primary.add(() -> { if (c==null || v==c.value) primary.accept(finalR); });
     });
   }
@@ -209,8 +213,8 @@ public class MxChatUser extends ChatUser {
   }
   
   
-  public void queueGet(String msg, String url, Consumer<byte[]> loaded) {
-    queueRequest(null, () -> MxChatUser.get(msg, url), loaded);
+  public Promise<byte[]> queueGet(String msg, String url) {
+    return Promise.create(res -> queueRequest(null, () -> MxChatUser.rawCachedGet(m, msg, url), res::set));
   }
   public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) {
     loadImg(url, url, loaded, ctor, stillNeeded);
@@ -232,107 +236,127 @@ public class MxChatUser extends ChatUser {
     }
     return null;
   }
+  
+  private void openLinkGeneric(String url) {
+    m.gc.openLink(url);
+  }
   public void openLink(String url, LinkType type, byte[] data) {
-    if (type!=LinkType.EXT) {
-      if (url.startsWith("https://matrix.to/#/")) {
-        try {
-          URI u = new URI(url);
-          String fr = u.getFragment().substring(1);
-          int pos = fr.indexOf('?');
-          if (pos!=-1) fr = fr.substring(0, pos);
-          String[] parts = Tools.split(fr, '/');
-          int n = parts.length;
-          while (n>0 && parts[n-1].isEmpty()) n--;
-          if (n==1) {
-            MxChatroom r = findRoom(parts[0]);
-            if (r!=null) {
-              m.toRoom(r.mainView());
-              return;
-            }
+    if (type==LinkType.EXT) {
+      openLinkGeneric(url);
+      return;
+    }
+    
+    // known event/room
+    if (url.startsWith("https://matrix.to/#/")) {
+      try {
+        URI u = new URI(url);
+        String fr = u.getFragment().substring(1);
+        int pos = fr.indexOf('?');
+        if (pos!=-1) fr = fr.substring(0, pos);
+        String[] parts = Tools.split(fr, '/');
+        int n = parts.length;
+        while (n>0 && parts[n-1].isEmpty()) n--;
+        if (n==1) {
+          MxChatroom r = findRoom(parts[0]);
+          if (r!=null) {
+            m.toRoom(r.mainView());
+            return;
           }
-          if (n==2) {
-            MxChatroom r = findRoom(parts[0]);
-            String msgId = parts[1];
-            if (r!=null) {
-              r.highlightMessage(msgId, b -> {
-                if (!b) m.gc.openLink(url);
-              }, false);
-              return;
-            }
-          }
-        } catch (URISyntaxException ignored) { }
-      }
-      
-      if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || url.contains("/_matrix/media/"))) {
-        byte[] d = data;
-        if (d==null) {
-          byte[] isImg = CacheObj.compute("head_isImage\0"+url, () -> { // TODO move out from main thread
-            try {
-              MxServer.log("head", url);
-              HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
-              c.setRequestMethod("HEAD");
-              String[] ct = new String[1];
-              c.getHeaderFields().forEach((k, v) -> {
-                if ("Content-Type".equals(k) && v.size()==1) ct[0] = v.get(0);
-              });
-              c.disconnect();
-              
-              return new byte[]{(byte)(ct[0]!=null && ct[0].startsWith("image/")? 1 : 0)};
-            } catch (Throwable e) {
-              Log.stacktrace("mx image type", e);
-              return null;
-            }
-          });
-          if (isImg!=null && isImg[0]==1) d = get("image", url);
         }
-        if (d!=null) {
+        if (n==2) {
+          MxChatroom r = findRoom(parts[0]);
+          String msgId = parts[1];
+          if (r!=null) {
+            r.highlightMessage(msgId, b -> {
+              if (!b) openLinkGeneric(url);
+            }, false);
+            return;
+          }
+        }
+      } catch (URISyntaxException ignored) { }
+    }
+    
+    // displayable image/animation
+    if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || url.contains("/_matrix/media/"))) {
+      Consumer<byte[]> showImg = d -> {
+        if (d != null) {
           Animation anim = new Animation(d);
           if (anim.valid) {
             m.viewImage(anim);
             return;
           }
         }
-      }
+        openLinkGeneric(url);
+      };
       
-      Pair<String, String> parts = HTMLParser.urlFrag(HTMLParser.fixURL(url));
-      paste: if (m.gc.getProp("chat.internalPasteViewer").b() && parts.a.equals("https://dzaima.github.io/paste")) {
-        if (parts.b==null) break paste;
-        String[] ps = Tools.split(parts.b, '#');
-        if (ps.length!=1 && ps.length!=2) break paste;
-        
-        String lang = ps.length==1? "text" : pasteMap.get(ps[1]);
-        if (lang==null) break paste;
-        
-        byte[] inflated;
-        try {
-          byte[] deflated = Base64.getDecoder().decode(ps[0].substring(1).replace('@', '+'));
-          Inflater i = new Inflater(true);
-          i.setInput(deflated);
-          
-          byte[] buf = new byte[1024];
-          ByteVec v = new ByteVec();
-          while (true) {
-            int l = i.inflate(buf);
-            if (l<=0) break;
-            v.addAll(v.sz, buf, 0, l);
-          }
-          inflated = v.get(0, v.sz);
-        } catch (IllegalArgumentException | DataFormatException e) { Log.stacktrace("paste decode", e); break paste; }
-        
-        openText(new String(inflated, StandardCharsets.UTF_8), m.gc.langs().fromName(lang));
+      if (data!=null) {
+        showImg.accept(data);
         return;
       }
       
-      if (type==LinkType.TEXT) {
-        byte[] bs = get("Load text", url);
-        if (bs!=null) {
-          openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
-          return;
+      queueRequest(null, () -> CacheObj.compute("head_isImage\0"+url, () -> {
+        try {
+          MxServer.log("head", url);
+          HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+          c.setRequestMethod("HEAD");
+          String[] ct = new String[1];
+          c.getHeaderFields().forEach((k, v) -> {
+            if ("Content-Type".equals(k) && v.size()==1) ct[0] = v.get(0);
+          });
+          c.disconnect();
+          m.insertNetworkDelay();
+          
+          return new byte[]{(byte)(ct[0]!=null && ct[0].startsWith("image/")? 1 : 0)};
+        } catch (Throwable e) {
+          Log.stacktrace("mx image type", e);
+          return null;
         }
-      }
+      }), isImg -> {
+        if (isImg!=null && isImg[0]==1) queueGet("image", url).then(showImg);
+        else openLinkGeneric(url);
+      });
+      return;
     }
     
-    m.gc.openLink(url);
+    // https://dzaima.github.io/paste
+    Pair<String, String> parts = HTMLParser.urlFrag(HTMLParser.fixURL(url));
+    paste: if (m.gc.getProp("chat.internalPasteViewer").b() && parts.a.equals("https://dzaima.github.io/paste")) {
+      if (parts.b==null) break paste;
+      String[] ps = Tools.split(parts.b, '#');
+      if (ps.length!=1 && ps.length!=2) break paste;
+      
+      String lang = ps.length==1? "text" : pasteMap.get(ps[1]);
+      if (lang==null) break paste;
+      
+      byte[] inflated;
+      try {
+        byte[] deflated = Base64.getDecoder().decode(ps[0].substring(1).replace('@', '+'));
+        Inflater i = new Inflater(true);
+        i.setInput(deflated);
+        
+        byte[] buf = new byte[1024];
+        ByteVec v = new ByteVec();
+        while (true) {
+          int l = i.inflate(buf);
+          if (l<=0) break;
+          v.addAll(v.sz, buf, 0, l);
+        }
+        inflated = v.get(0, v.sz);
+      } catch (IllegalArgumentException | DataFormatException e) { Log.stacktrace("paste decode", e); break paste; }
+      
+      openText(new String(inflated, StandardCharsets.UTF_8), m.gc.langs().fromName(lang));
+      return;
+    }
+    
+    // uploaded text file
+    if (type==LinkType.TEXT) {
+      queueGet("Load text", url).then(bs -> {
+        if (bs == null) m.gc.openLink(url);
+        else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
+      });
+    }
+    
+    openLinkGeneric(url);
   }
   private void openText(String text, Lang lang) {
     new Popup(m.ctx.win()) {
