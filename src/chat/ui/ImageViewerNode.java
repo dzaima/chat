@@ -58,6 +58,7 @@ public class ImageViewerNode extends Node {
   }
   
   public void drawC(Graphics g) {
+    if (pFrame==-1) tickC();
     int h = gh();
     
     g.push();

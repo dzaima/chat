@@ -72,6 +72,7 @@ public class Animation {
   Image pImage;
   Bitmap b;
   public Image frame(int cFrame) {
+    assert cFrame>=0 && cFrame<frameCount();
     if (!valid) return null;
     if (b == null) {
       b = new Bitmap();
