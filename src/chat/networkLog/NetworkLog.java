@@ -64,21 +64,22 @@ public class NetworkLog extends View {
   
   public static void start(boolean detailed) {
     NetworkLog.detailed = detailed;
-    MxServer.requestLogger = (s, rq) -> {
-      RequestInfo ri = new RequestInfo(Instant.now(), s, rq);
-      requestMap.put(rq, ri);
-      requestList.add(ri);
-    };
-    MxServer.requestStatusLogger = (rq, type, o) -> {
-      Instant when = Instant.now();
-      RequestInfo st = requestMap.get(rq);
-      if (st==null) { Log.warn("", "unknown request?"); return; }
-      switch (type) {
-        case "result": st.status = RequestInfo.Status.DONE; break;
-        case "retry":  st.status = RequestInfo.Status.RETRYING; break;
-        case "cancel": st.status = RequestInfo.Status.CANCELED; break;
+    MxServer.requestLogger = (rq, type, o) -> {
+      Instant now = Instant.now();
+      if (type.equals("new")) {
+        RequestInfo ri = new RequestInfo(now, (MxServer) o, rq);
+        requestMap.put(rq, ri);
+        requestList.add(ri);
+      } else {
+        RequestInfo st = requestMap.get(rq);
+        if (st==null) { Log.warn("", "unknown request?"); return; }
+        switch (type) {
+          case "result": st.status = RequestInfo.Status.DONE; break;
+          case "retry":  st.status = RequestInfo.Status.RETRYING; break;
+          case "cancel": st.status = RequestInfo.Status.CANCELED; break;
+        }
+        if (detailed) st.events.add(new Event(now, type, o));
       }
-      if (detailed) st.events.add(new Event(when, type, o));
     };
   }
   

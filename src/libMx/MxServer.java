@@ -129,7 +129,7 @@ public class MxServer {
     }
     
     public <T> T tryRun(Function<String, Pair<T, Integer>> get) {
-      requestLogger.accept(MxServer.this, this);
+      requestLogger.got(this, "new", MxServer.this);
       
       if (t==null) throw new IllegalStateException("Request type not set");
       String path = calcURL();
@@ -139,31 +139,31 @@ public class MxServer {
         int requestedRetry = 0;
         try {
           log(t.name(), path, ct);
-          requestStatusLogger.got(this, "start", null);
+          requestLogger.got(this, "start", null);
           String res;
           switch (t) { default: throw new IllegalStateException();
             case GET:  res = Utils.get (url+"/"+path); break;
             case PUT:  res = Utils.put (url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
             case POST: res = Utils.post(url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
           }
-          requestStatusLogger.got(this, "raw result", res);
+          requestLogger.got(this, "raw result", res);
           // if (Math.random()>0.5) throw new RuntimeException("random error");
           // Tools.sleep((int) (Math.random()*1000));
           
           Pair<T, Integer> r = get.apply(res);
           if (r.b==null) {
-            requestStatusLogger.got(this, "result", r.a);
+            requestLogger.got(this, "result", r.a);
             return r.a;
           }
           requestedRetry = r.b;
         } catch (RuntimeException e) {
           warn("Failed to parse result:");
           warnStacktrace(e);
-          requestStatusLogger.got(this, "exception", e);
+          requestLogger.got(this, "exception", e);
         }
         
         requestedRetry = Math.max(requestedRetry, expTime);
-        requestStatusLogger.got(this, "retry", "in "+requestedRetry+"ms");
+        requestLogger.got(this, "retry", "in "+requestedRetry+"ms");
         log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
         Utils.sleep(requestedRetry);
         expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);
@@ -313,9 +313,8 @@ public class MxServer {
   public static BiConsumer<String, String> logFn = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
   public static BiConsumer<String, String> warnFn = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
   
-  public static BiConsumer<MxServer,RunnableRequest> requestLogger = (s, rq) -> {};
   @FunctionalInterface public interface RequestStatus { void got(RunnableRequest rq, String type, Object o); } 
-  public static RequestStatus requestStatusLogger = (rq, type, o) -> {};
+  public static RequestStatus requestLogger = (rq, type, o) -> {};
   
   
   
