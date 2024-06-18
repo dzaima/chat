@@ -66,15 +66,22 @@ public class MxChatMessage extends MxChatEvent {
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
         Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
-        r.u.queueRequest(null, m0::loadReplyTarget, rm -> {
-          if (rm==null) {
-            bodyPrefix = "[unknown reply] ";
-            Log.warn("mx", "Unknown reply ID "+m0.replyId);
+        r.u.queueRequest(null, () -> r.r.msgContext(MxRoom.roomEventFilter(true), m0.replyId, 0), ctx -> {
+          ok: if (ctx!=null) {
+            MxEvent msg = new Vec<>(ctx.events).linearFind(c -> c.id.equals(m0.replyId));
+            if (msg==null) break ok;
+            
+            MxEvent member = new Vec<>(ctx.states).linearFind(c -> c.type.equals("m.room.member") && c.o.str("state_key","").equals(c.uid));
+            String displayname = member==null? null : member.ct.str("displayname", null);
+            if (displayname==null) displayname = r.getUsername(msg.uid);
+            
+            bodyPrefix = r.pill(msg, msg.uid, displayname) + " ";
             updateBody(false);
-          } else {
-            bodyPrefix = r.pill(rm.fakeEvent(), rm.uid, r.getUsername(rm.uid)) + " ";
-            updateBody(false);
+            return;
           }
+          bodyPrefix = "[unknown reply] ";
+          Log.warn("mx", "Unknown reply ID "+m0.replyId);
+          updateBody(false);
         });
       }
     }

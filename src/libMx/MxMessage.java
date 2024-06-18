@@ -85,22 +85,6 @@ public final class MxMessage {
     return edits;
   }
   
-  private boolean gotReply;
-  private MxMessage reply;
-  public MxMessage loadReplyTarget() {
-    if (!gotReply) {
-      MxMessage c = this;
-      //noinspection ConstantConditions
-      while (c.isEditEvent()) c = c.loadEditBase();
-      String id = Obj.objPath(c.ct, Obj.E, "m.relates_to", "m.in_reply_to").str("event_id", null);
-      try {
-        if (id!=null) reply = r.loadMessage(id);
-      } catch (Exception e) { MxServer.warn("Bad reply "+id); }
-      gotReply = true;
-    }
-    return reply;
-  }
-  
   public boolean equals(Object o) {
     if (!(o instanceof MxMessage)) return false;
     return ((MxMessage) o).id.equals(id);

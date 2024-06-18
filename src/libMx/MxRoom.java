@@ -78,6 +78,7 @@ public class MxRoom {
     Collections.reverse(events);
     
     if (o.has("event")) events.add(new MxEvent(this, o.obj("event")));
+    
     for (Obj c : o.arr("events_after").objs()) events.add(new MxEvent(this, c));
     
     return new Chunk(events, readState(o), o.str("start", ""), o.str("end", ""));
