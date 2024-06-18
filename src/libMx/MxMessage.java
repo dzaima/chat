@@ -8,6 +8,7 @@ import org.jsoup.nodes.Document;
 import java.time.Instant;
 
 public final class MxMessage {
+  public static boolean supportThreads = true;
   public final MxRoom r;
   public final Obj o;
   public final Obj ct;
@@ -41,7 +42,7 @@ public final class MxMessage {
       editsId = rel.str("event_id");
       if (ct.has("m.new_content")) fmtT = new MxFmted(ct.obj("m.new_content"));
     } else {
-      if (rel.has("m.in_reply_to") && !rel.bool("is_falling_back", false)) {
+      if (rel.has("m.in_reply_to") && !(supportThreads && rel.bool("is_falling_back", false))) {
         replyId = rel.obj("m.in_reply_to").str("event_id");
       }
     }
@@ -49,7 +50,7 @@ public final class MxMessage {
     this.editsId = editsId;
     this.fmt = removeFallbackReply(fmtT);
     
-    if ("m.thread".equals(relType)) threadId = rel.str("event_id");
+    if (supportThreads && "m.thread".equals(relType)) threadId = rel.str("event_id");
     else threadId = null;
     
     Obj ct2 = Obj.objPath(o, null, "unsigned", "m.relations", "m.replace", "content");
