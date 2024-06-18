@@ -96,6 +96,7 @@ public class ViewProfile {
     ((Extras.ClickableTextNode) base.ctx.id("toReadReceipt")).fn = () -> {
       String id = r.latestReceipts.get(uid);
       if (id!=null) r.highlightMessage(id, null, false);
+      else Log.warn("mx", "Unknown read receipt for "+uid);
     };
     ((Extras.ClickableTextNode) base.ctx.id("mention")).fn = () -> {
       LiveView view = r.m.view.baseLiveView();
