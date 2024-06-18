@@ -9,14 +9,17 @@ import dzaima.utils.*;
 import libMx.MxServer;
 
 import java.time.Instant;
-import java.util.HashMap;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
 public class NetworkLog extends View {
-  public static ConcurrentHashMap<MxServer.RunnableRequest, RequestInfo> requestMap = new ConcurrentHashMap<>();
-  public static ConcurrentLinkedQueue<RequestInfo> requestList = new ConcurrentLinkedQueue<>();
+  private static class TodoEntry { Instant w; MxServer.RunnableRequest rq; String type; Object o; }
+  
+  public static Deque<RequestInfo> list = new ArrayDeque<>();
+  public static HashMap<MxServer.RunnableRequest, RequestInfo> map = new HashMap<>();
+  
   public static boolean detailed;
   public HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
   
@@ -62,23 +65,46 @@ public class NetworkLog extends View {
     m.toViewDirect(new NetworkLog(m));
   }
   
-  public static void start(boolean detailed) {
+  public static Runnable start(ChatMain m, boolean detailed) {
     NetworkLog.detailed = detailed;
+    
+    ConcurrentLinkedQueue<TodoEntry> todo = new ConcurrentLinkedQueue<>();
     MxServer.requestLogger = (rq, type, o) -> {
       Instant now = Instant.now();
-      if (type.equals("new")) {
-        RequestInfo ri = new RequestInfo(now, (MxServer) o, rq);
-        requestMap.put(rq, ri);
-        requestList.add(ri);
-      } else {
-        RequestInfo st = requestMap.get(rq);
-        if (st==null) { Log.warn("", "unknown request?"); return; }
-        switch (type) {
-          case "result": st.status = RequestInfo.Status.DONE; break;
-          case "retry":  st.status = RequestInfo.Status.RETRYING; break;
-          case "cancel": st.status = RequestInfo.Status.CANCELED; break;
+      TodoEntry e = new TodoEntry();
+      e.w = now;
+      e.rq = rq;
+      e.type = type;
+      e.o = o;
+      todo.add(e);
+    };
+    
+    return () -> {
+      TodoEntry e;
+      while (true) {
+        e = todo.poll();
+        if (e==null) break;
+        NetworkLog v = m.view instanceof NetworkLog? (NetworkLog) m.view : null;
+        
+        if (e.type.equals("new")) {
+          RequestInfo ri = new RequestInfo(e.w, (MxServer) e.o, e.rq);
+          list.add(ri);
+          map.put(ri.rq, ri);
+          if (v!=null) v.addRI(ri);
+        } else {
+          RequestInfo ri = map.get(e.rq);
+          if (ri==null) { Log.warn("", "unknown request?"); return; }
+          switch (e.type) {
+            case "result": ri.status = RequestInfo.Status.DONE; break;
+            case "retry":  ri.status = RequestInfo.Status.RETRYING; break;
+            case "cancel": ri.status = RequestInfo.Status.CANCELED; break;
+          }
+          if (detailed) ri.events.add(new Event(e.w, e.type, e.o));
+          if (v!=null) {
+            StatusMessage msg = v.statusMessages.get(ri);
+            if (msg!=null) msg.updateBody(true);
+          }
         }
-        if (detailed) st.events.add(new Event(now, type, o));
       }
     };
   }
@@ -91,11 +117,14 @@ public class NetworkLog extends View {
   public boolean open;
   public void show() {
     open = true;
-    for (RequestInfo ri : requestList) {
-      m.addMessage(statusMessages.computeIfAbsent(ri, s -> new StatusMessage(this, s)), true);
-    }
+    for (RequestInfo ri : list) addRI(ri);
     m.updateCurrentViewTitle();
   }
+  
+  private void addRI(RequestInfo ri) {
+    m.addMessage(statusMessages.computeIfAbsent(ri, s -> new StatusMessage(this, s)), true);
+  }
+  
   public void hide() {
     open = false;
     for (StatusMessage c : statusMessages.values()) c.hide();

@@ -36,6 +36,7 @@ public class ChatMain extends NodeWindow {
   public boolean disableSaving = false;
   public final BiConsumer<String, Obj> dumpInitial;
   public final BiConsumer<String, Obj> dumpAll;
+  public final Runnable networkLogTick;
   public final int artificialNetworkDelay; // in milliseconds
   
   public enum Theme { light, dark }
@@ -82,6 +83,7 @@ public class ChatMain extends NodeWindow {
     dumpAll = makeDumpConsumer(o.optList("--dump-all-sync"));
     String delay = o.optOne("--network-delay");
     artificialNetworkDelay = delay==null? 0 : Integer.parseInt(delay);
+    networkLogTick = NetworkLog.start(this, o.takeBool("--detailed-network-log"));
     
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -244,6 +246,7 @@ public class ChatMain extends NodeWindow {
     
     super.tick();
     
+    networkLogTick.run();
     for (ChatUser c : users) c.tick();
     
     if (view!=null) view.openViewTick();
@@ -700,7 +703,6 @@ public class ChatMain extends NodeWindow {
     o.acceptLeft(1);
     o.autoHelp();
     Vec<String> left = o.run(args);
-    NetworkLog.start(o.o.takeBool("--detailed-network-log"));
     
     Path profilePath = Paths.get(left.sz==0? DEFAULT_PROFILE : left.get(0));
     Obj loadedProfile;
