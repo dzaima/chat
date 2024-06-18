@@ -17,11 +17,9 @@ public class MxChatMessage extends MxChatEvent {
   private boolean replyRequested;
   
   public MxChatMessage(MxMessage m0, MxEvent e0, MxLog log, boolean isNew) {
-    super(log, e0, m0.id, m0.replyId);
+    super(log, m0.uid.equals(log.r.u.u.uid), e0, m0.id, log.r.getUsername(m0.uid), m0.replyId);
     assert !m0.isEditEvent();
     this.m0 = m0;
-    mine = m0.uid.equals(r.u.u.uid);
-    username = r.getUsername(m0.uid);
     edited = m0.latestFmt!=null;
     setBody(m0, isNew);
     if (!isNew) loadReactions();

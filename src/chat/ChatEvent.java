@@ -9,15 +9,17 @@ import java.util.*;
 
 public abstract class ChatEvent {
   public final String id; // whatever form of unique identifier per message there exists
-  public String target; // identifier of message this is replying to
-  public boolean mine;
-  public String username;
-  public String body;
-  public Instant time;
+  public final Instant time;
+  public final boolean mine;
   public boolean edited;
+  public String target; // identifier of message this is replying to
+  public String username;
   
-  protected ChatEvent(String id, String target) {
+  protected ChatEvent(String id, boolean mine, Instant time, String username, String target) { // set body yourself
     this.id = id;
+    this.mine = mine;
+    this.time = time;
+    this.username = username;
     this.target = target;
   }
   
@@ -48,7 +50,7 @@ public abstract class ChatEvent {
   
   public abstract void toTarget();
   public abstract void markRel(boolean on);
-  public abstract void updateBody(boolean live);
+  public abstract void updateBody(boolean live); // should call m.updMessage(this, bodyNode, live) (and potentially later again with live=false)
   public abstract String getSrc();
   
   public abstract MsgNode.MsgType type();
@@ -59,6 +61,6 @@ public abstract class ChatEvent {
   
   public abstract void rightClick(Click c, int x, int y);
   
-  public abstract HashMap<String, Integer> getReactions();
-  public abstract HashSet<String> getReceipts();
+  public abstract HashMap<String, Integer> getReactions(); // null if none
+  public abstract HashSet<String> getReceipts(); // null if none
 }

@@ -18,16 +18,16 @@ public abstract class MxChatEvent extends ChatEvent {
   public final MxLog log;
   public final MxEvent e0;
   public MxEvent lastEvent;
+  public String body;
   public String src;
   public String type = "?";
   public int monotonicID;
   
-  public MxChatEvent(MxLog log, MxEvent e0, String id, String target) {
-    super(id, target);
+  public MxChatEvent(MxLog log, boolean mine, MxEvent e0, String id, String username, String target) {
+    super(id, mine, e0.time, username, target);
     this.log = log;
     this.r = log.r;
     this.e0 = e0;
-    this.time = e0.time;
     this.lastEvent = e0;
   }
   protected void loadReactions() {

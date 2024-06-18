@@ -15,11 +15,10 @@ public class MxChatNotice extends MxChatEvent {
   public final String euid, eName; // executer user ID & name
   
   public MxChatNotice(MxLog log, MxEvent e, boolean live) {
-    super(log, e, e.id, null);
+    super(log, false, e, e.id, "", null);
     this.e = e;
     this.euid = e.uid;
     eName = r.getUsername(euid);
-    username = "";
     if (!live) loadReactions();
   }
   
