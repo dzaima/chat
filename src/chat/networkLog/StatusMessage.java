@@ -7,7 +7,7 @@ import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
-import libMx.MxServer;
+import libMx.*;
 
 import java.time.*;
 import java.util.*;
@@ -16,10 +16,10 @@ import java.util.regex.*;
 public class StatusMessage extends ChatEvent {
   private static final Pattern MATRIX = Pattern.compile("^_matrix/client/([vr]\\d)/");
   public final NetworkLog l;
-  public final NetworkLog.RequestStatus st;
+  public final NetworkLog.RequestInfo st;
   private final String body;
   
-  protected StatusMessage(NetworkLog l, NetworkLog.RequestStatus st) {
+  protected StatusMessage(NetworkLog l, NetworkLog.RequestInfo st) {
     super(String.valueOf(st.id), false, st.start, "?", null);
     this.l = l;
     this.st = st;
@@ -74,6 +74,7 @@ public class StatusMessage extends ChatEvent {
         public boolean key(Key key, int scancode, KeyAction a) {
           if (l.m.gc.keymap(key, a, "chat").equals("cancel")) {
             l.m.toViewDirect(l);
+            highlight(true);
             return true;
           }
           return false;
@@ -88,7 +89,8 @@ public class StatusMessage extends ChatEvent {
   }
   
   public String userString() {
-    return st.rq.t.toString()+" "+st.s.primaryLogin.uid;
+    MxLogin l = st.s.primaryLogin;
+    return st.rq.t.toString()+" "+(l==null? "" : l.uid);
   }
   
   public String getSrc() { return "(log event)"; }

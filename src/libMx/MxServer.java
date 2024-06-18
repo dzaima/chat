@@ -139,6 +139,7 @@ public class MxServer {
         int requestedRetry = 0;
         try {
           log(t.name(), path, ct);
+          requestStatusLogger.got(this, "start", null);
           String res;
           switch (t) { default: throw new IllegalStateException();
             case GET:  res = Utils.get (url+"/"+path); break;
@@ -146,6 +147,8 @@ public class MxServer {
             case POST: res = Utils.post(url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
           }
           requestStatusLogger.got(this, "raw result", res);
+          // if (Math.random()>0.5) throw new RuntimeException("random error");
+          // Tools.sleep((int) (Math.random()*1000));
           
           Pair<T, Integer> r = get.apply(res);
           if (r.b==null) {
@@ -159,8 +162,8 @@ public class MxServer {
           requestStatusLogger.got(this, "exception", e);
         }
         
-        requestStatusLogger.got(this, "retry", null);
         requestedRetry = Math.max(requestedRetry, expTime);
+        requestStatusLogger.got(this, "retry", "in "+requestedRetry+"ms");
         log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
         Utils.sleep(requestedRetry);
         expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);

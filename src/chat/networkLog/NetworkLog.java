@@ -9,14 +9,16 @@ import dzaima.utils.*;
 import libMx.MxServer;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
 public class NetworkLog extends View {
-  public static ConcurrentHashMap<MxServer.RunnableRequest, RequestStatus> requestMap = new ConcurrentHashMap<>();
-  public static ConcurrentLinkedQueue<RequestStatus> requestList = new ConcurrentLinkedQueue<>();
+  public static ConcurrentHashMap<MxServer.RunnableRequest, RequestInfo> requestMap = new ConcurrentHashMap<>();
+  public static ConcurrentLinkedQueue<RequestInfo> requestList = new ConcurrentLinkedQueue<>();
   public static boolean detailed;
+  public HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
   
   public final ChatMain m;
   public final ChatUser user;
@@ -63,18 +65,18 @@ public class NetworkLog extends View {
   public static void start(boolean detailed) {
     NetworkLog.detailed = detailed;
     MxServer.requestLogger = (s, rq) -> {
-      RequestStatus st = new RequestStatus(Instant.now(), s, rq);
-      requestMap.put(rq, st);
-      requestList.add(st);
+      RequestInfo ri = new RequestInfo(Instant.now(), s, rq);
+      requestMap.put(rq, ri);
+      requestList.add(ri);
     };
     MxServer.requestStatusLogger = (rq, type, o) -> {
       Instant when = Instant.now();
-      RequestStatus st = requestMap.get(rq);
+      RequestInfo st = requestMap.get(rq);
       if (st==null) { Log.warn("", "unknown request?"); return; }
       switch (type) {
-        case "result": st.status = RequestStatus.Status.DONE; break;
-        case "retry":  st.status = RequestStatus.Status.RETRYING; break;
-        case "cancel": st.status = RequestStatus.Status.CANCELED; break;
+        case "result": st.status = RequestInfo.Status.DONE; break;
+        case "retry":  st.status = RequestInfo.Status.RETRYING; break;
+        case "cancel": st.status = RequestInfo.Status.CANCELED; break;
       }
       if (detailed) st.events.add(new Event(when, type, o));
     };
@@ -88,11 +90,14 @@ public class NetworkLog extends View {
   public boolean open;
   public void show() {
     open = true;
-    for (RequestStatus s : requestList) m.addMessage(new StatusMessage(this, s), true);
+    for (RequestInfo ri : requestList) {
+      m.addMessage(statusMessages.computeIfAbsent(ri, s -> new StatusMessage(this, s)), true);
+    }
     m.updateCurrentViewTitle();
   }
   public void hide() {
     open = false;
+    for (StatusMessage c : statusMessages.values()) c.hide();
   }
   public String title() { return "Network log"; }
   public boolean key(Key key, int scancode, KeyAction a) { return false; }
@@ -102,7 +107,7 @@ public class NetworkLog extends View {
   public boolean contains(ChatEvent ev) { return false; }
   
   private static final AtomicLong idCtr = new AtomicLong();
-  public static class RequestStatus {
+  public static class RequestInfo {
     public final long id = idCtr.incrementAndGet();
     public final Instant start;
     public final MxServer s;
@@ -111,7 +116,7 @@ public class NetworkLog extends View {
     public Status status = Status.RUNNING;
     public final Vec<Event> events = new Vec<>(); 
     
-    public RequestStatus(Instant start, MxServer s, MxServer.RunnableRequest rq) {
+    public RequestInfo(Instant start, MxServer s, MxServer.RunnableRequest rq) {
       this.s = s;
       this.rq = rq;
       this.start = start;
