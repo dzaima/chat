@@ -294,6 +294,7 @@ public class MxChatUser extends ChatUser {
         return;
       }
       
+      Runnable done = m.doAction("loading image...");
       queueRequest(null, () -> CacheObj.compute("head_isImage\0"+url, () -> {
         try {
           MxServer.log("head", url);
@@ -312,9 +313,17 @@ public class MxChatUser extends ChatUser {
           return null;
         }
       }), isImg -> {
-        if (isImg!=null && isImg[0]==1) queueGet("image", url).then(showImg);
-        else openLinkGeneric(url);
+        if (isImg!=null && isImg[0]==1) {
+          queueGet("image", url).then(d -> {
+            done.run();
+            showImg.accept(d);
+          });
+        } else {
+          done.run();
+          openLinkGeneric(url);
+        }
       });
+      
       return;
     }
     
@@ -350,7 +359,9 @@ public class MxChatUser extends ChatUser {
     
     // uploaded text file
     if (type==LinkType.TEXT) {
+      Runnable done = m.doAction("loading text file...");
       queueGet("Load text", url).then(bs -> {
+        done.run();
         if (bs == null) m.gc.openLink(url);
         else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
       });

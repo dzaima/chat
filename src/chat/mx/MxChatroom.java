@@ -601,12 +601,10 @@ public class MxChatroom extends Chatroom {
       }
     }
     
-    m.currentAction = "loading message context...";
-    m.updInfo();
+    Runnable done = m.doAction("loading message context...");
     u.queueRequest(changeWindowCounter, () -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
       loadQuestionableMemberState(c);
-      m.currentAction = null;
-      m.updInfo();
+      done.run();
       if (c!=null) toTranscript(msgId, c);
       found.accept(c!=null);
     });

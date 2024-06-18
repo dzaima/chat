@@ -209,7 +209,15 @@ public class ChatMain extends NodeWindow {
   }
   
   public String hoverURL = null;
-  public String currentAction = null;
+  private String currentAction = null;
+  public Runnable doAction(String msg) {
+    currentAction = msg;
+    updInfo();
+    return () -> {
+      currentAction = null;
+      updInfo();
+    };
+  }
   public void updInfo() {
     ArrayList<String> infos = new ArrayList<>();
     if (currentAction!=null) infos.add(currentAction);
