@@ -85,7 +85,7 @@ public class StatusMessage extends ChatEvent {
   public HashMap<String, Integer> getReactions() { return null; }
   public HashSet<String> getReceipts() { return null; }
   
-  public class EventView extends View {
+  public class EventView extends BasicNetworkView {
     public final NetworkLog.RequestInfo ri;
     public EventView(NetworkLog.RequestInfo ri) { this.ri = ri; }
     
@@ -111,10 +111,6 @@ public class StatusMessage extends ChatEvent {
       return false;
     }
     
-    public boolean typed(int codepoint) { return false; }
-    public String asCodeblock(String s) { return s; }
-    public LiveView baseLiveView() { return l.baseLiveView(); }
-    public boolean contains(ChatEvent ev) { return false; } // TODO?
     
   }
 }

@@ -9,12 +9,13 @@ import dzaima.utils.*;
 import libMx.MxServer;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
-public class NetworkLog extends View {
+public class NetworkLog extends BasicNetworkView {
   private static class TodoEntry { Instant w; MxServer.RunnableRequest rq; String type; Object o; }
   
   public static Deque<RequestInfo> list = new ArrayDeque<>();
@@ -80,20 +81,21 @@ public class NetworkLog extends View {
     };
     
     return () -> {
+      NetworkLog lv = m.view instanceof NetworkLog? (NetworkLog) m.view : null;
+      
       TodoEntry e;
       while (true) {
         e = todo.poll();
         if (e==null) break;
-        NetworkLog lv = m.view instanceof NetworkLog? (NetworkLog) m.view : null;
         
         if (e.type.equals("new")) {
           RequestInfo ri = new RequestInfo(e.w, (MxServer) e.o, e.rq);
-          list.add(ri);
+          list.addLast(ri);
           map.put(ri.rq, ri);
           if (lv!=null) lv.addRI(ri);
         } else {
           RequestInfo ri = map.get(e.rq);
-          if (ri==null) { Log.warn("", "unknown request?"); return; }
+          if (ri==null) { Log.info("network-log", "unknown request updated"); return; }
           switch (e.type) {
             case "result": ri.status = RequestInfo.Status.DONE; break;
             case "retry":  ri.status = RequestInfo.Status.RETRYING; break;
@@ -107,20 +109,26 @@ public class NetworkLog extends View {
               if (v.ri == ri) v.addEvent(ev);
             }
           }
+          
           if (lv!=null) {
             StatusMessage msg = lv.statusMessages.get(ri);
             if (msg!=null) msg.updateBody(true);
           }
         }
       }
+      
+      if (!detailed && !(m.view instanceof BasicNetworkView)) {
+        Instant now = Instant.now();
+        while (!list.isEmpty()) {
+          if (list.getFirst().start.until(now, ChronoUnit.MINUTES) <= 10) break;
+          map.remove(list.removeFirst().rq);
+        }
+      }
     };
   }
   
   public Chatroom room() { return room; }
-  
-  public void openViewTick() {
-    
-  }
+  public void openViewTick() { }
   public boolean open;
   public void show() {
     open = true;
@@ -137,11 +145,7 @@ public class NetworkLog extends View {
     for (StatusMessage c : statusMessages.values()) c.hide();
   }
   public String title() { return "Network log"; }
-  public boolean key(Key key, int scancode, KeyAction a) { return false; }
-  public boolean typed(int codepoint) { return false; }
-  public String asCodeblock(String s) { return s; }
-  public LiveView baseLiveView() { return null; }
-  public boolean contains(ChatEvent ev) { return false; }
+  public final boolean key(Key key, int scancode, KeyAction a) { return false; }
   
   private static final AtomicLong idCtr = new AtomicLong();
   public static class RequestInfo {
