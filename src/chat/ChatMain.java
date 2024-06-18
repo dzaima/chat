@@ -67,7 +67,8 @@ public class ChatMain extends NodeWindow {
     return view==null? null : view.baseLiveView();
   }
   public ChatTextArea input() {
-    return view instanceof LiveView? ((LiveView) view).input : null;
+    LiveView lv = liveView();
+    return lv!=null? lv.input : null;
   }
   
   public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile, Options o) {
