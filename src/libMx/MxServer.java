@@ -115,10 +115,7 @@ public class MxServer {
       this.ct = ct;
     }
     
-    public <T> T tryRun(Function<String, Pair<T, Integer>> get) {
-      requestLogger.accept(MxServer.this, this);
-      
-      if (t==null) throw new IllegalStateException("Request type not set");
+    public String calcURL() {
       StringBuilder p = new StringBuilder();
       for (int i = 0; i < r.pathParts.length; i++) {
         if (i!=0) p.append('/');
@@ -128,7 +125,14 @@ public class MxServer {
         p.append(i==0? '?' : '&');
         p.append(r.props.get(i));
       }
-      String path = p.toString();
+      return p.toString();
+    }
+    
+    public <T> T tryRun(Function<String, Pair<T, Integer>> get) {
+      requestLogger.accept(MxServer.this, this);
+      
+      if (t==null) throw new IllegalStateException("Request type not set");
+      String path = calcURL();
       
       int expTime = 1000;
       while (true) {
@@ -145,7 +149,7 @@ public class MxServer {
           
           Pair<T, Integer> r = get.apply(res);
           if (r.b==null) {
-            requestStatusLogger.got(this, "result", res);
+            requestStatusLogger.got(this, "result", r.a);
             return r.a;
           }
           requestedRetry = r.b;
@@ -155,6 +159,7 @@ public class MxServer {
           requestStatusLogger.got(this, "exception", e);
         }
         
+        requestStatusLogger.got(this, "retry", null);
         requestedRetry = Math.max(requestedRetry, expTime);
         log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
         Utils.sleep(requestedRetry);
@@ -271,13 +276,13 @@ public class MxServer {
     log("mx", s);
   }
   private static boolean hide_data = false;
+  public static String redactAccessToken(String uri) {
+    return uri.replaceAll("access_token=[^&]+", "access_token=<redacted>");
+  }
   private void log(String method, String uri, String data) {
     if (uri.startsWith("/")) System.err.println("!!!!!!!!!!!!! STARTING SLASH !!!!!!!!!!!!!");
     String df = data==null? "" : " "+(data.length()>100 || hide_data? "..." : data);
-    log("mxq", method+" "+url+"/"+uri.replaceAll("access_token=[^&]+", "access_token=<redacted>")+df);
-    // if (!uri.contains("_matrix/client/r0/sync?")) { // don't log sync spam
-    //   log("mxq", method+" "+uri.replaceAll("access_token=[^&]+", "access_token=<redacted>")+df);
-    // }
+    log("mxq", method+" "+url+"/"+redactAccessToken(uri)+df);
   }
   
   public boolean handleError(Obj j, String do_what) {

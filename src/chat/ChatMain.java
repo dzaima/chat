@@ -421,7 +421,7 @@ public class ChatMain extends NodeWindow {
   private boolean newEdit(ChatEvent e) {
     return e.n.ctx.idNullable("edit")==null;
   }
-  public void updMessage(ChatEvent ce, Node body, boolean live) {
+  public void updMessage(ChatEvent ce, Node body, boolean live) { // TODO move to ChatEvent?
     Node msg = ce.n;
     boolean end = atEnd();
     newHover = true;
@@ -591,9 +591,17 @@ public class ChatMain extends NodeWindow {
   
   public void search() {
     if (room()==null) return;
-    View p = view;
+    View s = view.getSearch();
+    if (s!=null) {
+      hideCurrent();
+      view = s;
+      view.show();
+    }
+  }
+  
+  public void openNetworkLog() {
     hideCurrent();
-    view = p.getSearch();
+    view = NetworkLog.view(this);
     view.show();
   }
   

@@ -640,6 +640,15 @@ chat {
     }
   }
   
+  networkLog {
+    statuses = {
+      running  = { text="…" family=chat.code.familyUI color=str.color }
+      retrying = { text="…" family=chat.code.familyUI color=#F55 }
+      canceled = { text="✖" family=chat.code.familyUI color=#F55 }
+      done     = { text="✔" family=chat.code.familyUI color=#3F3 }
+    }
+  }
+  
   copyMI = mi { id=copy key=chat.menuKeys.copyText }
   
   $sField = scroll { y=off x=hidden chatfield { family=str.defaultFont bg=$bg id=$id } }

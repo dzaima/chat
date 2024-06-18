@@ -129,7 +129,7 @@ public class MxChatroom extends Chatroom {
       return null;
     }));
     commands.add(new MxCommand("network-log", false, left -> {
-      NetworkLog.open(m);
+      m.openNetworkLog();
       return null;
     }));
   }
