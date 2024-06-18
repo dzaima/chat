@@ -114,7 +114,7 @@ public class NetworkLog extends View {
     public final MxServer.RunnableRequest rq;
     public enum Status { RUNNING, RETRYING, CANCELED, DONE }
     public Status status = Status.RUNNING;
-    public final Vec<Event> events = new Vec<>(); 
+    public final Vec<Event> events = new Vec<>();
     
     public RequestInfo(Instant start, MxServer s, MxServer.RunnableRequest rq) {
       this.s = s;

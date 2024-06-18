@@ -1,12 +1,13 @@
 package chat.networkLog;
 
 import chat.*;
-import chat.ui.MsgNode;
+import chat.ui.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
+import dzaima.utils.JSON;
 import libMx.*;
 
 import java.time.*;
@@ -16,19 +17,19 @@ import java.util.regex.*;
 public class StatusMessage extends ChatEvent {
   private static final Pattern MATRIX = Pattern.compile("^_matrix/client/([vr]\\d)/");
   public final NetworkLog l;
-  public final NetworkLog.RequestInfo st;
+  public final NetworkLog.RequestInfo ri;
   private final String body;
   
-  protected StatusMessage(NetworkLog l, NetworkLog.RequestInfo st) {
-    super(String.valueOf(st.id), false, st.start, "?", null);
+  protected StatusMessage(NetworkLog l, NetworkLog.RequestInfo ri) {
+    super(String.valueOf(ri.id), false, ri.start, "?", null);
     this.l = l;
-    this.st = st;
+    this.ri = ri;
     
-    String p = MxServer.redactAccessToken(st.rq.calcURL());
+    String p = MxServer.redactAccessToken(ri.rq.calcURL());
     Matcher m = MATRIX.matcher(p);
     if (m.find()) p = m.group(1) + " " + p.substring(m.group().length());
     
-    body = st.rq.t.toString()+" "+p;
+    body = ri.rq.t.toString()+" "+p;
     
     username = fmtTime(time);
   }
@@ -47,7 +48,7 @@ public class StatusMessage extends ChatEvent {
     TextNode n = new TextNode(ctx, Props.none());
     
     Props statusInfo = ctx.finishProps(ctx.gc.getProp("chat.networkLog.statuses").gr(), null);
-    Props ps = ctx.finishProps(statusInfo.get(st.status.toString().toLowerCase()).gr(), null);
+    Props ps = ctx.finishProps(statusInfo.get(ri.status.toString().toLowerCase()).gr(), null);
     TextNode status = new TextNode(ctx, ps);
     status.add(new StringNode(ctx, ps.get("text").str()));
     n.add(status);
@@ -59,12 +60,12 @@ public class StatusMessage extends ChatEvent {
   
   public void rightClick(Click c, int x, int y) {
     PartialMenu pm = new PartialMenu(l.m.gc);
-    if (st.events.size()>0) pm.add("events", () -> {
+    pm.add("events", () -> {
       l.m.toViewDirect(new View() {
         public Chatroom room() { return l.room; }
         public void openViewTick() { }
         public void show() {
-          for (NetworkLog.Event c : st.events) {
+          for (NetworkLog.Event c : ri.events) {
             l.m.addMessage(new StatusEvent(l, c), true);
           }
           l.m.updateCurrentViewTitle();
@@ -85,12 +86,19 @@ public class StatusMessage extends ChatEvent {
         public boolean contains(ChatEvent ev) { return false; } // TODO?
       });
     });
+    if (ri.rq.ct!=null) pm.add("request body", () -> {
+      String ct = ri.rq.ct;
+      try {
+        ct = JSON.parse(ct).toString(2);
+      } catch (Throwable ignored) { }
+      new ViewSource(l.m, ct).open();
+    });
     pm.open(l.m.ctx, c);
   }
   
   public String userString() {
-    MxLogin l = st.s.primaryLogin;
-    return st.rq.t.toString()+" "+(l==null? "" : l.uid);
+    MxLogin l = ri.s.primaryLogin;
+    return ri.rq.t.toString()+" "+(l==null? "" : l.uid);
   }
   
   public String getSrc() { return "(log event)"; }
