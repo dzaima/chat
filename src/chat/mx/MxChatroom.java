@@ -414,8 +414,14 @@ public class MxChatroom extends Chatroom {
   private MxLog getThreadLog(String threadID) {
     return liveLogs.computeIfAbsent(threadID, id -> new MxLog(this, id, null));
   }
-  public MxLog logOf(MxEvent e) {
-    return e.m==null || e.m.threadId==null? myLog() : getThreadLog(e.m.threadId);
+  public MxLog logOf(MxEvent e) { // TODO thread: something about the thread root being edited resulting in edits of two logs
+    if (e.m == null) return myLog();
+    if (e.m.threadId != null) return getThreadLog(e.m.threadId);
+    if (e.m.isEditEvent()) {
+      MxChatEvent prev = allKnownEvents.get(e.m.editsId);
+      if (prev!=null && prev.e0.m!=null && prev.e0.m.threadId!=null) return getThreadLog(prev.e0.m.threadId);
+    }
+    return myLog();
   }
   
   
