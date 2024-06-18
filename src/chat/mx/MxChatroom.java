@@ -626,7 +626,7 @@ public class MxChatroom extends Chatroom {
   
   
   
-  public void confirmLeave(PartialMenu pm, String path, String id, Runnable run) {
+  public void addConfirmLeave(PartialMenu pm, String path, String id, Runnable run) {
     pm.add(m.gc.getProp(path).gr(), id, () -> new Popup(m) {
       protected Rect fullRect() { return centered(m.ctx.vw, 0, 0); }
       protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a) || ChatMain.keyFocus(pw, key, a) || true; }
@@ -645,17 +645,18 @@ public class MxChatroom extends Chatroom {
   
   public void addMenuItems(PartialMenu pm) {
     super.addMenuItems(pm);
-    pm.addSep();
-    confirmLeave(pm, "chat.mx.roomMenu.leave", "leave", r::selfLeave);
-    // confirmLeave(pm, "chat.mx.roomMenu.forget", "forget", () -> { r.selfLeave(); r.selfForget(); });
+    
     pm.add(pm.gc.getProp("chat.mx.roomMenu.room").gr(), s -> {
       switch (s) {
         case "copyLink": actionCopyLink(); return true;
         case "copyID": actionCopyID(); return true;
-        case "wrap": RoomListNode.DirStartNode.wrap(u, node); return true;
         default: return false;
       }
     });
+    
+    pm.addSep();
+    // addConfirmLeave(pm, "chat.mx.roomMenu.forget", "forget", () -> { r.selfLeave(); r.selfForget(); });
+    addConfirmLeave(pm, "chat.mx.roomMenu.leave", "leave", r::selfLeave);
   }
   
   public String prettyID() {

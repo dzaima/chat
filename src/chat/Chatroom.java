@@ -77,6 +77,7 @@ public abstract class Chatroom {
   public /*open*/ void addMenuItems(PartialMenu pm) {
     muteState.addMenuOptions(pm);
     pm.add(pm.gc.getProp("chat.roomMenu.renameLocally").gr(), "localRename", editor::startEdit);
+    pm.add(pm.gc.getProp("chat.roomMenu.makeFolder").gr(), "wrap", () -> RoomListNode.DirStartNode.wrap(user(), node));
   }
   public abstract void userMenu(Click c, int x, int y, String uid);
   public abstract void viewProfile(String uid);

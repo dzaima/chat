@@ -421,6 +421,9 @@ chat {
     }
   }
   roomMenu {
+    makeFolder = {
+      mi { id=wrap "Add to new folder" key=chat.menuKeys.folder }
+    }
     mute = {
       mi { id=mute "Mute..." }
     }
@@ -464,9 +467,8 @@ chat {
     leave = { mi { id=leave "Leave room" } }
     forget = { mi { id=forget "Leave & forget room" } }
     room = {
-      chat.mx.roomMenu.$links{}
       vsep{}
-      mi { id=wrap "Make new folder" key=chat.menuKeys.folder }
+      chat.mx.roomMenu.$links{}
     }
     space = {
       vsep{}
