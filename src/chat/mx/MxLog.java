@@ -113,7 +113,7 @@ public class MxLog {
     }
     
     if (e.m==null) {
-      return forceMakeNotice(e, live);
+      return new MxChatNotice(this, e, live);
     } else {
       if (e.m.isEditEvent()) {
         MxChatEvent prev = msgMap.get(e.m.editsId);
@@ -129,13 +129,8 @@ public class MxLog {
   }
   
   private MxChatNotice makeDebugNotice(MxEvent e, boolean live) {
-    if (DEBUG_EVENTS) return forceMakeNotice(e, live);
+    if (DEBUG_EVENTS) return new MxChatNotice(this, e, live);
     return null;
-  }
-  private MxChatNotice forceMakeNotice(MxEvent e, boolean live) {
-    MxChatNotice cm = new MxChatNotice(this, e, live);
-    if (cm.ignore()) return null;
-    return cm;
   }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) {
