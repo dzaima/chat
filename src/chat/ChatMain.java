@@ -619,7 +619,7 @@ public class ChatMain extends NodeWindow {
   public boolean key(Key key, int scancode, KeyAction a) {
     ChatTextArea input = input();
     if (input!=null && input.globalKey(key, a)) return true;
-    if (view instanceof SearchView && view.key(key, scancode, a)) return true;
+    if ((input==null && view!=null || view instanceof SearchView) && view.key(key, scancode, a)) return true; // TODO don't special-case SearchView? 
     
     String name = gc.keymap(key, a, "chat");
     switch (name) {

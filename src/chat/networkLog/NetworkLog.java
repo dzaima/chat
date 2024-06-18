@@ -88,9 +88,7 @@ public class NetworkLog extends View {
   public boolean open;
   public void show() {
     open = true;
-    for (RequestStatus s : requestList) {
-      m.addMessage(new StatusMessage(this, s), true);
-    }
+    for (RequestStatus s : requestList) m.addMessage(new StatusMessage(this, s), true);
     m.updateCurrentViewTitle();
   }
   public void hide() {
@@ -120,6 +118,7 @@ public class NetworkLog extends View {
     }
   }
   public static class Event {
+    public final long id = idCtr.incrementAndGet();
     public final Instant when;
     public final String type;
     public final Object obj;

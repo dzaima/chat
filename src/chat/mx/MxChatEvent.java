@@ -1,13 +1,13 @@
 package chat.mx;
 
 import chat.*;
+import chat.ui.ViewSource;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Prop;
 import dzaima.ui.node.types.InlineNode;
-import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.utils.*;
 import libMx.*;
 
@@ -143,24 +143,15 @@ public abstract class MxChatEvent extends ChatEvent {
           break;
         }
         case "viewSource":
-          new Popup(n.ctx.win()) {
-            protected void unfocused() { if (isVW) close(); }
-            protected Rect fullRect() { return centered(n.ctx.vw(), 0.8, 0.8); }
-            
-            protected boolean key(Key key, KeyAction a) { return defaultKeys(key, a); }
-            
-            protected void setup() {
-              CodeAreaNode e = (CodeAreaNode) node.ctx.id("src");
-              if (lastEvent!=e0) {
-                e.append("// initial event:\n");
-                e.append(e0.o.toString(2));
-                e.append("\n\n\n// latest edit:\n");
-              }
-              e.append(lastEvent.o.toString(2));
-              e.setLang(n.gc.langs().fromName("java"));
-              e.um.clear();
-            }
-          }.openWindow(n.gc, n.ctx, n.gc.getProp("chat.sourceUI").gr(), "Message source");
+          StringBuilder b = new StringBuilder();
+          if (lastEvent!=e0) {
+            b.append("// initial event:\n");
+            b.append(e0.o.toString(2));
+            b.append("\n\n\n// latest edit:\n");
+          }
+          b.append(lastEvent.o.toString(2));
+          
+          new ViewSource(r.m, b.toString()).open();
           break;
       }
     }).takeClick(c);
@@ -195,4 +186,5 @@ public abstract class MxChatEvent extends ChatEvent {
   public HashSet<String> getReceipts() {
     return r.messageReceipts.getSetForA(id);
   }
+  
 }

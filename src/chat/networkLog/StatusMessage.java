@@ -3,7 +3,7 @@ package chat.networkLog;
 import chat.*;
 import chat.ui.MsgNode;
 import dzaima.ui.gui.*;
-import dzaima.ui.gui.io.Click;
+import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
@@ -30,12 +30,12 @@ public class StatusMessage extends ChatEvent {
     
     body = st.rq.t.toString()+" "+p;
     
-    LocalTime t = time.atZone(ZoneId.systemDefault()).toLocalTime();
-    username = t.withNano(t.getNano()/1000000*1000000).toString();
+    username = fmtTime(time);
   }
   
-  public boolean userEq(ChatEvent o) {
-    return false;
+  public static String fmtTime(Instant time) {
+    LocalTime t = time.atZone(ZoneId.systemDefault()).toLocalTime();
+    return t.withNano(t.getNano()/1000000*1000000).toString();
   }
   
   public Chatroom room() {
@@ -58,16 +58,45 @@ public class StatusMessage extends ChatEvent {
   
   
   public void rightClick(Click c, int x, int y) {
-    
+    PartialMenu pm = new PartialMenu(l.m.gc);
+    if (st.events.size()>0) pm.add("events", () -> {
+      l.m.toViewDirect(new View() {
+        public Chatroom room() { return l.room; }
+        public void openViewTick() { }
+        public void show() {
+          for (NetworkLog.Event c : st.events) {
+            l.m.addMessage(new StatusEvent(l, c), true);
+          }
+          l.m.updateCurrentViewTitle();
+        }
+        public void hide() { }
+        public String title() { return "Network log request details"; }
+        public boolean key(Key key, int scancode, KeyAction a) {
+          if (l.m.gc.keymap(key, a, "chat").equals("cancel")) {
+            l.m.toViewDirect(l);
+            return true;
+          }
+          return false;
+        }
+        public boolean typed(int codepoint) { return false; }
+        public String asCodeblock(String s) { return s; }
+        public LiveView baseLiveView() { return l.baseLiveView(); }
+        public boolean contains(ChatEvent ev) { return false; } // TODO?
+      });
+    });
+    pm.open(l.m.ctx, c);
   }
   
-  public void toTarget() { }
-  public void markRel(boolean on) { }
+  public String userString() {
+    return st.rq.t.toString()+" "+st.s.primaryLogin.uid;
+  }
+  
   public String getSrc() { return "(log event)"; }
   public MsgNode.MsgType type() { return MsgNode.MsgType.MSG; }
+  public boolean userEq(ChatEvent o) { return false; }
+  public void toTarget() { }
+  public void markRel(boolean on) { }
   public boolean isDeleted() { return false; }
-  public String userString() { return st.rq.t.toString()+" "+st.s.primaryLogin.uid; }
-  
   public HashMap<String, Integer> getReactions() { return null; }
   public HashSet<String> getReceipts() { return null; }
 }
