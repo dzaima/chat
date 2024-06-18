@@ -57,7 +57,6 @@ public abstract class ChatEvent {
   public abstract boolean isDeleted();
   
   public abstract String userString();
-  public abstract String userURL();
   
   public abstract void rightClick(Click c, int x, int y);
   

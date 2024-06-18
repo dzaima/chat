@@ -66,7 +66,7 @@ public class StatusMessage extends ChatEvent {
   public MsgNode.MsgType type() { return MsgNode.MsgType.MSG; }
   public boolean isDeleted() { return false; }
   public String userString() { return st.rq.t.toString()+" "+st.s.primaryLogin.uid; }
-  public String userURL() { return username; }
+  
   public HashMap<String, Integer> getReactions() { return null; }
   public HashSet<String> getReceipts() { return null; }
 }
