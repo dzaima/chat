@@ -17,8 +17,8 @@ public final class MxMessage {
   public final String id;
   public final String uid;
   public final String editsId; // null if none
-  public final int edit; // 0 - not edited; 1 - informing about edit; 2 - full edited message
   public final MxFmted fmt;
+  public final MxFmted latestFmt; // if this event has info on the latest edit
   public final String threadId; // null if none
   public final String replyId; // null if none
   public MxMessage(MxRoom r, Obj o) { // TODO do sane things for evil inputs
@@ -31,46 +31,52 @@ public final class MxMessage {
     type = ct.str("msgtype", "deleted");
     
     MxFmted fmtT = new MxFmted(ct);
+    
     String editsId = null;
-    int edit = 0;
     String replyId = null;
     Obj rel = ct.obj("m.relates_to", Obj.E);
     String relType = rel.str("rel_type", null);
+    
     if ("m.replace".equals(relType)) {
       editsId = rel.str("event_id");
-      edit = 1;
       if (ct.has("m.new_content")) fmtT = new MxFmted(ct.obj("m.new_content"));
     } else {
       if (rel.has("m.in_reply_to") && !rel.bool("is_falling_back", false)) {
         replyId = rel.obj("m.in_reply_to").str("event_id");
       }
     }
-    if ("m.thread".equals(relType)) threadId = rel.str("event_id");
-    
-    else threadId = null;
-    if (fmtT.html.startsWith("<mx-reply>")) {
-      Document d = Jsoup.parse(fmtT.html);
-      d.getElementsByTag("mx-reply").remove();
-      d.outputSettings().prettyPrint(false);
-      fmtT = new MxFmted(fmtT.body, d.body().html());
-    }
     this.replyId = replyId;
-    this.fmt = fmtT;
-    if (editsId==null) {
-      Obj rels = Obj.objPath(o, Obj.E, "unsigned", "m.relations");
-      if (rels.has("m.replace")) {
-        // i have no clue wtf this is
-        // editsId = rel.getObj("m.replace").str("event_id");
-        edit = 2;
-      }
-    }
     this.editsId = editsId;
-    this.edit = edit;
+    this.fmt = removeFallbackReply(fmtT);
+    
+    if ("m.thread".equals(relType)) threadId = rel.str("event_id");
+    else threadId = null;
+    
+    Obj ct2 = Obj.objPath(o, null, "unsigned", "m.relations", "m.replace", "content");
+    if (ct2!=null) {
+      if (ct2.has("m.new_content")) ct2 = ct2.obj("m.new_content");
+      latestFmt = removeFallbackReply(new MxFmted(ct2));
+    } else {
+      latestFmt = null;
+    }
+  }
+  
+  private static MxFmted removeFallbackReply(MxFmted fmtT) {
+    if (!fmtT.html.startsWith("<mx-reply>")) return fmtT;
+    Document d = Jsoup.parse(fmtT.html);
+    d.getElementsByTag("mx-reply").remove();
+    d.outputSettings().prettyPrint(false);
+    fmtT = new MxFmted(fmtT.body, d.body().html());
+    return fmtT;
+  }
+  
+  public boolean isEditEvent() {
+    return editsId!=null;
   }
   
   private MxMessage edits;
   public MxMessage edits() {
-    if (edit!=1) return null;
+    if (!isEditEvent()) return null;
     if (edits == null) edits = r.message(editsId);
     return edits;
   }
@@ -81,7 +87,7 @@ public final class MxMessage {
     if (!gotReply) {
       MxMessage c = this;
       //noinspection ConstantConditions
-      while(c.edit==1) c = c.edits();
+      while (c.isEditEvent()) c = c.edits();
       String id = Obj.objPath(c.ct, Obj.E, "m.relates_to", "m.in_reply_to").str("event_id", null);
       try {
         if (id!=null) reply = r.message(id);

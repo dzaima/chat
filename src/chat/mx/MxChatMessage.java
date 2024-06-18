@@ -17,11 +17,12 @@ public class MxChatMessage extends MxChatEvent {
   private boolean replyRequested;
   
   public MxChatMessage(MxMessage m0, MxEvent e0, MxLog log, boolean isNew) {
-    super(log, e0, m0.edit==1? m0.editsId : m0.id, m0.replyId);
+    super(log, e0, m0.id, m0.replyId);
+    assert !m0.isEditEvent();
     this.m0 = m0;
     mine = m0.uid.equals(r.u.u.uid);
     username = r.getUsername(m0.uid);
-    edited = m0.edit != 0;
+    edited = m0.latestFmt!=null;
     setBody(m0, isNew);
     if (!isNew) loadReactions();
   }
@@ -36,8 +37,9 @@ public class MxChatMessage extends MxChatEvent {
   
   public void setBody(MxMessage nm, boolean isNew) {
     type = nm.type;
-    body = nm.fmt.html;
-    src = nm.fmt.body;
+    MxFmted f = nm.latestFmt!=null? nm.latestFmt : nm.fmt;
+    body = f.html;
+    src = f.body;
     updateBody(isNew);
   }
   

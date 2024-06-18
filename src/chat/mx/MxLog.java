@@ -7,6 +7,7 @@ import libMx.MxEvent;
 import java.util.*;
 
 public class MxLog {
+  private static final boolean DEBUG_EVENTS = false;
   public final MxChatroom r;
   public final String threadID;
   public boolean globalPaging = true;
@@ -78,31 +79,26 @@ public class MxLog {
       } else if (o.size()!=0) {
         Log.info("mx reaction", "Bad content[\"m.relates_to\"].rel_type value");
       }
-      return null;
+      return makeDebugNotice(e, pos, live);
     } else if ("m.room.redaction".equals(e.type)) {
       Reaction r = reactions.get(e.o.str("redacts", ""));
       if (r!=null) {
         Log.fine("mx reaction", "Reaction "+r.key+" removed from "+r.to.id);
         reactions.remove(e.id);
         r.to.addReaction(r.key, -1);
-        return null;
+        return makeDebugNotice(e, pos, live);
       }
     }
     if (e.m==null) {
-      MxChatNotice cm = new MxChatNotice(this, e, live);
-      if (cm.ignore()) return null;
-      putEvent(cm.id, cm);
-      if (pos>=0) list.insert(pos, cm);
-      return cm;
+      return forceMakeNotice(e, pos, live);
     } else {
-      if (e.m.edit==1) {
+      if (e.m.isEditEvent()) {
         MxChatEvent prev = msgMap.get(e.m.editsId);
         if (prev instanceof MxChatMessage) {
           ((MxChatMessage) prev).edit(e, live);
           putEvent(e.id, prev);
-        }
-        // else, it's an edit of a message further back in the log
-        return null;
+        } // else, it's an edit of a message further back in the log
+        return makeDebugNotice(e, pos, live);
       } else {
         MxChatEvent cm = new MxChatMessage(e.m, e, this, live);
         putEvent(cm.id, cm);
@@ -110,6 +106,18 @@ public class MxLog {
         return cm;
       }
     }
+  }
+  
+  private MxChatNotice makeDebugNotice(MxEvent e, int pos, boolean live) {
+    if (DEBUG_EVENTS) return forceMakeNotice(e, pos, live);
+    return null;
+  }
+  private MxChatNotice forceMakeNotice(MxEvent e, int pos, boolean live) {
+    MxChatNotice cm = new MxChatNotice(this, e, live);
+    if (cm.ignore()) return null;
+    putEvent(cm.id, cm);
+    if (pos >=0) list.insert(pos, cm);
+    return cm;
   }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) {
