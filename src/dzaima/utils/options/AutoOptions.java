@@ -86,6 +86,12 @@ public class AutoOptions {
     putArg(a, (arg, i, get) -> o.put(arg, i, "true"));
   }
   
+  public void argBoolRun(String a, String helpText, Runnable onSet) {
+    limitArgOne(a);
+    addHelpText(a, helpText);
+    putArg(a, (arg, i, get) -> onSet.run());
+  }
+  
   public void argString(String a, String helpText) {
     addHelpText(a+"=…", helpText);
     putArg(a, (arg, i, get) -> o.put(arg, i, get.get()));

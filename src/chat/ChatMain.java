@@ -81,7 +81,6 @@ public class ChatMain extends NodeWindow {
     dumpAll = makeDumpConsumer(o.optList("--dump-all-sync"));
     String delay = o.optOne("--network-delay");
     artificialNetworkDelay = delay==null? 0 : Integer.parseInt(delay);
-    if (o.takeBool("--disable-threads")) MxMessage.supportThreads = false;
     
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -690,11 +689,11 @@ public class ChatMain extends NodeWindow {
     o.argString("--dump-initial-sync", "Dump initial sync JSON of rooms with matching ID");
     o.argString("--dump-all-sync", "Dump all sync JSON of rooms with matching ID");
     o.argString("--network-delay", "Introduce artificial network delay, in milliseconds");
-    o.argBool("--disable-threads", "Disable structuring messages by threads");
+    o.argBoolRun("--disable-threads", "Disable structuring messages by threads", () -> MxMessage.supportThreads = false);
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
-    o.autoHelp();
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);
+    o.autoHelp();
     Vec<String> left = o.run(args);
     
     Path profilePath = Paths.get(left.sz==0? DEFAULT_PROFILE : left.get(0));
