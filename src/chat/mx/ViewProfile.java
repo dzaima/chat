@@ -74,7 +74,7 @@ public class ViewProfile {
       
       ((BtnNode) n.ctx.id("run")).setFn(b -> {
         String got = getReason.get();
-        r.u.queueRequest(null, () -> { f.accept(got==null || got.length()==0? null : got); return null; }, v -> onDone.run());
+        r.u.queueRequest(null, () -> { f.accept(got==null || got.isEmpty()? null : got); return null; }, v -> onDone.run());
         p.close();
       });
     });

@@ -41,7 +41,7 @@ public class ImageViewerNode extends Node {
     if (anim.frameCount()>1) {
       long currMs = System.currentTimeMillis();
       if (playing && !timelineDrag) {
-        animTime+= currMs-lastMs;
+        animTime+= (int) (currMs-lastMs);
       }
       animTime%= anim.duration;
       lastMs = currMs;

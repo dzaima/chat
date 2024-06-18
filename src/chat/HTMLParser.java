@@ -98,7 +98,7 @@ public class HTMLParser {
               eq|= url.equals(link);
               url = fixURL(url);
               eq|= url.equals(link);
-              if (eq || link==null) attemptLink: try {
+              if (eq || link==null) try {
                 URI uri = new URI(url);
                 if (pi != start) p.add(new StringNode(p.ctx, s.substring(pi, start)));
                 Node inner = p;

@@ -6,12 +6,10 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 
 public class ViewRoom {
-  final MxChatroom r;
-  final ChatMain m;
-  final Node base;
+  private final ChatMain m;
+  private final Node base;
   
   ViewRoom(MxChatroom r) {
-    this.r = r;
     this.m = r.m;
     this.base = m.ctx.make(m.gc.getProp("chat.roomList.ui").gr());
     base.ctx.id("name").add(new StringNode(m.ctx, r.title()));

@@ -20,8 +20,6 @@ public class MxSearchView extends SearchView {
     return false;
   }
   
-  public void upload() { }
-  
   public void hidePrev() {
     for (MxChatEvent e : prevShown) e.hide();
     prevShown.clear();

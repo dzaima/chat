@@ -26,7 +26,7 @@ public abstract class SearchView extends View {
   
   public boolean allRooms() { return ((CheckboxNode) n.ctx.id("allRooms")).enabled; }
   public boolean showContext() { return ((CheckboxNode) n.ctx.id("showContext")).enabled; }
-  public boolean serverSide() { return false; }
+  public boolean clientSide() { return true; }
   // public boolean serverSide() { return ((CheckboxNode) n.ctx.id("serverSide")).enabled; }
   public boolean caseSensitive() { return ((CheckboxNode) n.ctx.id("caseSensitive")).enabled; }
   public boolean exactMatch() { return ((CheckboxNode) n.ctx.id("exactMatch")).enabled; }
@@ -47,12 +47,12 @@ public abstract class SearchView extends View {
   }
   
   public void updatedBtns() {
-    if (!serverSide()) runSearch();
+    if (clientSide()) runSearch();
   }
   
   String pText="", pUser="";
   public void openViewTick() {
-    if (!serverSide()) {
+    if (clientSide()) {
       String nText = getText();
       String nUser = getUser();
       if (nText.equals(pText) && nUser.equals(pUser)) return;

@@ -25,9 +25,7 @@ public class CopyMenuNode extends WrapNode {
       PNodeGroup p = gc.getProp("chat.copyMI").gr().copy();
       p.ch.add(new PNode.PNodeStr(getProp("text").str()));
       
-      pm.add(p, "copy", () -> {
-        ctx.win().copyString(InlineNode.getNodeText(ch.get(0)));
-      });
+      pm.add(p, "copy", () -> ctx.win().copyString(InlineNode.getNodeText(ch.get(0))));
       pm.open(ctx, c);
     }
   }

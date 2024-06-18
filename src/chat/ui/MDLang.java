@@ -10,7 +10,7 @@ import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.paragraph.*;
 
 public class MDLang extends Lang {
-  public GConfig gc;
+  public final GConfig gc;
   public MDLang(ChatMain m, ChatTextArea ta) {
     super(new MDState(m, ta));
     gc = m.gc;

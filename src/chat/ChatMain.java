@@ -30,7 +30,6 @@ import java.util.function.BiConsumer;
 public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
   public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
-  public static boolean detailedNetworkLog;
   
   public Options options;
   public boolean disableSaving = false;
@@ -53,7 +52,7 @@ public class ChatMain extends NodeWindow {
   public View view;
   public MsgExtraNode msgExtra;
   public MsgExtraNode.HoverPopup hoverPopup;
-  public MuteState defaultMuteState = new MuteState(this) {
+  public final MuteState defaultMuteState = new MuteState(this) {
     protected int ownedUnreads() { return 0; }
     protected boolean ownedPings() { return false; }
     protected void updated() { }
@@ -330,7 +329,7 @@ public class ChatMain extends NodeWindow {
     return timeDelta(h);
   }
   
-  EnumProp lastTimeProp = new EnumProp("lastTime");
+  private final EnumProp lastTimeProp = new EnumProp("lastTime");
   public void removeLastTime() {
     nextTimeUpdate = 0;
     if (msgs.ch.sz>0) {
@@ -504,7 +503,7 @@ public class ChatMain extends NodeWindow {
     saveRequested = true;
   }
   
-  EnumProp laterProp = new EnumProp("later");
+  private final EnumProp laterProp = new EnumProp("later");
   // private static final SimpleDateFormat df = new SimpleDateFormat("E, MM d yyyy");
   private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("EE, d MMM yyyy");
   public Node handlePair(Node a, Node b, boolean forceDate) {

@@ -18,11 +18,11 @@ import java.util.function.*;
 public class NetworkLog extends BasicNetworkView {
   private static class TodoEntry { Instant w; MxServer.RunnableRequest rq; String type; Object o; }
   
-  public static Deque<RequestInfo> list = new ArrayDeque<>();
-  public static HashMap<MxServer.RunnableRequest, RequestInfo> map = new HashMap<>();
+  public static final Deque<RequestInfo> list = new ArrayDeque<>();
+  public static final HashMap<MxServer.RunnableRequest, RequestInfo> map = new HashMap<>();
   
   public static boolean detailed;
-  public HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
+  public final HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
   
   public final ChatMain m;
   public final ChatUser user;
@@ -66,8 +66,8 @@ public class NetworkLog extends BasicNetworkView {
     m.toViewDirect(new NetworkLog(m));
   }
   
-  public static Runnable start(ChatMain m, boolean detailed) {
-    NetworkLog.detailed = detailed;
+  public static Runnable start(ChatMain m, boolean detailed0) {
+    NetworkLog.detailed = detailed0;
     
     ConcurrentLinkedQueue<TodoEntry> todo = new ConcurrentLinkedQueue<>();
     MxServer.requestLogger = (rq, type, o) -> {
@@ -129,9 +129,7 @@ public class NetworkLog extends BasicNetworkView {
   
   public Chatroom room() { return room; }
   public void openViewTick() { }
-  public boolean open;
   public void show() {
-    open = true;
     for (RequestInfo ri : list) addRI(ri);
     m.updateCurrentViewTitle();
   }
@@ -141,7 +139,6 @@ public class NetworkLog extends BasicNetworkView {
   }
   
   public void hide() {
-    open = false;
     for (StatusMessage c : statusMessages.values()) c.hide();
   }
   public String title() { return "Network log"; }

@@ -33,8 +33,8 @@ public class MxChatUser extends ChatUser {
   public MxSync2 sync;
   public String currentSyncToken;
   
-  public HashMap<String, MxChatroom> roomMap = new HashMap<>();
-  public Collection<MxChatroom> roomSet = roomMap.values();
+  public final HashMap<String, MxChatroom> roomMap = new HashMap<>();
+  public final Collection<MxChatroom> roomSet = roomMap.values();
   
   private final ConcurrentLinkedQueue<Runnable> primary = new ConcurrentLinkedQueue<>();
   private final LinkedBlockingDeque<Runnable> network = new LinkedBlockingDeque<>();
@@ -66,7 +66,7 @@ public class MxChatUser extends ChatUser {
     });
   }
   
-  public Thread networkThread = Tools.thread(() -> {
+  private final Thread networkThread = Tools.thread(() -> {
     while (true) {
       try {
         network.take().run();
@@ -77,7 +77,7 @@ public class MxChatUser extends ChatUser {
       }
     }
   }, true);
-  MediaThread media = new MediaThread();
+  private final MediaThread media = new MediaThread();
   
   public MxChatUser(ChatMain m, Obj dataIn) {
     super(m);

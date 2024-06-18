@@ -219,9 +219,9 @@ public class RoomListNode extends ReorderableNode {
   }
   public static class DirStartNode extends SelRoomEntryNode {
     public final ExternalDirInfo external;
-    Node nameObj;
+    public final RoomEditing editor;
+    private final Node nameObj;
     public String rawName;
-    public RoomEditing editor;
     
     public int unread;
     public boolean ping;

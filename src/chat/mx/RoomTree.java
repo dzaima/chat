@@ -8,12 +8,12 @@ import dzaima.utils.JSON.Obj;
 import java.util.*;
 
 public class RoomTree {
-  String id; // if id==null, this is a local folder
-  String name;
-  Obj o;
-  boolean open;
-  Vec<RoomTree> ch;
-  MxChatroom got;
+  private final String id; // if id==null, this is a local folder
+  private final String name;
+  private final Obj o;
+  private MxChatroom got;
+  private boolean open;
+  private Vec<RoomTree> ch;
   
   public RoomTree(String id, MxChatroom got, String name, Obj o) {
     this.id = id;
@@ -158,7 +158,7 @@ public class RoomTree {
   }
   private static class SavingState {
     final Vec<Node> ch;
-    public int end;
+    public final int end;
     int pos;
     
     private SavingState(Vec<Node> ch) {

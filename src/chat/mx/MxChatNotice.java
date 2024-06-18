@@ -103,9 +103,6 @@ public class MxChatNotice extends MxChatEvent {
   public Node mk(String prop, Object... kv) {
     return n.ctx.makeKV(n.gc.getProp(prop).gr(), kv);
   }
-  public Node mkp(String uid) {
-    return mkp(uid, r.getUsername(uid));
-  }
   public Node mkp(String uid, String name) {
     return HTMLParser.pillLink(r, mks(name), uid);
   }

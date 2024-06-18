@@ -9,7 +9,7 @@ import dzaima.utils.*;
 
 public abstract class Chatroom {
   public final ChatMain m;
-  public RoomListNode.RoomNode node;
+  public final RoomListNode.RoomNode node;
   public String officialName;
   public String typing = "";
   

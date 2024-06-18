@@ -6,9 +6,8 @@ public abstract class TranscriptView extends View {
   public abstract void older();
   public abstract void newer();
   
-  protected boolean open;
-  public /*open*/ void show() { open = true; room().m.setCurrentViewTitle(title()); }
-  public /*open*/ void hide() { open = false; }
+  public /*open*/ void show() { room().m.setCurrentViewTitle(title()); }
+  public /*open*/ void hide() { }
   
   public String title() {
     return "Transcript of "+baseLiveView().title();

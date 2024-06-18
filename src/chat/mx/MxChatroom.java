@@ -253,7 +253,6 @@ public class MxChatroom extends Chatroom {
       if (newObj!=null) newObj.monotonicID = ei.monotonicID;
       eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) setReceipt(ev.str("sender"), mxEv.id);
-      //noinspection SwitchStatementWithTooFewBranches
       anyEvent(ev);
       switch (ev.str("type")) {
         case "m.room.redaction":
@@ -419,7 +418,7 @@ public class MxChatroom extends Chatroom {
     });
     return fullUserList;
   }
-  public void doubleUserList(BiConsumer<HashMap<String, UserData>, Boolean> b) { // true on lazy result; a non-lazy result will always be given, but lazy may be omitten
+  public void doubleUserList(BiConsumer<HashMap<String, UserData>, Boolean> b) { // true on lazy result; a non-lazy result will always be given, but lazy may be omitted
     if (!hasFullUserList()) b.accept(userData, true);
     getFullUserList().then(r -> b.accept(r, false));
   }
@@ -705,11 +704,10 @@ public class MxChatroom extends Chatroom {
       nameUpdated();
     }
     
-    HashSet<String> children = new HashSet<>();
-    HashSet<String> children0 = new HashSet<>();
+    public final HashSet<String> children = new HashSet<>();
     public void childInfo(String id, boolean has) {
-      if (has) { children.add(id);    children0.add(id); }
-      else     { children.remove(id); children0.remove(id); }
+      if (has) children.add(id);
+      else children.remove(id);
     }
   }
   public RoomListNode.ExternalDirInfo asDir() {
