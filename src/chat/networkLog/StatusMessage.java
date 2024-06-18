@@ -2,7 +2,7 @@ package chat.networkLog;
 
 import chat.*;
 import chat.ui.*;
-import dzaima.ui.gui.*;
+import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;

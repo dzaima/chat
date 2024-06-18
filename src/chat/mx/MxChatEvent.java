@@ -4,12 +4,12 @@ import chat.*;
 import chat.ui.ViewSource;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.Popup;
-import dzaima.ui.gui.io.*;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Prop;
 import dzaima.ui.node.types.InlineNode;
 import dzaima.utils.*;
-import libMx.*;
+import libMx.MxEvent;
 
 import java.util.*;
 

@@ -5,7 +5,7 @@ import chat.ui.*;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.types.StringNode;
-import dzaima.utils.*;
+import dzaima.utils.Log;
 
 import java.io.*;
 import java.util.*;
@@ -42,23 +42,21 @@ public class StatusEvent extends ChatEvent {
   
   public void rightClick(Click c, int x, int y) {
     PartialMenu pm = new PartialMenu(l.m.gc);
-    if (obj!=null) {
-      pm.add("View full", () -> {
-        try {
-          String s;
-          if (obj instanceof Throwable) {
-            StringWriter w = new StringWriter();
-            ((Throwable) obj).printStackTrace(new PrintWriter(w));
-            s = w.toString();
-          } else {
-            s = Objects.toString(obj);
-          }
-          new ViewSource(l.m, s).open();
-        } catch (Throwable t) {
-          Log.stacktrace("network-log", t);
+    if (obj!=null) pm.add("View full", () -> {
+      try {
+        String s;
+        if (obj instanceof Throwable) {
+          StringWriter w = new StringWriter();
+          ((Throwable) obj).printStackTrace(new PrintWriter(w));
+          s = w.toString();
+        } else {
+          s = Objects.toString(obj);
         }
-      });
-    }
+        new ViewSource(l.m, s).open();
+      } catch (Throwable t) {
+        Log.stacktrace("network-log", t);
+      }
+    });
     pm.open(l.m.ctx, c);
   }
   
