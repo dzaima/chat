@@ -268,12 +268,12 @@ public class MxChatroom extends Chatroom {
       Obj ct = ev.obj("content", Obj.E);
       switch (ev.str("type", "")) {
         case "m.typing":
-          Arr ids = ct.arr("user_ids");
           StringBuilder typing = new StringBuilder();
+          Vec<String> ids = Vec.ofIterable(ct.arr("user_ids").strs()).map(c -> getUsername(c, true)).filter(Objects::nonNull);
           int l = ids.size();
           for (int i = 0; i < l; i++) {
             if (i>0) typing.append(i==l-1? " and " : ", ");
-            typing.append(getUsername(ids.str(i)));
+            typing.append(ids.get(i));
           }
           if (l>0) typing.append(l>1? " are typing …" : " is typing …");
           this.typing = typing.toString();
@@ -506,7 +506,10 @@ public class MxChatroom extends Chatroom {
   
   private void loadQuestionableMemberState(MxRoom.Chunk r) {
     if (r==null) return;
-    for (MxEvent c : r.states) if (c.type.equals("m.room.member")) processMemberEvent(c.o, false, true);
+    for (MxEvent e : r.states) if (e.type.equals("m.room.member")) loadQuestionableMemberState(e);
+  }
+  private void loadQuestionableMemberState(MxEvent e) {
+    processMemberEvent(e.o, false, true);
   }
   
   public void readAll() {
@@ -539,9 +542,16 @@ public class MxChatroom extends Chatroom {
     return mainLiveView;
   }
   
-  public String getUsername(String uid) {
+  private final HashSet<String> inProgressUserLoads = new HashSet<>();
+  public String getUsername(String uid, boolean nullIfUnknown) {
     assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
+    if (d==null && inProgressUserLoads.add(uid)) {
+      u.queueRequest(null, () -> r.getMemberState(uid), e -> {
+        inProgressUserLoads.remove(uid);
+        if (e!=null) loadQuestionableMemberState(e);
+      });
+    }
     if (d==null || d.username==null) return uid.split(":")[0].substring(1);
     return d.username;
   }

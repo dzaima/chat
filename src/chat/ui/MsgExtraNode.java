@@ -118,9 +118,7 @@ public class MsgExtraNode extends InlineNode {
       vwh[0] = vw;
       
       ArrayList<String> rs = new ArrayList<>();
-      for (String c : receipts) {
-        rs.add(r.getUsername(c));
-      }
+      for (String c : receipts) rs.add(r.getUsername(c, false));
       Collections.sort(rs);
       for (String r : rs) popup.node.add(new MenuNode.MINode(vw.base.ctx, r, ""));
       vw.newRect();

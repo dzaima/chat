@@ -17,7 +17,7 @@ public class MxChatMessage extends MxChatEvent {
   private boolean replyRequested;
   
   public MxChatMessage(MxMessage m0, MxEvent e0, MxLog log, boolean isNew) {
-    super(log, m0.uid.equals(log.r.u.u.uid), e0, m0.id, log.r.getUsername(m0.uid), m0.replyId);
+    super(log, m0.uid.equals(log.r.u.u.uid), e0, m0.id, log.r.getUsername(m0.uid, false), m0.replyId);
     assert !m0.isEditEvent();
     this.m0 = m0;
     edited = m0.latestFmt!=null;
@@ -60,7 +60,7 @@ public class MxChatMessage extends MxChatEvent {
       if (tg!=null) {
         String uid = tg.e0.uid;
         String name = tg.username;
-        if (name==null || name.isEmpty()) name = r.getUsername(uid);
+        if (name==null || name.isEmpty()) name = r.getUsername(uid, false);
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
         Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
@@ -73,7 +73,7 @@ public class MxChatMessage extends MxChatEvent {
             
             MxEvent member = new Vec<>(ctx.states).linearFind(c -> c.type.equals("m.room.member") && c.o.str("state_key","").equals(c.uid));
             String displayname = member==null? null : member.ct.str("displayname", null);
-            if (displayname==null) displayname = r.getUsername(msg.uid);
+            if (displayname==null) displayname = r.getUsername(msg.uid, false);
             
             bodyPrefix = r.pill(msg, msg.uid, displayname) + " ";
             updateBody(false);

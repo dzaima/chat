@@ -43,7 +43,7 @@ public class ViewUsers {
   
   public void updateList() {
     list.clearCh();
-    Vec<Pair<String, String>> l = new Vec<>(new ArrayList<>(userData.keySet())).map(id -> new Pair<>(id, r.getUsername(id)));
+    Vec<Pair<String, String>> l = new Vec<>(new ArrayList<>(userData.keySet())).map(id -> new Pair<>(id, r.getUsername(id, false)));
     String search = this.search.getAll().toLowerCase();
     if (search.length()>0) l.filterInplace(c -> c.a.toLowerCase().contains(search) || c.b.toLowerCase().contains(search));
     l.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.b, b.b));

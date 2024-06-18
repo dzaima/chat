@@ -25,7 +25,7 @@ public class ViewProfile {
     this.base = m.ctx.make(m.gc.getProp("chat.profile.ui").gr());
     this.more = base.ctx.id("more");
     this.data = r.userData.get(uid);
-    this.username = r.getUsername(uid);
+    this.username = r.getUsername(uid, false);
     this.uid = uid;
   }
   

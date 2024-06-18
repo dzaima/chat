@@ -51,7 +51,7 @@ public abstract class Chatroom {
   
   public abstract LiveView mainView();
   
-  public abstract String getUsername(String uid);
+  public abstract String getUsername(String uid, boolean nullIfUnknown);
   
   public abstract void cfgUpdated();
   

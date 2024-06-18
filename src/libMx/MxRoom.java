@@ -84,6 +84,15 @@ public class MxRoom {
     return new Chunk(events, readState(o), o.str("start", ""), o.str("end", ""));
   }
   
+  public Obj getState(String type, String key) {
+    Obj r = request("state", type, key).gToken().get().runJ();
+    return r.has("membership")? r : null;
+  }
+  public MxEvent getMemberState(String uid) {
+    Obj ct = getState("m.room.member", uid);
+    return ct==null? null : new MxEvent(this, Obj.fromKV("content", ct, "state_key", uid));
+  }
+  
   private ArrayList<MxEvent> readState(Obj o) {
     ArrayList<MxEvent> states = new ArrayList<>();
     for (Obj c : o.arr("state", JSON.Arr.E).objs()) states.add(new MxEvent(this, c));
