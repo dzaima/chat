@@ -31,7 +31,7 @@ public class StatusEvent extends ChatEvent {
     String msg = ev.type;
     try {
       if (obj!=null) {
-        String s = Objects.toString(obj).replaceAll("\n", "");
+        String s = obj instanceof NetworkLog.CompactJSON? ((NetworkLog.CompactJSON) obj).str : Objects.toString(obj).replaceAll("\n", "");
         msg+= ": "+(s.length()> MAX_PREVIEW? s.substring(0, MAX_PREVIEW)+"…" : s);
       }
     } catch (Throwable ignored) { msg+= "; error while formatting"; }
@@ -46,13 +46,13 @@ public class StatusEvent extends ChatEvent {
       pm.add("View full", () -> {
         try {
           String s;
-          if      (obj instanceof JSON.Obj) s = ((JSON.Obj) obj).toString(2);
-          else if (obj instanceof JSON.Arr) s = ((JSON.Arr) obj).toString(2);
-          else if (obj instanceof Throwable) {
+          if (obj instanceof Throwable) {
             StringWriter w = new StringWriter();
             ((Throwable) obj).printStackTrace(new PrintWriter(w));
             s = w.toString();
-          } else s = Objects.toString(obj);
+          } else {
+            s = Objects.toString(obj);
+          }
           new ViewSource(l.m, s).open();
         } catch (Throwable t) {
           Log.stacktrace("network-log", t);

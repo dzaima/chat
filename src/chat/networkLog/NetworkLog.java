@@ -172,7 +172,17 @@ public class NetworkLog extends BasicNetworkView {
     public Event(Instant when, String type, Object obj) {
       this.when = when;
       this.type = type;
-      this.obj = obj;
+      this.obj = obj instanceof JSON.Val? new CompactJSON((JSON.Val) obj) : obj;
+    }
+  }
+  public static class CompactJSON {
+    public final String str;
+    public CompactJSON(JSON.Val v) {
+      str = v.toString();
+    }
+    
+    public String toString() {
+      return JSON.parse(str).toString(2);
     }
   }
 }
