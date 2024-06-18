@@ -48,7 +48,7 @@ public class MxLog {
   public void addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
-      MxChatEvent ev = processMessage(e, -1, false);
+      MxChatEvent ev = processMessage(e, false);
       if (ev!=null) {
         r.allKnownEvents.put(ev.id, ev);
         evs.add(ev);
@@ -59,12 +59,17 @@ public class MxLog {
   }
   
   public MxChatEvent addEventAtEnd(MxEvent e) {
-    MxChatEvent cm = processMessage(e, size(), true);
-    if (open && cm!=null) r.m.addMessage(cm, true);
+    int pos = size();
+    MxChatEvent cm = processMessage(e, true);
+    if (cm!=null) {
+      putEvent(cm.id, cm);
+      list.insert(pos, cm);
+      if (open) r.m.addMessage(cm, true);
+    }
     return cm;
   }
   
-  private MxChatEvent processMessage(MxEvent e, int pos, boolean live) { // returns message that would be shown, or null if it's not to be displayed
+  private MxChatEvent processMessage(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
     if (e.type.equals("m.reaction")) {
       JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");
       if (live) {
@@ -85,7 +90,7 @@ public class MxLog {
           Log.warn("mx reaction", "Unknown content[\"m.relates_to\"].rel_type value");
         }
       }
-      return makeDebugNotice(e, pos, live);
+      return makeDebugNotice(e, live);
     } else if (e.type.equals("m.room.redaction")) {
       Reaction r = reactions.get(e.o.str("redacts", ""));
       if (r != null) {
@@ -93,11 +98,11 @@ public class MxLog {
         reactions.remove(e.id);
         r.to.addReaction(r.key, -1);
       }
-      return makeDebugNotice(e, pos, live);
+      return makeDebugNotice(e, live);
     }
     
     if (e.m==null) {
-      return forceMakeNotice(e, pos, live);
+      return forceMakeNotice(e, live);
     } else {
       if (e.m.isEditEvent()) {
         MxChatEvent prev = msgMap.get(e.m.editsId);
@@ -105,25 +110,20 @@ public class MxLog {
           ((MxChatMessage) prev).edit(e, live);
           putEvent(e.id, prev);
         } // else, it's an edit of a message further back in the log
-        return makeDebugNotice(e, pos, live);
+        return makeDebugNotice(e, live);
       } else {
-        MxChatEvent cm = new MxChatMessage(e.m, e, this, live);
-        putEvent(cm.id, cm);
-        if (pos>=0) list.insert(pos, cm);
-        return cm;
+        return new MxChatMessage(e.m, e, this, live);
       }
     }
   }
   
-  private MxChatNotice makeDebugNotice(MxEvent e, int pos, boolean live) {
-    if (DEBUG_EVENTS) return forceMakeNotice(e, pos, live);
+  private MxChatNotice makeDebugNotice(MxEvent e, boolean live) {
+    if (DEBUG_EVENTS) return forceMakeNotice(e, live);
     return null;
   }
-  private MxChatNotice forceMakeNotice(MxEvent e, int pos, boolean live) {
+  private MxChatNotice forceMakeNotice(MxEvent e, boolean live) {
     MxChatNotice cm = new MxChatNotice(this, e, live);
     if (cm.ignore()) return null;
-    putEvent(cm.id, cm);
-    if (pos >=0) list.insert(pos, cm);
     return cm;
   }
   
