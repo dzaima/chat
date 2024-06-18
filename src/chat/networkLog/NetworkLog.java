@@ -56,8 +56,8 @@ public class NetworkLog extends View {
     };
   }
   
-  public static View view(ChatMain m) {
-    return new NetworkLog(m);
+  public static void open(ChatMain m) {
+    m.toViewDirect(new NetworkLog(m));
   }
   
   public static void start(boolean detailed) {

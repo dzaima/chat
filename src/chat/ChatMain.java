@@ -592,19 +592,14 @@ public class ChatMain extends NodeWindow {
   public void search() {
     if (room()==null) return;
     View s = view.getSearch();
-    if (s!=null) {
-      hideCurrent();
-      view = s;
-      view.show();
-    }
+    if (s!=null) toViewDirect(s);
   }
   
-  public void openNetworkLog() {
+  public void toViewDirect(View v) {
     hideCurrent();
-    view = NetworkLog.view(this);
+    view = v;
     view.show();
   }
-  
   
   
   public boolean chatKey(Key key, int scancode, KeyAction a) {

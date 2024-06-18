@@ -2,6 +2,7 @@ package chat.networkLog;
 
 import chat.*;
 import chat.ui.MsgNode;
+import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;

@@ -65,7 +65,7 @@ public abstract class MxChatEvent extends ChatEvent {
   public String userString() { return e0.uid; }
   
   public void rightClick(Click c, int x, int y) {
-    PNodeGroup gr = n.gc.getProp("chat.mx.msgMenu.main").gr().copy();
+    PNodeGroup gr = n.gc.getProp("chat.mx.msgMenu.main").gr().copy(); // TODO modernize
     n.border.openMenu(true);
     Node code = null;
     if (this instanceof MxChatMessage) {
