@@ -64,7 +64,9 @@ public class MxChatMessage extends MxChatEvent {
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
         Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
-        r.u.queueRequest(null, () -> r.r.msgContext(MxRoom.roomEventFilter(true), m0.replyId, 0), ctx -> {
+        JSON.Obj filter = MxRoom.roomEventFilter(true);
+        filter.put("types", JSON.Arr.of("m.room.message", "m.room.member"));
+        r.u.queueRequest(null, () -> r.r.msgContext(filter, m0.replyId, 0), ctx -> {
           ok: if (ctx!=null) {
             MxEvent msg = new Vec<>(ctx.events).linearFind(c -> c.id.equals(m0.replyId));
             if (msg==null) break ok;
