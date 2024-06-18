@@ -170,6 +170,7 @@ public abstract class MxChatEvent extends ChatEvent {
   public void delete(JSON.Obj ev) {
     Log.fine("mx", id+" has been deleted");
     type = "deleted";
+    edited = false;
     target = null;
     lastEvent = new MxEvent(r.r, ev);
     updateBody(true);
