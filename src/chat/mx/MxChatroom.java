@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.networkLog.NetworkLog;
 import chat.ui.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
@@ -125,6 +126,10 @@ public class MxChatroom extends Chatroom {
     }));
     commands.add(new MxCommand("global-nick", true, left -> {
       u.queueNetwork(() -> u.u.setGlobalNick(left));
+      return null;
+    }));
+    commands.add(new MxCommand("network-log", false, left -> {
+      NetworkLog.open(m);
       return null;
     }));
   }

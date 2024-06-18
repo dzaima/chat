@@ -1,6 +1,7 @@
 package chat;
 
 import chat.mx.*;
+import chat.networkLog.NetworkLog;
 import chat.ui.*;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
@@ -29,6 +30,7 @@ import java.util.function.BiConsumer;
 public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
   public static final Path LOCAL_CFG = Paths.get("local.dzcfg");
+  public static boolean detailedNetworkLog;
   
   public Options options;
   public boolean disableSaving = false;
@@ -75,7 +77,6 @@ public class ChatMain extends NodeWindow {
     super(gc, pctx, g, new WindowInit("chat"));
     this.options = o;
     this.theme = theme;
-    if (Tools.DBG) MxServer.LOG = true;
     if (o.has("--disable-saving")) disableSaving = true;
     dumpInitial = makeDumpConsumer(o.optList("--dump-initial-sync"));
     dumpAll = makeDumpConsumer(o.optList("--dump-all-sync"));
@@ -690,11 +691,13 @@ public class ChatMain extends NodeWindow {
     o.argString("--dump-all-sync", "Dump all sync JSON of rooms with matching ID");
     o.argString("--network-delay", "Introduce artificial network delay, in milliseconds");
     o.argBoolRun("--disable-threads", "Disable structuring messages by threads", () -> MxMessage.supportThreads = false);
+    o.argBool("--detailed-network-log", "Preserve all info about network requests");
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);
     o.autoHelp();
     Vec<String> left = o.run(args);
+    NetworkLog.start(o.o.takeBool("--detailed-network-log"));
     
     Path profilePath = Paths.get(left.sz==0? DEFAULT_PROFILE : left.get(0));
     Obj loadedProfile;
@@ -706,8 +709,8 @@ public class ChatMain extends NodeWindow {
     }
     Box<Theme> theme = new Box<>(Theme.valueOf(loadedProfile.obj("global", Obj.E).str("theme", "dark")));
     
-    MxServer.LOG_FN = Log::fine;
-    MxServer.WARN_FN = Log::warn;
+    MxServer.logFn = Log::fine;
+    MxServer.warnFn = Log::warn;
     Windows.setManager(Windows.Manager.JWM);
     // Windows.setManager(Windows.Manager.LWJGL);
     

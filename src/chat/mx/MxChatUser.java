@@ -45,7 +45,7 @@ public class MxChatUser extends ChatUser {
   public static byte[] get(String logText, String url) {
     return CacheObj.compute(url, () -> {
       logGet(logText, url);
-      try { return Tools.get(url); }
+      try { return Tools.get(url); } // TODO NetworkLog
       catch (RuntimeException e) { Log.warn(logText, "Failed to load "+url); return null; }
     });
   }

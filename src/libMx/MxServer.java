@@ -1,8 +1,7 @@
 package libMx;
 
-import dzaima.utils.JSON;
+import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
-import dzaima.utils.Pair;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -117,6 +116,8 @@ public class MxServer {
     }
     
     public <T> T tryRun(Function<String, Pair<T, Integer>> get) {
+      requestLogger.accept(MxServer.this, this);
+      
       if (t==null) throw new IllegalStateException("Request type not set");
       StringBuilder p = new StringBuilder();
       for (int i = 0; i < r.pathParts.length; i++) {
@@ -131,7 +132,7 @@ public class MxServer {
       
       int expTime = 1000;
       while (true) {
-        int retryTime = 0;
+        int requestedRetry = 0;
         try {
           log(t.name(), path, ct);
           String res;
@@ -140,17 +141,23 @@ public class MxServer {
             case PUT:  res = Utils.put (url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
             case POST: res = Utils.post(url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
           }
+          requestStatusLogger.got(this, "raw result", res);
+          
           Pair<T, Integer> r = get.apply(res);
-          if (r.b==null) return r.a;
-          retryTime = r.b;
+          if (r.b==null) {
+            requestStatusLogger.got(this, "result", res);
+            return r.a;
+          }
+          requestedRetry = r.b;
         } catch (RuntimeException e) {
           warn("Failed to parse result:");
           warnStacktrace(e);
+          requestStatusLogger.got(this, "exception", e);
         }
         
-        retryTime = Math.max(retryTime, expTime);
-        log("mxq", "Retrying in "+(retryTime/1000)+"s");
-        Utils.sleep(retryTime);
+        requestedRetry = Math.max(requestedRetry, expTime);
+        log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
+        Utils.sleep(requestedRetry);
         expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);
       }
     }
@@ -159,7 +166,7 @@ public class MxServer {
       return tryRun(s -> new Pair<>(s, null));
     }
     public Obj runJ() {
-      return tryRun((s) -> {
+      return tryRun(s -> {
         Obj r;
         try {
           r = JSON.parseObj(s);
@@ -280,19 +287,28 @@ public class MxServer {
   }
   
   public static void log(String id, String s) {
-    if (LOG) LOG_FN.accept(id, s);
+    if (enableLogging) logFn.accept(id, s);
   }
   public static void warn(String s) {
-    WARN_FN.accept("mx itf", s);
+    warnFn.accept("mx itf", s);
   }
   public static void warnStacktrace(Throwable t) {
     StringWriter w = new StringWriter();
     t.printStackTrace(new PrintWriter(w));
-    WARN_FN.accept("mx itf", w.toString());
+    warnFn.accept("mx itf", w.toString());
   }
-  public static boolean LOG = true;
-  public static BiConsumer<String, String> LOG_FN = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
-  public static BiConsumer<String, String> WARN_FN = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
+  
+  
+  
+  // these must be thread-safe!
+  public static boolean enableLogging = true;
+  public static BiConsumer<String, String> logFn = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
+  public static BiConsumer<String, String> warnFn = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
+  
+  public static BiConsumer<MxServer,RunnableRequest> requestLogger = (s, rq) -> {};
+  @FunctionalInterface public interface RequestStatus { void got(RunnableRequest rq, String type, Object o); } 
+  public static RequestStatus requestStatusLogger = (rq, type, o) -> {};
+  
   
   
   public static boolean isMxc(String uri) {

@@ -36,10 +36,12 @@ public class MediaThread {
           try {
             res = CacheObj.compute(r.url, () -> {
               MxChatUser.logGet("Load image", r.url);
-              return Tools.get(r.url, true);
+              return Tools.get(r.url, true); // TODO NetworkLog
             });
+          } catch (Throwable t) {
+            res = null;
+            Log.warn("media", "Failed to load "+r.url);
           }
-          catch (Throwable t) { res = null; }
           map.remove(r.url); // result is already in cache, so it's fine; we need r.users to stop being modified
           for (Pair<Consumer<byte[]>, Supplier<Boolean>> u : r.users) u.a.accept(res);
           
