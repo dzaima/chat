@@ -412,7 +412,7 @@ public class ChatMain extends NodeWindow {
     if (atEnd) msgsScroll.ignoreYE();
   }
   
-  public void updMessage(ChatEvent ce, Node body, boolean live) { // TODO move to ChatEvent?
+  public void updMessage(ChatEvent ce, Node body, boolean live) {
     boolean end = atEnd();
     newHover = true;
     ce.updBody(body);
@@ -535,25 +535,6 @@ public class ChatMain extends NodeWindow {
     }.open(gc, ctx, gc.getProp("imageViewer.ui").gr());
   }
   
-  
-  static class LinkBtn extends PadCNode {
-    private final ChatEvent m;
-    public LinkBtn(Ctx ctx, Node ch, ChatEvent m) {
-      super(ctx, ch, 0, .05f, .1f, .1f);
-      this.m = m;
-    }
-    public void hoverS() { ctx.vw().pushCursor(CursorType.HAND); }
-    public void hoverE() { ctx.vw().popCursor(); }
-    
-    public void mouseStart(int x, int y, Click c) {
-      super.mouseStart(x, y, c);
-      c.register(this, x, y);
-    }
-    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
-    public void mouseUp(int x, int y, Click c) {
-      if (visible && gc.isClick(c)) m.toTarget();
-    }
-  }
   
   public void search() {
     if (room()==null) return;

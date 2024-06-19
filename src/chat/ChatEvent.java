@@ -1,9 +1,10 @@
 package chat;
 
 import chat.ui.*;
+import dzaima.ui.gui.Window;
+import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 
@@ -27,24 +28,20 @@ public abstract class ChatEvent {
   }
   
   private static final Props.Gen COL_IBEAM = Props.keys("ibeam","color");
-  private Node mkSText(Ctx ctx) {
-    if (n==null || !n.asContext) return new STextNode(ctx, true);
-    return new STextNode(ctx, COL_IBEAM.values(ctx.gc.getProp("chat.search.ctx.color"), EnumProp.TRUE));
-  }
+  
   public void updBody(Node body) {
-    Ctx ctx = n.ctx;
-    Node nb;
-    if (target!=null) {
-      nb = mkSText(ctx);
-      nb.add(new ChatMain.LinkBtn(nb.ctx, nb.ctx.makeHere(ctx.gc.getProp("chat.icon.replyP").gr()), this));
-      nb.add(body);
-    } else if (body instanceof InlineNode) {
-      nb = mkSText(ctx);
-      nb.add(body);
-    } else nb = body;
-    if (edited) nb.add(nb.ctx.make(ctx.gc.getProp("chat.msg.editedEndP").gr()));
+    GConfig gc = n.ctx.gc;
+    Node nb = n.asContext? new STextNode(n.ctx, COL_IBEAM.values(gc.getProp("chat.search.ctx.color"), EnumProp.TRUE)) : new STextNode(n.ctx, true);
+    if (target!=null) nb.add(new ReplyBtn(nb.ctx.makeHere(gc.getProp("chat.icon.replyP").gr())));
+    nb.add(body);
+    if (edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
     nb.add(MsgExtraNode.createEnd(this));
-    setMsgBody(nb);
+    n.ctx.id("body").replace(0, nb);
+  }
+  public void updateExtra() {
+    if (!visible) return;
+    Node b = n.ctx.id("body").ch.get(0);
+    b.replace(b.ch.sz-1, MsgExtraNode.createEnd(this));
   }
   
   public abstract boolean userEq(ChatEvent o);
@@ -61,19 +58,7 @@ public abstract class ChatEvent {
     assert visible; visible = false;
     n = null;
   }
-  public Node getMsgBody() {
-    Node b = n.ctx.id("body");
-    return b.ch.get(0);
-  }
-  public void setMsgBody(Node ct) {
-    Node b = n.ctx.id("body");
-    b.replace(0, ct);
-  }
-  public void updateExtra() {
-    if (!visible) return;
-    Node b = getMsgBody();
-    b.replace(b.ch.sz-1, MsgExtraNode.createEnd(this));
-  }
+  
   public void mark(int mode) { // 1-edited; 2-replying to
     n.mark(mode);
   }
@@ -101,4 +86,18 @@ public abstract class ChatEvent {
   public abstract boolean startsThread(View view);
   public abstract void toTarget();
   public abstract void toThread();
+  
+  class ReplyBtn extends PadCNode {
+    public ReplyBtn(Node ch) {
+      super(ch.ctx, ch, 0, .05f, .1f, .1f);
+    }
+    public void hoverS() { ctx.vw().pushCursor(Window.CursorType.HAND); }
+    public void hoverE() { ctx.vw().popCursor(); }
+    
+    public void mouseStart(int x, int y, Click c) { c.register(this, x, y); }
+    public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
+    public void mouseUp(int x, int y, Click c) {
+      if (visible && gc.isClick(c)) toTarget();
+    }
+  }
 }
