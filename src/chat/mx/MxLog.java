@@ -14,7 +14,6 @@ public class MxLog {
   
   public boolean globalPaging = true;
   public final Vec<MxChatEvent> list = new Vec<>();
-  private final HashSet<MxChatEvent> set = new HashSet<>();
   private final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
   
   private final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
@@ -36,7 +35,7 @@ public class MxLog {
     return msgMap.get(id);
   }
   public boolean contains(ChatEvent ev) {
-    return ev instanceof MxChatEvent && set.contains(ev);
+    return ev instanceof MxChatEvent && msgMap.get(ev.id)==ev;
   }
   public int size() {
     return list.sz;
@@ -49,10 +48,13 @@ public class MxLog {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
       MxChatEvent ev = putEvent(e, false);
-      if (ev!=null) {
-        evs.add(ev);
-      }
+      if (ev!=null) evs.add(ev);
     }
+    addCompleteMessages(atEnd, evs);
+  }
+  
+  public void addCompleteMessages(boolean atEnd, Vec<MxChatEvent> evs) {
+    for (MxChatEvent e : evs) putCompleteMessage(e);
     list.insert(atEnd? list.sz : 0, evs);
     if (open) r.m.insertMessages(atEnd, evs);
   }
@@ -69,17 +71,19 @@ public class MxLog {
   
   private MxChatEvent putEvent(MxEvent e, boolean live) { // creates & adds message to unordered collections, but leaves ordered placements to callee
     MxChatEvent ev = processEvent(e, live);
-    if (ev != null) {
-      msgMap.put(e.id, ev);
-      set.add(ev);
-      r.allKnownEvents.put(ev.id, ev);
-      if (ev.e0.m!=null && ev.e0.m.replyId!=null) {
-        msgReplies.computeIfAbsent(ev.e0.m.replyId, k->new Vec<>(2)).add(e.id);
-      }
-    }
+    if (ev!=null) putCompleteMessage(ev);
     return ev;
   }
   
+  private void putCompleteMessage(MxChatEvent ev) {
+    msgMap.put(ev.id, ev);
+    r.allKnownEvents.put(ev.id, ev);
+    if (ev.e0.m!=null && ev.e0.m.replyId!=null) {
+      msgReplies.computeIfAbsent(ev.e0.m.replyId, k->new Vec<>(2)).add(ev.id);
+    }
+  }
+  
+  // TODO move to MxChatroom?
   private MxChatEvent processEvent(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
     if (e.type.equals("m.reaction")) {
       JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");

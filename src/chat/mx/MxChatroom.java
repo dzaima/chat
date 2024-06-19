@@ -423,27 +423,41 @@ public class MxChatroom extends Chatroom {
     getFullUserList().then(r -> b.accept(r, false));
   }
   
-  public MxLog myLog() { return liveLogs.get(null); }
+  public MxLog globalLog() { return liveLogs.get(null); }
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
   private MxLog getThreadLog(String threadID) {
-    return liveLogs.computeIfAbsent(threadID, id -> new MxLog(this, id, null));
+    MxLog l = liveLogs.get(threadID);
+    if (l!=null) return l;
+    
+    l = new MxLog(this, threadID, null);
+    liveLogs.put(threadID, l);
+    maybeThreadRoot(globalLog().get(threadID));
+    return l;
   }
-  public MxLog logOf(MxEvent e) { // TODO thread: something about the thread root being edited resulting in edits of two logs
-    if (e.m == null) return myLog();
-    if (e.m.threadId != null) return getThreadLog(e.m.threadId);
+  public MxLog logOf(MxEvent e) {
+    if (e.m == null) return globalLog();
+    if (e.m.threadId!=null) return getThreadLog(e.m.threadId);
     if (e.m.isEditEvent()) {
       MxChatEvent prev = allKnownEvents.get(e.m.editsId);
       if (prev!=null && prev.e0.m!=null && prev.e0.m.threadId!=null) return getThreadLog(prev.e0.m.threadId);
     }
-    return myLog();
+    return globalLog();
   }
   
-  
+  private void maybeThreadRoot(MxChatEvent c) {
+    if (c==null) return;
+    MxLog selfThread = liveLogs.get(c.id);
+    if (selfThread!=null && selfThread.globalPaging && !selfThread.contains(c)) {
+      selfThread.addCompleteMessages(false, Vec.of(c));
+    }
+  }
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
     lastEvent = e;
     MxChatEvent cm = logOf(e).addEventAtEnd(e);
+    maybeThreadRoot(cm);
+    
     if (!e.uid.equals(u.id())) {
       if (cm==null) {
         if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
@@ -497,7 +511,7 @@ public class MxChatroom extends Chatroom {
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
-    u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, myLog().size()<50? 50 : 100), r -> {
+    u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), r -> {
       if (r==null) { Log.warn("mx", "MxRoom::before failed on token "+prevBatch); return; }
       loadQuestionableMemberState(r);
       olderRes = r;
