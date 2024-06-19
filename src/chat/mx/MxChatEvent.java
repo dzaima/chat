@@ -3,7 +3,7 @@ package chat.mx;
 import chat.*;
 import chat.ui.ViewSource;
 import dzaima.ui.eval.PNodeGroup;
-import dzaima.ui.gui.Popup;
+import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Prop;
@@ -66,19 +66,30 @@ public abstract class MxChatEvent extends ChatEvent {
   public String userString() { return e0.uid; }
   
   public void rightClick(Click c, int x, int y) {
-    PNodeGroup gr = n.gc.getProp("chat.mx.msgMenu.main").gr().copy(); // TODO modernize
     n.border.openMenu(true);
+    PartialMenu pm = new PartialMenu(r.m.gc);
+    
     Node code = null;
     if (this instanceof MxChatMessage) {
-      boolean search = false;
-      if (r.m.view instanceof SearchView) {
-        gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.search").gr().ch);
-        search = true;
+      boolean search = r.m.view instanceof SearchView;
+      if (search) {
+        pm.add(n.gc.getProp("chat.mx.msgMenu.search").gr(), "goto", () -> {
+          if (!(r.m.view instanceof SearchView)) return;
+          View ov = ((SearchView) r.m.view).originalView;
+          if (ov.contains(this)) r.m.toView(ov, this);
+          else r.highlightMessage(id, null, false);
+        });
+      } else {
+        pm.add(n.gc.getProp("chat.mx.msgMenu.reply").gr(), "replyTo", () -> {
+          LiveView lv = r.m.liveView();
+          if (lv != null) {
+            lv.input.markReply(this);
+            lv.input.focusMe();
+          }
+        });
       }
       
-      if (!search) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.reply").gr().ch);
-      
-      gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.copyLink").gr().ch);
+      pm.add(n.gc.getProp("chat.mx.msgMenu.copyLink").gr(), "copyLink", () -> r.m.copyString(r.r.linkMsg(id)));
       
       Node cn = n.border;
       while (true) {
@@ -93,69 +104,48 @@ public abstract class MxChatEvent extends ChatEvent {
         y-= nn.dy;
         cn = nn;
       }
-      if (code==null) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.text").gr().ch);
-      else gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.code").gr().ch);
-      
-      gr.ch.add(n.gc.getProp("chat.mx.msgMenu.sep").gr());
-      if (mine && !isDeleted() && !search) gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.mine").gr().ch);
-    }
-    gr.ch.addAll(n.gc.getProp("chat.mx.msgMenu.dev").gr().ch);
-    
-    Node finalCode = code;
-    Popup.rightClickMenu(n.gc, n.ctx, gr, cmd -> {
-      switch (cmd) { default: Log.warn("chat", "Unknown menu option "+cmd); break;
-        case "(closed)":
-          if (n!=null) n.border.openMenu(false);
-          break;
-        case "copyText":
+      if (code==null) {
+        pm.add(n.gc.getProp("chat.mx.msgMenu.text").gr(), "copyText", () -> {
           Node nd = r.m.getMsgBody(n);
           r.m.copyString(InlineNode.getNodeText(nd));
-          break;
-        case "copyCode":
-          r.m.copyString(InlineNode.getNodeText(finalCode));
-          break;
-        case "delete":
+        });
+      } else {
+        Node finalCode = code;
+        pm.add(n.gc.getProp("chat.mx.msgMenu.code").gr(), "copyCode", () -> r.m.copyString(InlineNode.getNodeText(finalCode)));
+      }
+      
+      pm.addSep();
+      
+      if (mine && !isDeleted() && !search) pm.add(n.gc.getProp("chat.mx.msgMenu.mine").gr(), (s) -> {
+        if (s.equals("delete")) {
           r.delete(this);
-          break;
-        case "copyLink":
-          r.m.copyString(r.r.linkMsg(id));
-          break;
-        case "edit": {
+          return true;
+        }
+        if (s.equals("edit")) {
           LiveView lv = r.currLiveView();
           if (lv != null) {
             if (lv.input.editing==null) lv.input.setEdit(this);
             lv.input.focusMe();
           }
-          break;
+          return true;
         }
-        case "replyTo": {
-          LiveView lv = r.m.liveView();
-          if (lv != null) {
-            lv.input.markReply(this);
-            lv.input.focusMe();
-          }
-          break;
-        }
-        case "goto": { // for search
-          if (!(r.m.view instanceof SearchView)) break;
-          View ov = ((SearchView) r.m.view).originalView;
-          if (ov.contains(this)) r.m.toView(ov, this);
-          else r.highlightMessage(id, null, false);
-          break;
-        }
-        case "viewSource":
-          StringBuilder b = new StringBuilder();
-          if (lastEvent!=e0) {
-            b.append("// initial event:\n");
-            b.append(e0.o.toString(2));
-            b.append("\n\n\n// latest edit:\n");
-          }
-          b.append(lastEvent.o.toString(2));
-          
-          new ViewSource(r.m, b.toString()).open();
-          break;
+        return false;
+      });
+    }
+    
+    pm.add(n.gc.getProp("chat.mx.msgMenu.dev").gr(), "viewSource", () -> {
+      StringBuilder b = new StringBuilder();
+      if (lastEvent!=e0) {
+        b.append("// initial event:\n");
+        b.append(e0.o.toString(2));
+        b.append("\n\n\n// latest edit:\n");
       }
-    }).takeClick(c);
+      b.append(lastEvent.o.toString(2));
+      
+      new ViewSource(r.m, b.toString()).open();
+    });
+    
+    pm.open(r.m.ctx, c, () -> n.border.openMenu(false));
   }
   
   public void delete(JSON.Obj ev) {
