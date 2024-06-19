@@ -364,7 +364,7 @@ chat {
   }
   
   // room info
-  roomList {
+  roomInfo {
     ui = pad { x=0.5em
       v { pad=.5em
         h { h=min alX=center copymenu { stext { ibeam=true tsz=1.05em id=name } text="Copy name" } }

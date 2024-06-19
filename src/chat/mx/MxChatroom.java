@@ -728,7 +728,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public void viewRoomInfo() {
-    ViewRoom.viewRooms(this);
+    ViewRoomInfo.viewRoomInfo(this);
   }
   public void viewUsers() {
     ViewUsers.viewUsers(this);

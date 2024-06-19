@@ -5,13 +5,13 @@ import chat.ui.Extras;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 
-public class ViewRoom {
+public class ViewRoomInfo {
   private final ChatMain m;
   private final Node base;
   
-  ViewRoom(MxChatroom r) {
+  ViewRoomInfo(MxChatroom r) {
     this.m = r.m;
-    this.base = m.ctx.make(m.gc.getProp("chat.roomList.ui").gr());
+    this.base = m.ctx.make(m.gc.getProp("chat.roomInfo.ui").gr());
     base.ctx.id("name").add(new StringNode(m.ctx, r.title()));
     base.ctx.id("server").add(new StringNode(m.ctx, r.prettyID()));
     if (r.description!=null) {
@@ -24,8 +24,8 @@ public class ViewRoom {
     r.doubleUserList((userData, lazy) -> count.replace(0, new StringNode(base.ctx, String.valueOf(r.getJoinedMemberCount()))));
   }
   
-  public static void viewRooms(MxChatroom r) {
-    new ViewRoom(r).run();
+  public static void viewRoomInfo(MxChatroom r) {
+    new ViewRoomInfo(r).run();
   }
   
   public void run() {
