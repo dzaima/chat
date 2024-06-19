@@ -504,10 +504,6 @@ public class ChatMain extends NodeWindow {
     else setTitle(ct+view.title());
   }
   
-  public void updateUnread() { // TODO how needed is this?
-    if (view instanceof LiveView) view.room().unreadChanged();
-    else unreadChanged();
-  }
   
   
   private boolean saveRequested;
@@ -625,10 +621,6 @@ public class ChatMain extends NodeWindow {
   public boolean chatTyped(int codepoint) {
     if (view==null) return false;
     return view.typed(codepoint);
-  }
-  
-  public void focused() { super.focused();
-    updateUnread();
   }
   
   public boolean key(Key key, int scancode, KeyAction a) {

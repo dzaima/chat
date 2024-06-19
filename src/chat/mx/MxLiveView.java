@@ -92,7 +92,7 @@ public class MxLiveView extends LiveView {
     if (unread==0 && !ping) return;
     unread = 0;
     ping = false;
-    r.m.updateUnread();
+    r.unreadChanged();
   }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return log.prevMsg(msg, mine); }
