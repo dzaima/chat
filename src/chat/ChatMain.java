@@ -1,7 +1,7 @@
 package chat;
 
 import chat.mx.*;
-import chat.networkLog.NetworkLog;
+import chat.networkLog.*;
 import chat.ui.*;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
@@ -619,10 +619,20 @@ public class ChatMain extends NodeWindow {
     return view.key(key, scancode, a);
   }
   
+  public boolean onCancel(Key key, KeyAction a, Runnable run) {
+    ChatTextArea input = input();
+    if ((input==null || input.getAll().isEmpty()) && gc.keymap(key, a, "chat").equals("cancel")) {
+      run.run();
+      return true;
+    }
+    return false;
+  }
+  
   public boolean chatTyped(int codepoint) {
     if (view==null) return false;
     return view.typed(codepoint);
   }
+  
   
   public boolean key(Key key, int scancode, KeyAction a) {
     ChatTextArea input = input();

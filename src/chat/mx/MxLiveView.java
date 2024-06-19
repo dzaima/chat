@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.*;
-import chat.networkLog.NetworkLog;
+import chat.networkLog.*;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
@@ -57,7 +57,9 @@ public class MxLiveView extends LiveView {
   public String title() { return this==r.mainLiveView? r.title() : r.title() + " → thread"; }
   
   public boolean key(Key key, int scancode, KeyAction a) {
-    return false;
+    return m.onCancel(key, a, () -> {
+      if (!r.mainView().open) m.toRoom(r.mainView());
+    });
   }
   
   public boolean typed(int codepoint) {
