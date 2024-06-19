@@ -42,7 +42,7 @@ public class MxLog {
     return msgReplies.get(id);
   }
   
-  public void addEvents(Iterable<MxEvent> it, boolean atEnd) {
+  public Vec<MxChatEvent> addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
       MxChatEvent ev = r.processEvent(e, false);
@@ -50,6 +50,7 @@ public class MxLog {
       evs.add(ev);
     }
     addCompleteMessages(atEnd, evs);
+    return evs;
   }
   
   public void addCompleteMessages(boolean atEnd, Vec<MxChatEvent> evs) {
