@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.networkLog.NetworkLog;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
@@ -113,10 +114,13 @@ public class MxLiveView extends LiveView {
   
   
   public String upload(byte[] data, String name, String mime) {
-    String req = r.r.s.url+"/_matrix/media/r0/upload?filename="+ Utils.toURI(name)+"&access_token="+r.r.s.gToken;
+    String location = "/_matrix/media/r0/upload?filename="+ Utils.toURI(name)+"&access_token="+r.r.s.gToken;
+    String req = r.r.s.url + location;
+    NetworkLog.CustomRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.POST, location);
+    Utils.requestLogger.got(rq, "new", r.r.s);
     String res = Utils.postPut("POST", req, data, mime);
+    Utils.requestLogger.got(rq, "result", res);
     JSON.Obj o = JSON.parseObj(res);
-    
     return o.str("content_uri");
   }
   

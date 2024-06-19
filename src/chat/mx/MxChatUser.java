@@ -50,7 +50,7 @@ public class MxChatUser extends ChatUser {
       try {
         logGet(logText, url);
         Utils.requestLogger.got(rq, "not in cache, requesting", null);
-        return Tools.get(url);
+        return Tools.get(url, true);
       } catch (RuntimeException e) {
         Log.warn(logText, "Failed to load " + url);
         m.insertNetworkDelay();
