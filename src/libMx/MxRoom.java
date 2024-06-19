@@ -125,11 +125,12 @@ public class MxRoom {
     return sendState("m.room.name", Obj.fromKV("name", name).toString());
   }
   
-  public void kick(String uid, String reason) { kickBan("kick", uid, reason); }
-  public void ban(String uid, String reason) { kickBan("ban", uid, reason); }
-  public void unban(String uid) { kickBan("unban", uid, null); }
+  public void kick(String uid, String reason) { onUser("kick", uid, reason); }
+  public void ban(String uid, String reason) { onUser("ban", uid, reason); }
+  public void invite(String uid, String reason) { onUser("invite", uid, reason); }
+  public void unban(String uid) { onUser("unban", uid, null); }
   
-  void kickBan(String mode, String uid, String reason) {
+  void onUser(String mode, String uid, String reason) {
     HashMap<String, JSON.Val> map = new HashMap<>();
     map.put("user_id", new JSON.Str(uid));
     if (reason!=null) map.put("reason", new JSON.Str(reason));

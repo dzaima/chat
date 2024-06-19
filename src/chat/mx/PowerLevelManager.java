@@ -20,6 +20,10 @@ public class PowerLevelManager {
     defaultActions.put("users_default", 0);
   }
   
+  public PowerLevelManager() {
+    update(JSON.Obj.E);
+  }
+  
   public void update(JSON.Obj ct) {
     eventReq.clear();
     for (JSON.Entry e : ct.obj("events", JSON.Obj.E).entries()) eventReq.put(e.k, e.v.asInt());

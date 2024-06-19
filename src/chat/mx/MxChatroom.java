@@ -108,6 +108,10 @@ public class MxChatroom extends Chatroom {
       u.queueNetwork(() -> r.setRoomName(left));
       return null;
     }));
+    commands.add(new MxCommand("invite", true, left -> {
+      u.queueNetwork(() -> r.invite(left.replace(" ", ""), null));
+      return null;
+    }));
     commands.add(new MxCommand("sort", false, left -> {
       MxLog l = visibleLog();
       if (l!=null) {
