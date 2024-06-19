@@ -25,7 +25,6 @@ public class MxChatroom extends Chatroom {
   
   public boolean msgLogToStart = false;
   public String prevBatch;
-  public MxEvent lastEvent; // TODO per-thread-ify?
   public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>();
   public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
   public final MxLiveView mainLiveView;
@@ -456,14 +455,14 @@ public class MxChatroom extends Chatroom {
   }
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
-    lastEvent = e;
-    MxChatEvent cm = logOf(e).addEventAtEnd(e);
+    MxLog l = logOf(e);
+    MxChatEvent cm = l.addEventAtEnd(e);
     maybeThreadRoot(cm);
     
     if (!e.uid.equals(u.id())) {
       if (cm==null) {
         if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
-        else if (unread==0) readAll();
+        else if (unread==0) l.markReadToEnd();
       } else if (cm.important()) {
         changeUnread(1, false);
       }
@@ -579,14 +578,6 @@ public class MxChatroom extends Chatroom {
   }
   private void loadQuestionableMemberState(MxEvent e) {
     processMemberEvent(e.o, false, true);
-  }
-  
-  public void readAll() {
-    MxEvent last = lastEvent;
-    if (last==null) return;
-    if (!last.uid.equals(u.id())) {
-      u.queueNetwork(() -> r.readToUnthreaded(last.id));
-    }
   }
   
   public void muteStateChanged() {

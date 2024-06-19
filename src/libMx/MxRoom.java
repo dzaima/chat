@@ -104,8 +104,8 @@ public class MxRoom {
     return o.has("chunk")? o.arr("chunk") : null;
   }
   
-  public void readTo(String id, String threadID) {
-    readToImpl(id, Obj.fromKV("thread_id", threadID));
+  public void readTo(String id, String threadID) { // null for main
+    readToImpl(id, Obj.fromKV("thread_id", threadID==null? "main" : threadID));
   }
   public void readToUnthreaded(String id) {
     readToImpl(id, Obj.E);

@@ -41,13 +41,6 @@ public abstract class Chatroom {
   public void tick() {
     muteState.tick();
   }
-  public void markAsRead() {
-    if (unread==0 && !ping) return;
-    if (unread!=0) readAll();
-    unread = 0;
-    ping = false;
-    m.updateUnread();
-  }
   
   public abstract LiveView mainView();
   
@@ -105,7 +98,6 @@ public abstract class Chatroom {
   public abstract ChatUser user();
   public Chatroom room() { return this; }
   
-  public abstract void readAll();
   public abstract void older();
   public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
   public abstract void delete(ChatEvent m);

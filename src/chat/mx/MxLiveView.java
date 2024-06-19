@@ -82,7 +82,11 @@ public class MxLiveView extends LiveView {
   }
   
   public void markAsRead() {
-    r.markAsRead(); // TODO thread
+    log.markReadToEnd();
+    if (r.unread==0 && !r.ping) return;
+    r.unread = 0; // TODO thread
+    r.ping = false;
+    r.m.updateUnread();
   }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return log.prevMsg(msg, mine); }

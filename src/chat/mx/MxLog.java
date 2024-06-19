@@ -13,6 +13,7 @@ public class MxLog {
   public MxLiveView lv;
   
   public boolean globalPaging = true;
+  public MxEvent lastEvent;
   public final Vec<MxChatEvent> list = new Vec<>();
   private final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
   
@@ -63,6 +64,7 @@ public class MxLog {
   }
   
   public MxChatEvent addEventAtEnd(MxEvent e) {
+    lastEvent = e;
     int pos = size();
     MxChatEvent ev = r.processEvent(e, true);
     if (ev!=null) {
@@ -100,6 +102,16 @@ public class MxLog {
     if (i==-1) return null;
     while (++i< list.sz) if ((!mine || list.get(i).mine) && !list.get(i).isDeleted()) return list.get(i);
     return null;
+  }
+  
+  private String lastReadTo;
+  public void markReadToEnd() {
+    MxEvent last = lastEvent;
+    if (last==null || last.id.equals(lastReadTo)) return;
+    lastReadTo = last.id;
+    if (!last.uid.equals(r.u.id())) {
+      r.u.queueNetwork(() -> r.r.readTo(last.id, threadID));
+    }
   }
   
   public void completelyClear() {
