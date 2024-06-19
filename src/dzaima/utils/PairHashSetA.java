@@ -1,8 +1,8 @@
-package dzaima.utils.options;
+package dzaima.utils;
 
 import java.util.*;
 
-public class TupleHashSet<A, B> { // aka HashMap<K, HashSet<V>> but doesn't store empty sets
+public class PairHashSetA<A, B> { // aka HashMap<K, HashSet<V>> but doesn't store empty sets
   public final HashMap<A, HashSet<B>> map = new HashMap<>();
   
   public HashSet<B> getSetForA(A a) { // null if no matches
