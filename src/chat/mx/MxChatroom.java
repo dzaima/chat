@@ -660,11 +660,9 @@ public class MxChatroom extends Chatroom {
       logs.remove(mainLiveView.log);
       logs.insert(0, mainLiveView.log);
       
-      LiveView curr = u.m.liveView();
-      MxLog currLog = null;
-      if (curr instanceof MxLiveView && curr.room()==this) {
-        currLog = ((MxLiveView) curr).log;
-        logs.remove(currLog);
+      MxLog currLog = visibleLog();
+      if (currLog!=null) {
+        logs.filterInplace(c -> c!=currLog);
         logs.insert(0, currLog);
       }
       
