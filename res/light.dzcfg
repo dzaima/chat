@@ -15,8 +15,6 @@ menu {
   hover = #df2F90FB
 }
 
-textarea { bgSel = bg.sel bgSelU = bg.selU } // TODO remove after proper dependency system
-
 btn {
   rect.bg = #ccc
   rect.borderL = #eee
