@@ -33,7 +33,7 @@ public class HTMLParser {
     return base;
   }
   
-  private static final Props WIDTH_MAX = Props.of("width", new EnumProp("max"));
+  private static final Props WIDTH_MAX = Props.of("width", EnumProp.cache("max"));
   public static Node inlineImage(ChatUser u, String link, boolean dataIsFull, byte[] data, BiFunction<Ctx, byte[], ImageNode> ctor) {
     Ctx ctx = u.m.base.ctx;
     ImageNode img = ctor.apply(ctx, data);

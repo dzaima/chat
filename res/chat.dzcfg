@@ -283,6 +283,9 @@ chat {
       close = chat.keys.cancel
       back = { }
     }
+    $title = text { tsz=1.05em $t }
+    $link = clickableText { hover=true color=chat.link.col id=$id $t }
+    $sep = sepv { y=.2em }
   }
   
   // user profile viewing
@@ -292,28 +295,26 @@ chat {
       mi { id=copyID "Copy ID" key=chat.menuKeys.copyText }
       mi { id=copyLink "Copy link" key=chat.menuKeys.copyLink }
     }
-    $title = text { tsz=1.05em $t }
-    $link = clickableText { hover=true color=chat.link.col id=$id $t }
     ui = pad { x=0.5em
       v { pad=.5em
         h { h=min alX=center copymenu { text="Copy name" stext { ibeam=true tsz=1.05em id=name } } }
         h { h=min alX=center copymenu { text="Copy ID"   stext { ibeam=true tsz=1.05em id=server color=chat.info.colID family=chat.code.familyUI } } }
         h { h=min alX=center id=image }
-        vsep { y=.2em }
-        chat.profile.$title { t="General" }
-        chat.profile.$link { id=toReadReceipt $t="  Jump to read receipt" }
-        chat.profile.$link { id=mention $t="  Mention" }
+        chat.rightPanel.$sep { }
+        chat.rightPanel.$title { t="General" }
+        chat.rightPanel.$link { id=toReadReceipt $t="  Jump to read receipt" }
+        chat.rightPanel.$link { id=mention $t="  Mention" }
         id = more
       }
     }
     adminUI = v { pad=.5em h=min
       vsep { y=.2em }
-      chat.profile.$title { t="Admin" }
+      chat.rightPanel.$title { t="Admin" }
     }
-    kickUI         = chat.profile.$link { id=run t="  Kick" }
-    removeRecentUI = chat.profile.$link { id=run t="  Remove recent messages" }
-    banUI          = chat.profile.$link { id=run t=text { "  " text { id=text "" } } }
-//    advancedBanUI  = chat.profile.$link { id=run "  Advanced ban" }
+    kickUI         = chat.rightPanel.$link { id=run t="  Kick" }
+    removeRecentUI = chat.rightPanel.$link { id=run t="  Remove recent messages" }
+    banUI          = chat.rightPanel.$link { id=run t=text { "  " text { id=text "" } } }
+//    advancedBanUI  = chat.rightPanel.$link { id=run "  Advanced ban" }
     banMsg="Ban" unbanMsg="Unban"
     
     $btn = btn { id=$id style=rect padX=.5em padY=.3em $t }
@@ -371,10 +372,25 @@ chat {
         h { h=min alX=center copymenu { stext { ibeam=true tsz=1.05em id=server   color=chat.info.colID family=chat.code.familyUI } text="Copy ID" } }
         h { h=min            copymenu { stext { ibeam=true tsz=1em id=description color=chat.info.colDesc } text="Copy description" } }
         // h { h=min alX=center id=image }
-        vsep { y=.2em }
-        chat.profile.$title { t="General" }
-        text { chat.profile.$link { id=userList $t="  User list" } " (" text { id=memberCount "" } " members)" }
+        chat.rightPanel.$sep {}
+        chat.rightPanel.$title { t="General" }
+        pad { l=.8em
+          text { chat.rightPanel.$link { id=userList t="User list" } " (" text { id=memberCount "" } " members)" }
+        }
         id = more
+      }
+    }
+    threads = v { pad=.5em
+      chat.rightPanel.$sep { }
+      chat.rightPanel.$title { t="Threads" }
+      pad { l=.8em
+        vl { pad=.1em id=more }
+      }
+    }
+    threadEntry = hideOverflow { h=min
+      chat.rightPanel.$link {
+        id = link
+        t = text { id=content }
       }
     }
   }

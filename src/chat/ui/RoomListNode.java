@@ -48,7 +48,7 @@ public class RoomListNode extends ReorderableNode {
     return n instanceof RoomNode || n instanceof DirStartNode; // also excludes the placeholder before room list is loaded
   }
   
-  private static final Props DIR_V = Props.of("dir", new EnumProp("v"));
+  private static final Props DIR_V = Props.of("dir", EnumProp.cache("v"));
   public Node reorderSelect(Node sel) {
     if (!(sel instanceof DirStartNode)) return sel;
     DirStartNode s = (DirStartNode) sel;

@@ -41,6 +41,9 @@ public class MxLog {
   public int size() {
     return list.sz;
   }
+  Pair<Integer, Boolean> unreadInfo() {
+    return new Pair<>(r.unreads.getForA(this).size(), !r.pings.getForA(this).isEmpty());
+  }
   public Vec<String> getReplies(String id) {
     return msgReplies.get(id);
   }
@@ -119,6 +122,16 @@ public class MxLog {
   public void hide() {
     open = false;
     for (MxChatEvent c : list) c.hide();
+  }
+  
+  public String threadDesc(int maxLen) {
+    if (maxLen==0) maxLen = Integer.MAX_VALUE;
+    if (threadID==null) return "main";
+    MxChatEvent root = r.allKnownEvents.get(threadID);
+    if (root==null) return "thread";
+    String body = root.src;
+    if (body.length()>maxLen) body = body.substring(0, maxLen)+"…";
+    return body;
   }
   
   public String toString() {

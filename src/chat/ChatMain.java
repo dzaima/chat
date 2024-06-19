@@ -342,7 +342,7 @@ public class ChatMain extends NodeWindow {
     return timeDelta(h);
   }
   
-  private final EnumProp lastTimeProp = new EnumProp("lastTime");
+  private final EnumProp lastTimeProp = EnumProp.cache("lastTime");
   public void removeLastTime() {
     nextTimeUpdate = 0;
     if (msgs.ch.sz>0) {
@@ -513,7 +513,7 @@ public class ChatMain extends NodeWindow {
     saveRequested = true;
   }
   
-  private final EnumProp laterProp = new EnumProp("later");
+  private final EnumProp laterProp = EnumProp.cache("later");
   // private static final SimpleDateFormat df = new SimpleDateFormat("E, MM d yyyy");
   private static final DateTimeFormatter df = DateTimeFormatter.ofPattern("EE, d MMM yyyy");
   public Node handlePair(Node a, Node b, boolean forceDate) {
