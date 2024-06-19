@@ -545,6 +545,8 @@ chat {
   msg.editedEndP = pad { l=0.4em chat.icon.$edited{} }
   msg.removedP = text { "(removed)" color=chat.msg.removedCol }
   msg.imageLoadingP = text { "(image loading…)" }
+  msg.openThread = text { "thread" color=chat.link.col hover=true }
+  
   notice {
     $defaultEvent = text { $executer " did " $type }
     $defaultMember = text { $executer " did " $type " on " $user }

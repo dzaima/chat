@@ -45,35 +45,38 @@ public class MxLog {
   public void addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
-      MxChatEvent ev = putEvent(e, false);
-      if (ev!=null) evs.add(ev);
+      MxChatEvent ev = r.processEvent(e, false);
+      if (ev==null) continue;
+      evs.add(ev);
     }
     addCompleteMessages(atEnd, evs);
   }
   
   public void addCompleteMessages(boolean atEnd, Vec<MxChatEvent> evs) {
-    for (MxChatEvent e : evs) putCompleteMessage(e);
     list.insert(atEnd? list.sz : 0, evs);
+    for (MxChatEvent e : evs) putCompleteMessage(e);
     if (open) r.m.insertMessages(atEnd, evs);
   }
   
   public MxChatEvent addEventAtEnd(MxEvent e) {
     int pos = size();
-    MxChatEvent cm = putEvent(e, true);
-    if (cm!=null) {
-      list.insert(pos, cm);
-      if (open) r.m.addMessage(cm, true);
+    MxChatEvent ev = r.processEvent(e, true);
+    if (ev!=null) {
+      list.insert(pos, ev);
+      putCompleteMessage(ev);
+      if (open) r.m.addMessage(ev, true);
     }
-    return cm;
-  }
-  
-  private MxChatEvent putEvent(MxEvent e, boolean live) { // creates & adds message to unordered collections, but leaves ordered placements to callee
-    MxChatEvent ev = r.processEvent(e, live);
-    if (ev!=null) putCompleteMessage(ev);
     return ev;
   }
   
-  private void putCompleteMessage(MxChatEvent ev) {
+  private void putCompleteMessage(MxChatEvent ev) { // called after ev is already in list
+    if (threadID!=null && list.sz>=2) {
+      MxChatEvent root = r.allKnownEvents.get(threadID);
+      if (root!=null && !root.hasThread) {
+        root.hasThread = true;
+        r.m.updateExtra(root);
+      }
+    }
     msgMap.put(ev.id, ev);
     r.allKnownEvents.put(ev.id, ev);
     if (ev.e0.m!=null && ev.e0.m.replyId!=null) {

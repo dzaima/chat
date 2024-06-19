@@ -21,6 +21,7 @@ public abstract class MxChatEvent extends ChatEvent {
   public String src;
   public String type = "?";
   public int monotonicID;
+  public boolean hasThread;
   
   public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String username, String target) {
     super(id, mine, e0.time, username, target);
@@ -114,9 +115,7 @@ public abstract class MxChatEvent extends ChatEvent {
         pm.add(n.gc.getProp("chat.mx.msgMenu.code").gr(), "copyCode", () -> r.m.copyString(InlineNode.getNodeText(finalCode)));
       }
       
-      pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", () -> {
-        r.m.toView(r.getThreadLog(id).liveView());
-      });
+      pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", this::toThread);
       
       pm.addSep();
       
@@ -184,4 +183,11 @@ public abstract class MxChatEvent extends ChatEvent {
     return r.messageReceipts.getSetForA(id);
   }
   
+  public boolean hasThread() {
+    return hasThread;
+  }
+  
+  public void toThread() {
+    r.m.toView(r.getThreadLog(id).liveView());
+  }
 }

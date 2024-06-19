@@ -1,9 +1,10 @@
 package chat.ui;
 
-import chat.Chatroom;
+import chat.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.*;
@@ -21,13 +22,33 @@ public class MsgExtraNode extends InlineNode {
   private final HashSet<String> receipts;
   private final ParaNode receiptPara;
   
-  public MsgExtraNode(Ctx ctx, Chatroom r, HashMap<String, Integer> reactions, HashSet<String> receipts) {
+  public MsgExtraNode(Ctx ctx, ChatEvent e, HashMap<String, Integer> reactions, HashSet<String> receipts) {
     super(ctx, Props.none());
-    this.r = r;
+    this.r = e.room();
     this.receipts = receipts;
     
-    HlNode l = new HlNode(ctx, Props.of("h", new EnumProp("min")));
+    HlNode l = new HlNode(ctx, Props.of("pad", new LenProp(ctx.gc, 0.5, "em")));
     add(l);
+    
+    
+    if (e.hasThread()) {
+      l.add(new WrapNode(ctx, ctx.make(ctx.gc.getProp("chat.msg.openThread").gr())) {
+        public int minW() { return maxW(); }
+        
+        public void mouseStart(int x, int y, Click c) {
+          super.mouseStart(x, y, c);
+          c.register(this, x, y);
+        }
+        
+        public void mouseTick(int x, int y, Click c) {
+          c.onClickEnd();
+        }
+        public void mouseUp(int x, int y, Click c) {
+          if (visible && c.bL()) e.toThread();
+        }
+      });
+    }
+    
     if (reactions!=null) {
       ArrayList<Map.Entry<String, Integer>> reactionCounts = new ArrayList<>(reactions.entrySet());
       reactionCounts.sort(Comparator.comparingInt((Map.Entry<String, Integer> a) -> a.getValue()).thenComparing(Map.Entry::getKey));
