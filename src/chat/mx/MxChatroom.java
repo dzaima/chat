@@ -583,8 +583,8 @@ public class MxChatroom extends Chatroom {
   
   public ChatUser user() { return u; }
   
-  public MxRoom.Chunk olderRes; // TODO move to queueRequest?
-  public long nextOlder;
+  private MxRoom.Chunk olderRes;
+  private long nextOlder;
   public void older() {
     if (msgLogToStart || prevBatch==null) return;
     if (System.currentTimeMillis()<nextOlder) return;

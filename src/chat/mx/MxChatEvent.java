@@ -191,4 +191,8 @@ public abstract class MxChatEvent extends ChatEvent {
   public void toThread() {
     r.m.toView(r.getThreadLog(id).liveView());
   }
+  
+  public void replyButtonMenu(PartialMenu pm) {
+    if (target!=null) pm.add(r.m.gc.getProp("chat.mx.msgMenu.onReply").gr(), "copyLink", () -> r.m.copyString(r.r.linkMsg(target)));
+  }
 }

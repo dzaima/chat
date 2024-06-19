@@ -1,7 +1,7 @@
 package chat;
 
 import chat.ui.*;
-import dzaima.ui.gui.Window;
+import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
@@ -86,6 +86,7 @@ public abstract class ChatEvent {
   public abstract boolean startsThread(View view);
   public abstract void toTarget();
   public abstract void toThread();
+  public /*open*/ void replyButtonMenu(PartialMenu pm) { }
   
   class ReplyBtn extends PadCNode {
     public ReplyBtn(Node ch) {
@@ -95,6 +96,15 @@ public abstract class ChatEvent {
     public void hoverE() { ctx.vw().popCursor(); }
     
     public void mouseStart(int x, int y, Click c) { c.register(this, x, y); }
+    
+    public void mouseDown(int x, int y, Click c) {
+      if (c.bR()) {
+        PartialMenu pm = new PartialMenu(gc);
+        replyButtonMenu(pm);
+        pm.open(ctx, c);
+      }
+    }
+    
     public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
     public void mouseUp(int x, int y, Click c) {
       if (visible && gc.isClick(c)) toTarget();

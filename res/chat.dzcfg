@@ -435,6 +435,9 @@ chat {
     search = {
       mi { id=goto "Go to message" }
     }
+    onReply = {
+      mi { id=copyLink "Copy reply target link" key=chat.menuKeys.copyLink }
+    }
   }
   roomMenu {
     makeFolder = {
