@@ -40,6 +40,7 @@ public class MxChatroom extends Chatroom {
   public final PowerLevelManager powerLevels = new PowerLevelManager();
   
   public final HashMap<String, String> latestReceipts = new HashMap<>(); // user ID → event ID of their receipt
+  public final HashMap<String, MxLog.Reaction> reactions = new HashMap<>();
   public final TupleHashSet<String, String> messageReceipts = new TupleHashSet<>(); // event ID → set of users
   private static class EventInfo { String closestVisible; int monotonicID; }
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
@@ -214,6 +215,7 @@ public class MxChatroom extends Chatroom {
     boolean inviteToJoin = pInv && ns==MyStatus.JOINED;
     if (inviteToJoin) {
       allKnownEvents.clear();
+      reactions.clear();
       for (MxLog l : liveLogs.values()) l.completelyClear();
       initPrevBatch(sync);
     }
