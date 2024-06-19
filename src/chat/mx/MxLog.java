@@ -82,7 +82,7 @@ public class MxLog {
       MxChatEvent root = r.allKnownEvents.get(threadID);
       if (root!=null && !root.hasThread) {
         root.hasThread = true;
-        r.m.updateExtra(root);
+        root.updateExtra();
       }
     }
     msgMap.put(ev.id, ev);

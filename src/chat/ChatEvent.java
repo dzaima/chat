@@ -1,6 +1,6 @@
 package chat;
 
-import chat.ui.MsgNode;
+import chat.ui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.ScrollNode;
@@ -45,6 +45,11 @@ public abstract class ChatEvent {
   public void setMsgBody(Node ct) {
     Node b = n.ctx.id("body");
     b.replace(0, ct);
+  }
+  public void updateExtra() {
+    if (!visible) return;
+    Node b = getMsgBody();
+    b.replace(b.ch.sz-1, MsgExtraNode.createEnd(this));
   }
   public void mark(int mode) { // 1-edited; 2-replying to
     n.mark(mode);

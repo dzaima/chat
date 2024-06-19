@@ -327,8 +327,8 @@ public class MxChatroom extends Chatroom {
     l.messageReceipts.remove(prevID, uid);
     l.messageReceipts.add(visID, uid);
     
-    if (pm!=null) m.updateExtra(pm);
-    if (nm!=null) m.updateExtra(nm);
+    if (pm!=null) pm.updateExtra();
+    if (nm!=null) nm.updateExtra();
   }
   
   public MxFmt parse(String s) {

@@ -417,7 +417,6 @@ public class ChatMain extends NodeWindow {
     if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
     return new STextNode(ctx, col_ibeam.values(EnumProp.TRUE, gc.getProp("chat.search.ctx.color")));
   }
-  
   public void updMessage(ChatEvent ce, Node body, boolean live) { // TODO move to ChatEvent?
     boolean end = atEnd();
     newHover = true;
@@ -434,11 +433,6 @@ public class ChatMain extends NodeWindow {
     nb.add(MsgExtraNode.createEnd(ce));
     ce.setMsgBody(nb);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
-  }
-  public void updateExtra(ChatEvent e) { // TODO move to ChatEvent?
-    if (!e.visible) return;
-    Node b = e.getMsgBody();
-    b.replace(b.ch.sz-1, MsgExtraNode.createEnd(e));
   }
   
   public void unreadChanged() {

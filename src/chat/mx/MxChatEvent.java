@@ -168,7 +168,7 @@ public abstract class MxChatEvent extends ChatEvent {
       reactions.remove(key);
       if (reactions.isEmpty()) reactions = null;
     }
-    r.m.updateExtra(this);
+    updateExtra();
   }
   
   public HashMap<String, Integer> getReactions() {
