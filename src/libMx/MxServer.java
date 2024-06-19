@@ -33,7 +33,7 @@ public class MxServer {
   public static MxServer of(MxLoginMgr mgr) {
       MxServer s = new MxServer(mgr.getServer());
       MxLogin l = s.login(mgr);
-      if (l==null) return (MxServer) Utils.qnull;
+      if (l==null) return null;
       s.setG(l);
       return s;
   }

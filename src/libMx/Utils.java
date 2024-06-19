@@ -11,7 +11,6 @@ import java.util.*;
 import java.util.function.BiConsumer;
 
 public class Utils {
-  public static final Object qnull = null;
   public static int globalTimeout = 1000*60*3; // timeout of all requests; default is 3 minutes
   
   public static String toJSON(String str) {
