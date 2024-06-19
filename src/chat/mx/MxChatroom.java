@@ -664,7 +664,7 @@ public class MxChatroom extends Chatroom {
     return "<pill mine=\""+mine+"\" id=\""+id+"\">"+username+"</pill>";
   }
   
-  public static final Counter changeWindowCounter = new Counter();
+  public static final Counter roomChangeCounter = new Counter();
   public void highlightMessage(String msgId, Consumer<Boolean> found0, boolean force) {
     Consumer<Boolean> found = found0!=null? found0 : (b) -> {
       if (!b) Log.warn("mx", "Expected to find message " + msgId + ", but didn't");
@@ -698,9 +698,11 @@ public class MxChatroom extends Chatroom {
     }
     
     Runnable done = m.doAction("loading message context...");
-    u.queueRequest(changeWindowCounter, () -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
+    int action = roomChangeCounter.next();
+    u.queueRequest(null, () -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
       loadQuestionableMemberState(c);
       done.run();
+      if (roomChangeCounter.superseded(action)) return;
       if (c!=null) toTranscript(msgId, c);
       found.accept(c!=null);
     });
