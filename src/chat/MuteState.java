@@ -27,7 +27,7 @@ public abstract class MuteState {
     return (muted?'1':'0')+" "+(mutePings?'1':'0')+" "+(unmuteTime==null?"i":unmuteTime.toEpochMilli());
   }
   public void deserialize(String s) {
-    if (s==null || s.isEmpty()) { copyFrom(UNMUTED); return; }
+    if (s.isEmpty()) { copyFrom(UNMUTED); return; }
     String[] ps = Tools.split(s, ' ');
     muted = ps[0].equals("1");
     mutePings = ps[1].equals("1");
