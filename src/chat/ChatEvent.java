@@ -62,6 +62,6 @@ public abstract class ChatEvent {
   
   public abstract HashMap<String, Integer> getReactions(); // null if none
   public abstract HashSet<String> getReceipts(); // null if none
-  public abstract boolean hasThread();
+  public abstract boolean startsThread(View view);
   public abstract void toThread();
 }

@@ -425,7 +425,8 @@ public class ChatMain extends NodeWindow {
     HashMap<String, Integer> rs = ce.getReactions();
     HashSet<String> vs = ce.getReceipts();
     boolean edit = newEdit(ce) && ce.edited;
-      return rs!=null || vs!=null || edit || ce.hasThread()? new MsgExtraNode(ctx, ce, rs, vs) : new InlineNode.LineEnd(ctx, false);
+    boolean hasThread = ce.startsThread(view);
+    return rs!=null || vs!=null || edit || hasThread? new MsgExtraNode(ctx, ce, rs, vs, hasThread) : new InlineNode.LineEnd(ctx, false);
   }
   private static final Props.Gen col_ibeam = Props.keys("ibeam","color");
   private Node mkSText(ChatEvent e) {

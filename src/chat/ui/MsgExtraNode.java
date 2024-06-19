@@ -22,7 +22,7 @@ public class MsgExtraNode extends InlineNode {
   private final HashSet<String> receipts;
   private final ParaNode receiptPara;
   
-  public MsgExtraNode(Ctx ctx, ChatEvent e, HashMap<String, Integer> reactions, HashSet<String> receipts) {
+  public MsgExtraNode(Ctx ctx, ChatEvent e, HashMap<String, Integer> reactions, HashSet<String> receipts, boolean hasThread) {
     super(ctx, Props.none());
     this.r = e.room();
     this.receipts = receipts;
@@ -31,7 +31,7 @@ public class MsgExtraNode extends InlineNode {
     add(l);
     
     
-    if (e.hasThread()) {
+    if (hasThread) {
       l.add(new WrapNode(ctx, ctx.make(ctx.gc.getProp("chat.msg.openThread").gr())) {
         public int minW() { return maxW(); }
         

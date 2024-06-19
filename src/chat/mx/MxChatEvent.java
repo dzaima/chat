@@ -2,7 +2,6 @@ package chat.mx;
 
 import chat.*;
 import chat.ui.ViewSource;
-import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
@@ -183,8 +182,9 @@ public abstract class MxChatEvent extends ChatEvent {
     return r.messageReceipts.getSetForA(id);
   }
   
-  public boolean hasThread() {
-    return hasThread;
+  public boolean startsThread(View view) {
+    LiveView lv = view.baseLiveView();
+    return hasThread && lv instanceof MxLiveView && ((MxLiveView) lv).log.threadID==null;
   }
   
   public void toThread() {

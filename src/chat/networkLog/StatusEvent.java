@@ -68,6 +68,6 @@ public class StatusEvent extends ChatEvent {
   public boolean isDeleted() { return false; }
   public HashMap<String, Integer> getReactions() { return null; }
   public HashSet<String> getReceipts() { return null; }
-  public boolean hasThread() { return false; }
+  public boolean startsThread(View view) { return false; }
   public void toThread() { }
 }
