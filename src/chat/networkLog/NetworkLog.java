@@ -8,6 +8,7 @@ import dzaima.ui.node.ctx.Ctx;
 import dzaima.utils.*;
 import libMx.MxServer;
 
+import java.lang.reflect.Array;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -16,10 +17,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
 public class NetworkLog extends BasicNetworkView {
-  private static class TodoEntry { Instant w; MxServer.RunnableRequest rq; String type; Object o; }
+  private static class TodoEntry { Instant w; MxServer.LoggableRequest rq; String type; Object o; }
   
   public static final Deque<RequestInfo> list = new ArrayDeque<>();
-  public static final HashMap<MxServer.RunnableRequest, RequestInfo> map = new HashMap<>();
+  public static final HashMap<MxServer.LoggableRequest, RequestInfo> map = new HashMap<>();
   
   public static boolean detailed;
   public final HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
@@ -150,12 +151,12 @@ public class NetworkLog extends BasicNetworkView {
     public final long id = idCtr.incrementAndGet();
     public final Instant start;
     public final MxServer s;
-    public final MxServer.RunnableRequest rq;
+    public final MxServer.LoggableRequest rq;
     public enum Status { RUNNING, RETRYING, CANCELED, DONE }
     public Status status = Status.RUNNING;
     public final Vec<Event> events = new Vec<>();
     
-    public RequestInfo(Instant start, MxServer s, MxServer.RunnableRequest rq) {
+    public RequestInfo(Instant start, MxServer s, MxServer.LoggableRequest rq) {
       this.s = s;
       this.rq = rq;
       this.start = start;
@@ -170,7 +171,9 @@ public class NetworkLog extends BasicNetworkView {
     public Event(Instant when, String type, Object obj) {
       this.when = when;
       this.type = type;
-      this.obj = obj instanceof JSON.Val? new CompactJSON((JSON.Val) obj) : obj;
+      if (obj!=null && obj.getClass().isArray()) obj = "(" + Array.getLength(obj) + "-element " + obj.getClass().toGenericString() + ")";
+      else if (obj instanceof JSON.Val) obj = new CompactJSON((JSON.Val) obj);
+      this.obj = obj;
     }
   }
   public static class CompactJSON {
@@ -182,5 +185,14 @@ public class NetworkLog extends BasicNetworkView {
     public String toString() {
       return JSON.parse(str).toString(2);
     }
+  }
+  
+  public static class CustomRequest extends MxServer.LoggableRequest {
+    private final String url;
+    public CustomRequest(MxServer.RequestType type, String url) {
+      super(type, null);
+      this.url = url;
+    }
+    public String calcURL() { return url; }
   }
 }

@@ -67,7 +67,7 @@ public class StatusMessage extends BasicChatEvent {
   
   private static final HashMap<String, String> uniqueStrings = new HashMap<>();
   public String userString() {
-    MxLogin l = ri.s.primaryLogin;
+    MxLogin l = ri.s==null? null : ri.s.primaryLogin;
     return uniqueStrings.computeIfAbsent(ri.rq.t.toString()+" "+(l==null? "" : l.uid), s -> String.valueOf(uniqueStrings.size()));
   }
   

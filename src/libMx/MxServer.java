@@ -70,7 +70,6 @@ public class MxServer {
     private final String[] pathParts;
     private final ArrayList<String> props = new ArrayList<>();
     public Request(String[] pathParts) {
-      for (String s : pathParts) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
       this.pathParts = pathParts;
     }
     
@@ -104,15 +103,12 @@ public class MxServer {
     public RunnableRequest post(Obj o) { return post(o.toString()); }
     
   }
-  public class RunnableRequest {
+  public class RunnableRequest extends LoggableRequest {
     public final Request r;
-    public final RequestType t;
-    public final String ct;
     
     public RunnableRequest(Request r, RequestType t, String ct) {
+      super(t, ct);
       this.r = r;
-      this.t = t;
-      this.ct = ct;
     }
     
     public String calcURL() {
@@ -200,6 +196,7 @@ public class MxServer {
     return res;
   }
   public Request requestV3(String... path) {
+    for (String s : path) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
     return new Request(concat(new String[]{"_matrix","client","v3"}, path));
   }
   
@@ -318,7 +315,16 @@ public class MxServer {
   public static BiConsumer<String, String> logFn = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
   public static BiConsumer<String, String> warnFn = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
   
-  @FunctionalInterface public interface RequestStatus { void got(RunnableRequest rq, String type, Object o); } 
+  public static abstract class LoggableRequest {
+    public final RequestType t;
+    public final String ct;
+    public LoggableRequest(RequestType t, String ct) {
+      this.t = t;
+      this.ct = ct;
+    }
+    public abstract String calcURL();
+  }
+  @FunctionalInterface public interface RequestStatus { void got(LoggableRequest rq, String type, Object o); }
   public static RequestStatus requestLogger = (rq, type, o) -> {};
   
   

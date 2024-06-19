@@ -2,6 +2,7 @@ package chat.mx;
 
 import chat.*;
 import chat.mx.MxChatroom.MyStatus;
+import chat.networkLog.NetworkLog;
 import chat.ui.*;
 import chat.ui.Extras.LinkType;
 import dzaima.ui.gui.Popup;
@@ -43,15 +44,21 @@ public class MxChatUser extends ChatUser {
     MxServer.log("file", logText+" "+url);
   }
   private static byte[] rawCachedGet(ChatMain m, String logText, String url) {
-    return CacheObj.compute(url, () -> {
-      logGet(logText, url);
+    MxServer.LoggableRequest rq = new NetworkLog.CustomRequest(MxServer.RequestType.GET, url);
+    MxServer.requestLogger.got(rq, "new", null);
+    byte[] res = CacheObj.compute(url, () -> {
       try {
-        // TODO NetworkLog
-        byte[] r = Tools.get(url);
+        logGet(logText, url);
+        MxServer.requestLogger.got(rq, "not in cache, requesting", null);
+        return Tools.get(url);
+      } catch (RuntimeException e) {
+        Log.warn(logText, "Failed to load " + url);
         m.insertNetworkDelay();
-        return r;
-      } catch (RuntimeException e) { Log.warn(logText, "Failed to load "+url); m.insertNetworkDelay(); return null; }
+        return null;
+      }
     });
+    MxServer.requestLogger.got(rq, "result", res);
+    return res;
   }
   
   public void queueNetwork(Runnable r) { network.add(r); }
