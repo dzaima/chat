@@ -33,9 +33,9 @@ public class MediaThread {
       
       if (needed) {
         active.incrementAndGet();
-        Utils.LoggableRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.GET, r.url);
-        Utils.requestLogger.got(rq, "new", null);
         Tools.thread(() -> {
+          Utils.LoggableRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.GET, r.url);
+          Utils.requestLogger.got(rq, "new", null);
           byte[] res;
           try {
             res = CacheObj.compute(r.url, () -> {
