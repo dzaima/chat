@@ -119,6 +119,7 @@ public class ChatMain extends NodeWindow {
       } else throw new RuntimeException("Unknown account type '"+c.str("type")+"'");
     }
     cfgUpdated();
+    updInfo();
   }
   
   
@@ -227,7 +228,7 @@ public class ChatMain extends NodeWindow {
       if (info.length()>0) info.append("; ");
       info.append(c);
     }
-    if (info.length()==0 && disableSaving) info.append("Failed to load profile, saving disabled");
+    if (info.length()==0 && disableSaving) info.append(options.has("--disable-saving")? "" : "Failed to load profile, ").append("saving disabled");
     infobar.replace(0, new StringNode(infobar.ctx, info.toString()));
   }
   
