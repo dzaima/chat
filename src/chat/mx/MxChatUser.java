@@ -66,7 +66,7 @@ public class MxChatUser extends ChatUser {
   
   // calling again with the same counter will cancel the previous request if it wasn't already invoked on the main thread
   public <T> void queueRequest(Counter c, Request<T> network, Consumer<T> primary) {
-    int v = c==null? 0 : ++c.value;
+    int v = c==null? 0 : c.next();
     queueNetwork(() -> {
       T r;
       try { r = network.get(); }
@@ -246,6 +246,7 @@ public class MxChatUser extends ChatUser {
   private void openLinkGeneric(String url) {
     m.gc.openLink(url);
   }
+  public static final Counter popupCounter = new Counter();
   public void openLink(String url, LinkType type, byte[] data) {
     if (type==LinkType.EXT) {
       openLinkGeneric(url);
@@ -284,8 +285,10 @@ public class MxChatUser extends ChatUser {
     
     // displayable image/animation
     if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || url.contains("/_matrix/media/"))) {
+      int action = popupCounter.next();
       Consumer<byte[]> showImg = d -> {
-        if (d != null) {
+        if (popupCounter.superseded(action)) return;
+        if (d!=null) {
           Animation anim = new Animation(d);
           if (anim.valid) {
             m.viewImage(anim);
@@ -365,9 +368,11 @@ public class MxChatUser extends ChatUser {
     
     // uploaded text file
     if (type==LinkType.TEXT) {
+      int action = popupCounter.next();
       Runnable done = m.doAction("loading text file...");
       queueGet("Load text", url).then(bs -> {
         done.run();
+        if (popupCounter.superseded(action)) return;
         if (bs == null) m.gc.openLink(url);
         else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
       });
