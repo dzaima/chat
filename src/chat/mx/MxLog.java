@@ -121,4 +121,8 @@ public class MxLog {
     open = false;
     for (MxChatEvent c : list) c.hide();
   }
+  
+  public String toString() {
+    return "MxLog→"+(threadID==null?"main":threadID);
+  }
 }

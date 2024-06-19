@@ -162,7 +162,6 @@ public class MxChatMessage extends MxChatEvent {
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
         if (live && containsPill(disp)) {
           Vec<MxLog> ls = r.allLogsOf(e0);
-          Log.tmp(ls.toString());
           for (MxLog l : ls) r.addPing(l, this);
         }
         

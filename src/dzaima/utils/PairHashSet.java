@@ -32,4 +32,18 @@ public class PairHashSet<A, B> {
     keyA.clear();
     keyB.clear();
   }
+  
+  public String toString() {
+    StringBuilder b = new StringBuilder("{");
+    boolean first = true;
+    for (Map.Entry<A, HashSet<B>> e : keyA.entrySet()) {
+      for (B v : e.getValue()) {
+        if (first) first = false;
+        else b.append(", ");
+        b.append('<').append(e.getKey()).append(',').append(v).append('>');
+      }
+    }
+    b.append('}');
+    return b.toString();
+  }
 }
