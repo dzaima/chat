@@ -42,8 +42,17 @@ public class PowerLevelManager {
     return actionReq.get("users_default");
   }
   
-  public int inviteReq() { return actionReq.get("invite"); }
-  public int kickReq  () { return actionReq.get("kick"); }
-  public int redactReq() { return actionReq.get("redact"); }
-  public int banReq   () { return actionReq.get("ban"); }
+  public boolean can(String uid, Action a) {
+    return userLevel(uid) >= eventReq(a.name);
+  }
+  
+  public enum Action {
+    INVITE("invite"),
+    KICK("lick"),
+    REDACT("redact"),
+    BAN("ban"),
+    ;
+    public final String name;
+    Action(String name) { this.name = name; }
+  }
 }

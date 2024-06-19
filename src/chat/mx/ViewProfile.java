@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.mx.PowerLevelManager.Action;
 import chat.ui.*;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
@@ -103,8 +104,6 @@ public class ViewProfile {
       if (view != null) view.mentionUser(uid);
     };
     
-    int myLevel = r.powerLevels.userLevel(r.u.id());
-    
     BiFunction<String, Runnable, Node> link = (s, f) -> {
       beginAdmin();
       Node n = make(s);
@@ -112,11 +111,11 @@ public class ViewProfile {
       return n;
     };
     
+    String me = r.u.id();
     
+    if (r.powerLevels.can(me, Action.KICK)) link.apply("chat.profile.kickUI", () -> confirmNetwork("kick", reason -> r.r.kick(uid, reason), true, ()->{}));
     
-    if (myLevel >= r.powerLevels.kickReq()) link.apply("chat.profile.kickUI", () -> confirmNetwork("kick", reason -> r.r.kick(uid, reason), true, ()->{}));
-    
-    if (myLevel >= r.powerLevels.redactReq()) link.apply("chat.profile.removeRecentUI", () -> confirm("chat.profile.removeRecentConfirmUI", p -> {
+    if (r.powerLevels.can(me, Action.REDACT)) link.apply("chat.profile.removeRecentUI", () -> confirm("chat.profile.removeRecentConfirmUI", p -> {
       Vec<MxChatEvent> es = new Vec<>();
       for (MxChatEvent e : r.allKnownEvents.values()) {
         if (!e.e0.uid.equals(uid)) continue; // only the offender's messages
@@ -143,7 +142,7 @@ public class ViewProfile {
       });
     }));
     
-    if (myLevel >= r.powerLevels.banReq()) {
+    if (r.powerLevels.can(me, Action.BAN)) {
       banned = data!=null && data.s==MxChatroom.UserStatus.BANNED;
       
       Runnable banStateUpdated = () -> banRow.ctx.id("text").replace(0, new StringNode(m.ctx, m.gc.getProp(banned? "chat.profile.unbanMsg" : "chat.profile.banMsg").str()));
