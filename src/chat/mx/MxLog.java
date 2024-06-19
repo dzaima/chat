@@ -7,7 +7,6 @@ import libMx.MxEvent;
 import java.util.*;
 
 public class MxLog {
-  private static final boolean DEBUG_EVENTS = false;
   public final MxChatroom r;
   public final String threadID;
   public MxLiveView lv;
@@ -69,7 +68,7 @@ public class MxLog {
   }
   
   private MxChatEvent putEvent(MxEvent e, boolean live) { // creates & adds message to unordered collections, but leaves ordered placements to callee
-    MxChatEvent ev = processEvent(r, e, live);
+    MxChatEvent ev = r.processEvent(e, live);
     if (ev!=null) putCompleteMessage(ev);
     return ev;
   }
@@ -80,60 +79,6 @@ public class MxLog {
     if (ev.e0.m!=null && ev.e0.m.replyId!=null) {
       msgReplies.computeIfAbsent(ev.e0.m.replyId, k->new Vec<>(2)).add(ev.id);
     }
-  }
-  
-  // TODO move to MxChatroom?
-  private static MxChatEvent processEvent(MxChatroom r, MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
-    if (e.type.equals("m.reaction")) {
-      JSON.Obj o = JSON.Obj.objPath(e.ct, JSON.Obj.E, "m.relates_to");
-      if (live) {
-        if (o.str("rel_type","").equals("m.annotation")) {
-          String key = o.str("key", "");
-          String r_id = o.str("event_id", "");
-          MxChatEvent r_ce = r.allKnownEvents.get(r_id);
-          Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
-          
-          if (r_ce!=null) {
-            r_ce.addReaction(key, 1);
-            Reaction obj = new Reaction();
-            obj.to = r_ce;
-            obj.key = key;
-            r.reactions.put(e.id, obj);
-          } else Log.fine("mx reaction", "Reaction was for unknown message");
-        } else if (o.size()!=0) {
-          Log.warn("mx reaction", "Unknown content[\"m.relates_to\"].rel_type value");
-        }
-      }
-      return makeDebugNotice(r, e, live);
-    } else if (e.type.equals("m.room.redaction")) {
-      Reaction re = r.reactions.get(e.o.str("redacts", ""));
-      if (re != null) {
-        Log.fine("mx reaction", "Reaction "+re.key+" removed from "+re.to.id);
-        r.reactions.remove(e.id);
-        re.to.addReaction(re.key, -1);
-      }
-      return makeDebugNotice(r, e, live);
-    }
-    
-    if (e.m==null) {
-      return new MxChatNotice(r, e, live);
-    } else {
-      if (e.m.isEditEvent()) {
-        MxChatEvent prev = r.allKnownEvents.get(e.m.editsId);
-        if (prev instanceof MxChatMessage) {
-          ((MxChatMessage) prev).edit(e, live);
-          // prev.log.msgMap.put(e.id, prev);
-        } // else, it's an edit of a message further back in the log
-        return makeDebugNotice(r, e, live);
-      } else {
-        return new MxChatMessage(e.m, e, r, live);
-      }
-    }
-  }
-  
-  private static MxChatNotice makeDebugNotice(MxChatroom r, MxEvent e, boolean live) {
-    if (DEBUG_EVENTS) return new MxChatNotice(r, e, live);
-    return null;
   }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) {

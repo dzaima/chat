@@ -16,6 +16,7 @@ import java.util.function.*;
 
 public class MxChatroom extends Chatroom {
   public static final int DEFAULT_MSGS = 50;
+  public static final boolean DEBUG_EVENTS = false;
   
   public final MxChatUser u;
   public final MxRoom r;
@@ -468,6 +469,59 @@ public class MxChatroom extends Chatroom {
     }
     unreadChanged();
     return cm;
+  }
+  
+  MxChatEvent processEvent(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
+    if (e.type.equals("m.reaction")) {
+      Obj o = Obj.objPath(e.ct, Obj.E, "m.relates_to");
+      if (live) {
+        if (o.str("rel_type","").equals("m.annotation")) {
+          String key = o.str("key", "");
+          String r_id = o.str("event_id", "");
+          MxChatEvent r_ce = this.allKnownEvents.get(r_id);
+          Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
+          
+          if (r_ce!=null) {
+            r_ce.addReaction(key, 1);
+            MxLog.Reaction obj = new MxLog.Reaction();
+            obj.to = r_ce;
+            obj.key = key;
+            this.reactions.put(e.id, obj);
+          } else Log.fine("mx reaction", "Reaction was for unknown message");
+        } else if (o.size()!=0) {
+          Log.warn("mx reaction", "Unknown content[\"m.relates_to\"].rel_type value");
+        }
+      }
+      return makeDebugNotice(e, live);
+    } else if (e.type.equals("m.room.redaction")) {
+      MxLog.Reaction re = this.reactions.get(e.o.str("redacts", ""));
+      if (re != null) {
+        Log.fine("mx reaction", "Reaction "+re.key+" removed from "+re.to.id);
+        this.reactions.remove(e.id);
+        re.to.addReaction(re.key, -1);
+      }
+      return makeDebugNotice(e, live);
+    }
+    
+    if (e.m==null) {
+      return new MxChatNotice(this, e, live);
+    } else {
+      if (e.m.isEditEvent()) {
+        MxChatEvent prev = this.allKnownEvents.get(e.m.editsId);
+        if (prev instanceof MxChatMessage) {
+          ((MxChatMessage) prev).edit(e, live);
+          // prev.log.msgMap.put(e.id, prev);
+        } // else, it's an edit of a message further back in the log
+        return makeDebugNotice(e, live);
+      } else {
+        return new MxChatMessage(e.m, e, this, live);
+      }
+    }
+  }
+  
+  public MxChatNotice makeDebugNotice(MxEvent e, boolean live) {
+    if (DEBUG_EVENTS) return new MxChatNotice(this, e, live);
+    return null;
   }
   
   public void pinged() {
