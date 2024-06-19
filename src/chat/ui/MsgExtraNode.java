@@ -27,7 +27,7 @@ public class MsgExtraNode extends InlineNode {
     this.r = e.room();
     this.receipts = receipts;
     
-    HlNode l = new HlNode(ctx, Props.of("pad", new LenProp(ctx.gc, 0.5, "em")));
+    HlNode l = new HlNode(ctx, ctx.finishProps(ctx.gc.getProp("chat.msg.extra.hlProps").gr(), null));
     add(l);
     
     if (reactions!=null) {
@@ -110,7 +110,7 @@ public class MsgExtraNode extends InlineNode {
     if (receiptPara!=null && receiptPara.hover) hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> r.getUsername(c, false)));
   }
   private void hoverPopup(ParaNode source, Vec<String> lines) {
-    PNodeGroup g = gc.getProp("chat.receipt.list").gr().copy();
+    PNodeGroup g = gc.getProp("chat.msg.extra.menu").gr().copy();
     
     Box<NodeVW> vw1 = new Box<>();
     HoverPopup popup = new HoverPopup(ctx, s -> {

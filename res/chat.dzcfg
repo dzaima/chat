@@ -131,7 +131,6 @@ chat {
   receipt.family = str.defaultFont
   receipt.size = 0.8em
   receipt.col = #aaa
-  receipt.list = menu { }
   
   spoiler.xpad = .2em // padding around content inside a spoiler
   spoiler.bg = #464B4D
@@ -546,6 +545,11 @@ chat {
   msg.removedP = text { "(removed)" color=chat.msg.removedCol }
   msg.imageLoadingP = text { "(image loading…)" }
   msg.openThread = text { "thread" color=chat.link.col hover=true }
+  
+  msg.extra {
+    menu = menu { }
+    hlProps = { pad=0.2em alY=center }
+  }
   
   notice {
     $defaultEvent = text { $executer " did " $type }
