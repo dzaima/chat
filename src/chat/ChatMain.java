@@ -180,8 +180,7 @@ public class ChatMain extends NodeWindow {
     hideCurrent();
     view = v;
     if (toHighlight!=null) v.highlight(toHighlight);
-    LiveView live = v.baseLiveView();
-    inputPlace.replace(0, live==null? new StringNode(ctx, "TODO thread") : live.input);
+    inputPlace.replace(0, v.baseLiveView().inputPlaceContent());
     v.show();
     updActions();
     toLast = 0;
@@ -402,9 +401,6 @@ public class ChatMain extends NodeWindow {
     if ( atEnd) msgsScroll.ignoreYE();
   }
   
-  public Node getMsgBody(Node n) {          Node b = n.ctx.id("body"); return b.ch.get(b.ch.sz-1); }
-  public void setMsgBody(Node n, Node ct) { Node b = n.ctx.id("body"); b.replace(b.ch.sz-1, ct); }
-  
   public void addMessage(ChatEvent cm, boolean live) {
     addMessage(cm, live, false, false);
   }
@@ -456,12 +452,12 @@ public class ChatMain extends NodeWindow {
     } else nb = body;
     if (newEdit(ce) && ce.edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
     nb.add(makeExtra(ce));
-    setMsgBody(msg, nb);
+    ce.setMsgBody(nb);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
   }
   public void updateExtra(ChatEvent e) { // TODO move to ChatEvent?
     if (!e.visible) return;
-    Node b = getMsgBody(e.n);
+    Node b = e.getMsgBody();
     b.replace(b.ch.sz-1, makeExtra(e));
   }
   

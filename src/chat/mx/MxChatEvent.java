@@ -105,10 +105,7 @@ public abstract class MxChatEvent extends ChatEvent {
         cn = nn;
       }
       if (code==null) {
-        pm.add(n.gc.getProp("chat.mx.msgMenu.text").gr(), "copyText", () -> {
-          Node nd = r.m.getMsgBody(n);
-          r.m.copyString(InlineNode.getNodeText(nd));
-        });
+        pm.add(n.gc.getProp("chat.mx.msgMenu.text").gr(), "copyText", () -> r.m.copyString(InlineNode.getNodeText(getMsgBody())));
       } else {
         Node finalCode = code;
         pm.add(n.gc.getProp("chat.mx.msgMenu.code").gr(), "copyCode", () -> r.m.copyString(InlineNode.getNodeText(finalCode)));

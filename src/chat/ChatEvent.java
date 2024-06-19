@@ -2,6 +2,7 @@ package chat;
 
 import chat.ui.MsgNode;
 import dzaima.ui.gui.io.Click;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.types.ScrollNode;
 
 import java.time.Instant;
@@ -37,6 +38,14 @@ public abstract class ChatEvent {
     assert visible; visible = false;
     n = null;
   }
+  public Node getMsgBody() {
+    Node b = n.ctx.id("body");
+    return b.ch.get(b.ch.sz-1);
+  }
+  public void setMsgBody(Node ct) {
+    Node b = n.ctx.id("body");
+    b.replace(b.ch.sz-1, ct);
+  }
   public void mark(int mode) { // 1-edited; 2-replying to
     n.mark(mode);
   }
@@ -46,22 +55,21 @@ public abstract class ChatEvent {
       n.highlight();
     }
   }
+  
   public abstract Chatroom room();
-  
-  public abstract void toTarget();
-  public abstract void markRel(boolean on);
-  public abstract void updateBody(boolean live); // should call m.updMessage(this, bodyNode, live) (and potentially later again with live=false)
-  public abstract String getSrc();
-  
   public abstract MsgNode.MsgType type();
+  public abstract String userString();
   public abstract boolean isDeleted();
   
-  public abstract String userString();
+  public abstract String getSrc();
+  public abstract void updateBody(boolean live); // should call m.updMessage(this, bodyNode, live) (and potentially later again with live=false)
   
+  public abstract void markRel(boolean on);
   public abstract void rightClick(Click c, int x, int y);
   
   public abstract HashMap<String, Integer> getReactions(); // null if none
   public abstract HashSet<String> getReceipts(View view); // null if none
   public abstract boolean startsThread(View view);
+  public abstract void toTarget();
   public abstract void toThread();
 }
