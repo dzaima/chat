@@ -173,7 +173,7 @@ public class MxServer {
       return tryRun(s -> new Pair<>(s, null));
     }
     public Obj runJ() {
-      return tryRun(s -> {
+      Obj res = tryRun(s -> {
         Obj r;
         try {
           r = JSON.parseObj(s);
@@ -187,6 +187,8 @@ public class MxServer {
         if (r!=null && r.hasNum("retry_after_ms")) return new Pair<>(r, r.getInt("retry_after_ms"));
         return new Pair<>(r, 1000);
       });
+      if (res!=null && res.has("errcode")) requestLogger.got(this, "error", null);
+      return res;
     }
   }
   

@@ -670,7 +670,8 @@ chat {
     statuses = {
       running  = { text="…" family=chat.code.familyUI color=str.color }
       retrying = { text="…" family=chat.code.familyUI color=#F55 }
-      canceled = { text="✖" family=chat.code.familyUI color=#F55 }
+      canceled = { text="/" family=chat.code.familyUI color=#F55 }
+      error    = { text="✖" family=chat.code.familyUI color=#F55 }
       done     = { text="✔" family=chat.code.familyUI color=#3F3 }
     }
   }

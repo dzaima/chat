@@ -100,6 +100,7 @@ public class NetworkLog extends BasicNetworkView {
           if (ri==null) { Log.info("network-log", "unknown request updated"); return; }
           switch (e.type) {
             case "result": ri.status = RequestInfo.Status.DONE; break;
+            case "error": ri.status = RequestInfo.Status.ERROR; break;
             case "retry":  ri.status = RequestInfo.Status.RETRYING; break;
             case "cancel": ri.status = RequestInfo.Status.CANCELED; break;
           }
@@ -152,7 +153,7 @@ public class NetworkLog extends BasicNetworkView {
     public final Instant start;
     public final MxServer s;
     public final Utils.LoggableRequest rq;
-    public enum Status { RUNNING, RETRYING, CANCELED, DONE }
+    public enum Status { RUNNING, RETRYING, CANCELED, DONE, ERROR }
     public Status status = Status.RUNNING;
     public final Vec<Event> events = new Vec<>();
     
