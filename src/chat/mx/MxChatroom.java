@@ -38,6 +38,9 @@ public class MxChatroom extends Chatroom {
   
   public final PowerLevelManager powerLevels = new PowerLevelManager();
   
+  public final PairHashSet<MxLog, MxChatEvent> unreads = new PairHashSet<>();
+  public final PairHashSet<MxLog, MxChatEvent> pings = new PairHashSet<>();
+  
   public final HashMap<String, MxLog.Reaction> reactions = new HashMap<>();
   private static class EventInfo { String closestVisible; int monotonicID; } // TODO thread?
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
@@ -80,12 +83,8 @@ public class MxChatroom extends Chatroom {
       }
     }
     if (status0!=MyStatus.INVITED) {
-      for (MxLog l : liveLogs.values()) {
-        if (l.lv!=null) {
-          l.lv.ping = false;
-          l.lv.unread = 0;
-        }
-      }
+      unreads.clear();
+      pings.clear();
       unreadChanged();
     }
     
@@ -216,7 +215,6 @@ public class MxChatroom extends Chatroom {
     myStatus = ns;
     boolean pInv = ps==MyStatus.INVITED;
     boolean nInv = ns==MyStatus.INVITED;
-    if (nInv) pinged();
     boolean inviteToJoin = pInv && ns==MyStatus.JOINED;
     if (inviteToJoin) {
       allKnownEvents.clear();
@@ -297,7 +295,8 @@ public class MxChatroom extends Chatroom {
       }
     }
     
-    if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field; TODO thread
+    if (nInv && globalLog().list.sz>0) pings.add(globalLog(), globalLog().list.peek());
+    if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
   public void setReceipt(String threadID, String uid, String mid) {
@@ -436,15 +435,7 @@ public class MxChatroom extends Chatroom {
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
   public Pair<Integer, Boolean> unreadInfo() {
-    int count = 0;
-    boolean pinged = false;
-    for (MxLog l : liveLogs.values()) {
-      if (l.lv!=null) {
-        count+= l.lv.unread;
-        pinged|= l.lv.ping;
-      }
-    }
-    return new Pair<>(count, pinged);
+    return new Pair<>(unreads.uniqueB(MxChatEvent.class), !pings.isEmpty());
   }
   
   public MxLog getThreadLog(String threadID) {
@@ -456,7 +447,7 @@ public class MxChatroom extends Chatroom {
     maybeThreadRoot(globalLog().get(threadID));
     return l;
   }
-  public MxLog logOf(MxEvent e) {
+  public MxLog logOf(MxEvent e) { // TODO rename to primaryLogOf or something
     if (e.m == null) return globalLog();
     if (e.m.threadId!=null) return getThreadLog(e.m.threadId);
     if (e.m.isEditEvent()) {
@@ -464,6 +455,12 @@ public class MxChatroom extends Chatroom {
       if (prev!=null && prev.e0.m!=null && prev.e0.m.threadId!=null) return getThreadLog(prev.e0.m.threadId);
     }
     return globalLog();
+  }
+  public Vec<MxLog> allLogsOf(MxEvent e) {
+    MxLog primaryLog = logOf(e);
+    MxLog myThread = liveLogs.get(e.id);
+    if (myThread!=null) return Vec.of(primaryLog, myThread);
+    return Vec.of(primaryLog);
   }
   
   private void maybeThreadRoot(MxChatEvent c) {
@@ -480,12 +477,14 @@ public class MxChatroom extends Chatroom {
     maybeThreadRoot(cm);
     
     if (!e.uid.equals(u.id())) {
-      MxLiveView v = l.liveView();
-      if (cm==null) {
-        if (m.gc.getProp("chat.notifyOnEdit").b()) v.changeUnread(1, false);
-        else if (v.unread==0) v.markAsRead();
-      } else if (cm.important()) {
-        v.changeUnread(1, false);
+      Vec<MxLog> ls = allLogsOf(e);
+      
+      if (cm!=null) {
+        if (cm.increasesUnread()) for (MxLog c : ls) unreads.add(c, cm);
+      } else {
+        if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
+          // for (MxLog c : ls) unreads.add(c, TODO);
+        }
       }
     }
     unreadChanged();
@@ -499,7 +498,7 @@ public class MxChatroom extends Chatroom {
         if (o.str("rel_type","").equals("m.annotation")) {
           String key = o.str("key", "");
           String r_id = o.str("event_id", "");
-          MxChatEvent r_ce = this.allKnownEvents.get(r_id);
+          MxChatEvent r_ce = allKnownEvents.get(r_id);
           Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
           
           if (r_ce!=null) {
@@ -507,7 +506,7 @@ public class MxChatroom extends Chatroom {
             MxLog.Reaction obj = new MxLog.Reaction();
             obj.to = r_ce;
             obj.key = key;
-            this.reactions.put(e.id, obj);
+            reactions.put(e.id, obj);
           } else Log.fine("mx reaction", "Reaction was for unknown message");
         } else if (o.size()!=0) {
           Log.warn("mx reaction", "Unknown content[\"m.relates_to\"].rel_type value");
@@ -515,10 +514,10 @@ public class MxChatroom extends Chatroom {
       }
       return makeDebugNotice(e, live);
     } else if (e.type.equals("m.room.redaction")) {
-      MxLog.Reaction re = this.reactions.get(e.o.str("redacts", ""));
+      MxLog.Reaction re = reactions.get(e.o.str("redacts", ""));
       if (re != null) {
         Log.fine("mx reaction", "Reaction "+re.key+" removed from "+re.to.id);
-        this.reactions.remove(e.id);
+        reactions.remove(e.id);
         re.to.addReaction(re.key, -1);
       }
       return makeDebugNotice(e, live);
@@ -528,7 +527,7 @@ public class MxChatroom extends Chatroom {
       return new MxChatNotice(this, e, live);
     } else {
       if (e.m.isEditEvent()) {
-        MxChatEvent prev = this.allKnownEvents.get(e.m.editsId);
+        MxChatEvent prev = allKnownEvents.get(e.m.editsId);
         if (prev instanceof MxChatMessage) {
           ((MxChatMessage) prev).edit(e, live);
           // prev.log.msgMap.put(e.id, prev);
@@ -543,10 +542,6 @@ public class MxChatroom extends Chatroom {
   public MxChatNotice makeDebugNotice(MxEvent e, boolean live) {
     if (DEBUG_EVENTS) return new MxChatNotice(this, e, live);
     return null;
-  }
-  
-  public void pinged() {
-    mainLiveView.changeUnread(0, true);
   }
   
   public String asCodeblock(String s) {

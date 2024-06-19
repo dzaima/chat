@@ -160,7 +160,11 @@ public class MxChatMessage extends MxChatEvent {
           n.add(disp);
           disp = n;
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
-        if (live && containsPill(disp)) r.pinged();
+        if (live && containsPill(disp)) {
+          Vec<MxLog> ls = r.allLogsOf(e0);
+          Log.tmp(ls.toString());
+          for (MxLog l : ls) r.pings.add(l, this);
+        }
         
         if (!visible) return;
         r.m.updMessage(this, disp, live);
@@ -194,7 +198,7 @@ public class MxChatMessage extends MxChatEvent {
     return MsgNode.MsgType.MSG;
   }
   
-  public boolean important() {
+  public boolean increasesUnread() {
     return true;
   }
 }

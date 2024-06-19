@@ -30,6 +30,10 @@ public class MxLiveView extends LiveView {
     return r.muteState;
   }
   
+  public Pair<Integer, Boolean> unreadInfo() {
+    return new Pair<>(r.unreads.getForA(log).size(), !r.unreads.getForA(log).isEmpty());
+  }
+  
   public void show() { log.show(); super.show(); }
   public void hide() { super.hide(); log.hide(); }
   
@@ -83,16 +87,20 @@ public class MxLiveView extends LiveView {
   
   private String lastReadTo;
   public void markAsRead() {
+    // mark all events in this log as read in all logs they're in
+    Pair<Integer, Boolean> u = unreadInfo();
+    if (u.a!=0 || u.b) {
+      for (MxChatEvent e : Vec.ofCollection(r.unreads.getForA(log))) r.unreads.removeAllB(e);
+      for (MxChatEvent e : Vec.ofCollection(r.pings.getForA(log))) r.pings.removeAllB(e);
+      r.unreadChanged();
+    }
+    
     MxEvent last = log.lastEvent;
     if (last==null || last.id.equals(lastReadTo)) return;
     lastReadTo = last.id;
     if (!last.uid.equals(r.u.id())) {
       r.u.queueNetwork(() -> r.r.readTo(last.id, log.threadID));
     }
-    if (unread==0 && !ping) return;
-    unread = 0;
-    ping = false;
-    r.unreadChanged();
   }
   
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return log.prevMsg(msg, mine); }

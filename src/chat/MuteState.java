@@ -60,6 +60,7 @@ public abstract class MuteState {
     return !muted && !mutePings;
   }
   
+  // TODO merge, returning a pair
   public int unreads() {
     return countUnreads()? ownedUnreads() : 0;
   }

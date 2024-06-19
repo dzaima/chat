@@ -19,9 +19,13 @@ public class PairHashSetA<A, B> { // aka HashMap<K, HashSet<V>> but doesn't stor
   }
   
   public void remove(A a, B b) {
-    HashSet<B> bs = map.get(a);
-    if (bs==null) return;
-    bs.remove(b);
-    if (bs.isEmpty()) map.remove(a);
+    removeClear(map, a, b);
+  }
+  
+  public static <K, V> void removeClear(HashMap<K, HashSet<V>> m, K k, V v) {
+    HashSet<V> vs = m.get(k);
+    if (vs==null) return;
+    vs.remove(v);
+    if (vs.isEmpty()) m.remove(k);
   }
 }

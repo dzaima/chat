@@ -58,7 +58,6 @@ public class NetworkLog extends BasicNetworkView {
       public void older() { }
       public Pair<Boolean, Integer> highlight(String s) { return new Pair<>(false, 0); }
       public void delete(ChatEvent m) { }
-      public void pinged() { }
       public void userMenu(Click c, int x, int y, String uid) { }
     };
   }

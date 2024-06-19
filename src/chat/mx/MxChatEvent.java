@@ -45,7 +45,7 @@ public abstract class MxChatEvent extends ChatEvent {
     return type.equals("deleted");
   }
   
-  public abstract boolean important();
+  public abstract boolean increasesUnread();
   
   public void markRel(boolean on) {
     MxLog log = r.visibleLog();

@@ -4,6 +4,7 @@ import chat.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.VlNode;
+import dzaima.utils.Pair;
 
 public abstract class BasicNetworkView extends LiveView {
   protected BasicNetworkView(ChatMain m) {
@@ -15,6 +16,7 @@ public abstract class BasicNetworkView extends LiveView {
   public final boolean contains(ChatEvent ev) { return false; }
   
   public MuteState muteState() { return MuteState.UNMUTED; }
+  public Pair<Integer, Boolean> unreadInfo() { return new Pair<>(0, false); }
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return null; }
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return null; }
   public void older() { }
