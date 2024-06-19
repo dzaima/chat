@@ -163,7 +163,7 @@ public class MxChatMessage extends MxChatEvent {
         if (live && containsPill(disp)) {
           Vec<MxLog> ls = r.allLogsOf(e0);
           Log.tmp(ls.toString());
-          for (MxLog l : ls) r.pings.add(l, this);
+          for (MxLog l : ls) r.addPing(l, this);
         }
         
         if (!visible) return;

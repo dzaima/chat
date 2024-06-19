@@ -295,7 +295,7 @@ public class MxChatroom extends Chatroom {
       }
     }
     
-    if (nInv && globalLog().list.sz>0) pings.add(globalLog(), globalLog().list.peek());
+    if (nInv && globalLog().list.sz>0) addPing(globalLog(), globalLog().list.peek());
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
@@ -471,6 +471,15 @@ public class MxChatroom extends Chatroom {
     }
   }
   
+  public void addPing(MxLog l, MxChatEvent m) {
+    if (l.lv!=null) l.lv.beforeUnreadChange();
+    pings.add(l, m);
+  }
+  public void addUnread(MxLog l, MxChatEvent m) {
+    if (l.lv!=null) l.lv.beforeUnreadChange();
+    unreads.add(l, m);
+  }
+  
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
     MxLog l = logOf(e);
     MxChatEvent cm = l.addEventAtEnd(e);
@@ -480,10 +489,10 @@ public class MxChatroom extends Chatroom {
       Vec<MxLog> ls = allLogsOf(e);
       
       if (cm!=null) {
-        if (cm.increasesUnread()) for (MxLog c : ls) unreads.add(c, cm);
+        if (cm.increasesUnread()) for (MxLog c : ls) addUnread(c, cm);
       } else {
         if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
-          // for (MxLog c : ls) unreads.add(c, TODO);
+          // for (MxLog c : ls) addUnread(c, TODO);
         }
       }
     }

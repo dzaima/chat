@@ -3,7 +3,7 @@ package chat;
 import chat.ui.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
-import dzaima.utils.Pair;
+import dzaima.utils.*;
 
 public abstract class LiveView extends View {
   public final ChatMain m;
@@ -22,7 +22,12 @@ public abstract class LiveView extends View {
   public final LiveView baseLiveView() { return this; }
   public abstract MuteState muteState();
   
-  public abstract Pair<Integer, Boolean> unreadInfo(); // TODO use?
+  public abstract Pair<Integer, Boolean> unreadInfo();
+  
+  public void beforeUnreadChange() {
+    Pair<Integer, Boolean> u = unreadInfo();
+    if (u.a==0 && !u.b) firstUnreadTime = m.gc.lastMs;
+  }
   
   public long atEndStart;
   public long firstUnreadTime;
