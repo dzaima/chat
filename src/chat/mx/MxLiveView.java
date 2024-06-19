@@ -31,7 +31,7 @@ public class MxLiveView extends LiveView {
   }
   
   public Pair<Integer, Boolean> unreadInfo() {
-    return new Pair<>(r.unreads.getForA(log).size(), !r.unreads.getForA(log).isEmpty());
+    return new Pair<>(r.unreads.getForA(log).size(), !r.pings.getForA(log).isEmpty());
   }
   
   public void show() { log.show(); super.show(); }
