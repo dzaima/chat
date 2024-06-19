@@ -3,6 +3,7 @@ package chat.ui;
 import chat.Chatroom;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
+import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
@@ -29,6 +30,31 @@ public class MsgExtraNode extends InlineNode {
     this.receipts = receipts;
   }
   
+  private static Paragraph receiptPara(GConfig gc, HashSet<String> receipts) {
+    return Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.receipt.family"), gc.getProp("chat.receipt.col").col(), gc.getProp("chat.receipt.size").lenF()), " ⦿ " + receipts.size());
+  }
+  
+  private static Paragraph reactionPara(GConfig gc, ArrayList<Map.Entry<String, Integer>> reactions) {
+    StringBuilder b = new StringBuilder();
+    if (reactions.size()>maxReactions) b.append(reactions.size()-maxReactions).append(" + ");
+    for (int i = reactions.size()-Math.min(reactions.size(), maxReactions); i < reactions.size(); i++) {
+      Map.Entry<String, Integer> e = reactions.get(i);
+      int v = e.getValue();
+      String k = e.getKey();
+      int cl = 0;
+      int ci = 0;
+      while (ci<k.length()) {
+        cl++;
+        ci+= Character.charCount(k.codePointAt(ci));
+      }
+      if (cl>4) k = "……";
+      b.append(k).append(v==1? " " : "×"+v+" ");
+    }
+    if (b.length()>0 && b.charAt(b.length()-1)==' ') b.deleteCharAt(b.length()-1);
+    
+    return Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.reaction.family"), gc.getProp("chat.reaction.col").col(), gc.getProp("chat.reaction.size").lenF()), b.toString());
+  }
+  
   private int th,wt,wr;
   private Paragraph pr, pv;
   public static int maxReactions = 3;
@@ -36,24 +62,7 @@ public class MsgExtraNode extends InlineNode {
     int h = 0;
   
     if (reactions!=null) {
-      StringBuilder b = new StringBuilder();
-      if (reactions.size()>maxReactions) b.append(reactions.size()-maxReactions).append(" + ");
-      for (int i = reactions.size()-Math.min(reactions.size(), maxReactions); i < reactions.size(); i++) {
-        Map.Entry<String, Integer> e = reactions.get(i);
-        int v = e.getValue();
-        String k = e.getKey();
-        int cl = 0;
-        int ci = 0;
-        while (ci<k.length()) {
-          cl++;
-          ci+= Character.charCount(k.codePointAt(ci));
-        }
-        if (cl>4) k = "……";
-        b.append(k).append(v==1? " " : "×"+v+" ");
-      }
-      if (b.length()>0 && b.charAt(b.length()-1)==' ') b.deleteCharAt(b.length()-1);
-      
-      pr = Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.reaction.family"), gc.getProp("chat.reaction.col").col(), gc.getProp("chat.reaction.size").lenF()), b.toString());
+      pr = reactionPara(gc, reactions);
       wr = Tools.ceil(pr.getMaxIntrinsicWidth());
       h = Math.max(Tools.ceil(pr.getHeight()), h);
     } else {
@@ -63,7 +72,7 @@ public class MsgExtraNode extends InlineNode {
   
     int wv;
     if (receipts!=null) {
-      pv = Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.receipt.family"), gc.getProp("chat.receipt.col").col(), gc.getProp("chat.receipt.size").lenF()), " ⦿ "+receipts.size());
+      pv = receiptPara(gc, receipts);
       wv = Tools.ceil(pv.getMaxIntrinsicWidth());
       h = Math.max(Tools.ceil(pv.getHeight()), h);
     } else {
