@@ -15,7 +15,6 @@ import java.util.*;
 
 public abstract class MxChatEvent extends ChatEvent {
   public final MxChatroom r;
-  public final MxLog log;
   public final MxEvent e0;
   public MxEvent lastEvent;
   public String body;
@@ -23,10 +22,9 @@ public abstract class MxChatEvent extends ChatEvent {
   public String type = "?";
   public int monotonicID;
   
-  public MxChatEvent(MxLog log, boolean mine, MxEvent e0, String id, String username, String target) {
+  public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String username, String target) {
     super(id, mine, e0.time, username, target);
-    this.log = log;
-    this.r = log.r;
+    this.r = r;
     this.e0 = e0;
     this.lastEvent = e0;
   }
@@ -50,9 +48,12 @@ public abstract class MxChatEvent extends ChatEvent {
   public abstract boolean important();
   
   public void markRel(boolean on) {
+    MxLog log = r.visibleLog();
+    if (log==null) return;
+    
     // what this is replying to
-    MxChatEvent r = log.get(target);
-    if (r!=null && r.n!=null) r.n.setRelBg(on);
+    MxChatEvent re = log.get(target);
+    if (re!=null && re.n!=null) re.n.setRelBg(on);
     
     // what replies to this
     Vec<String> replies = log.getReplies(id);

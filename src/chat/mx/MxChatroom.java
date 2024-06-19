@@ -104,9 +104,7 @@ public class MxChatroom extends Chatroom {
       return null;
     }));
     commands.add(new MxCommand("sort", false, left -> {
-      MxLog l = null;
-      if (m.view instanceof MxLiveView) l = ((MxLiveView) m.view).log;
-      else if (m.view instanceof MxTranscriptView) l = ((MxTranscriptView) m.view).log;
+      MxLog l = visibleLog();
       if (l!=null) {
         l.list.sort(Comparator.comparing(k -> k.time));
         m.toView(m.view);
@@ -636,6 +634,12 @@ public class MxChatroom extends Chatroom {
   private void toTranscript(String highlightID, MxRoom.Chunk c) {
     MxTranscriptView v = new MxTranscriptView(this, c);
     m.toTranscript(v, v.log.get(highlightID));
+  }
+  
+  public MxLog visibleLog() {
+    if (m.view instanceof MxLiveView) return ((MxLiveView) m.view).log;
+    if (m.view instanceof MxTranscriptView) return ((MxTranscriptView) m.view).log;
+    return null;
   }
   
   public MxLiveView currLiveView() {

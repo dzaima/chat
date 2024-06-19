@@ -117,7 +117,7 @@ public class MxLog {
     }
     
     if (e.m==null) {
-      return new MxChatNotice(this, e, live);
+      return new MxChatNotice(r, e, live);
     } else {
       if (e.m.isEditEvent()) {
         MxChatEvent prev = msgMap.get(e.m.editsId);
@@ -127,13 +127,13 @@ public class MxLog {
         } // else, it's an edit of a message further back in the log
         return makeDebugNotice(e, live);
       } else {
-        return new MxChatMessage(e.m, e, this, live);
+        return new MxChatMessage(e.m, e, r, live);
       }
     }
   }
   
   private MxChatNotice makeDebugNotice(MxEvent e, boolean live) {
-    if (DEBUG_EVENTS) return new MxChatNotice(this, e, live);
+    if (DEBUG_EVENTS) return new MxChatNotice(r, e, live);
     return null;
   }
   

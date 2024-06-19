@@ -16,8 +16,8 @@ public class MxChatMessage extends MxChatEvent {
   private String bodyPrefix = ""; // from reply
   private boolean replyRequested;
   
-  public MxChatMessage(MxMessage m0, MxEvent e0, MxLog log, boolean isNew) {
-    super(log, m0.uid.equals(log.r.u.u.uid), e0, m0.id, log.r.getUsername(m0.uid, false), m0.replyId);
+  public MxChatMessage(MxMessage m0, MxEvent e0, MxChatroom r, boolean isNew) {
+    super(r, m0.uid.equals(r.u.u.uid), e0, m0.id, r.getUsername(m0.uid, false), m0.replyId);
     assert !m0.isEditEvent();
     this.m0 = m0;
     edited = m0.latestFmt!=null;
@@ -56,7 +56,7 @@ public class MxChatMessage extends MxChatEvent {
     
     if (visible && m0.replyId!=null && !replyRequested) {
       replyRequested = true;
-      MxChatEvent tg = log.get(m0.replyId);
+      MxChatEvent tg = r.allKnownEvents.get(m0.replyId);
       if (tg!=null) {
         String uid = tg.e0.uid;
         String name = tg.username;
