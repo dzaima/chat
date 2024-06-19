@@ -321,11 +321,6 @@ public class ChatMain extends NodeWindow {
     newHover = true;
     msgs.clearCh();
   }
-  public MsgNode createMessage(ChatEvent cm, boolean asContext) {
-    MsgNode r = new MsgNode(msgs.ctx.shadow(), cm.type(), cm, asContext);
-    r.ctx.id("user").replace(0, new UserTagNode(this, cm));
-    return r;
-  }
   
   private String lastTimeStr;
   public String currDelta() {
@@ -366,7 +361,6 @@ public class ChatMain extends NodeWindow {
   public boolean atEnd() { return msgsScroll.atYE(5); }
   
   public Node makeInfo(EnumProp type, String cfg, Node body) {
-    
     Node msg = ctx.make(gc.getProp("chat.info.mainP").gr());
     msg.setProp("infoType", type);
     msg.ctx.id("body").add(ctx.makeKV(gc.getProp(cfg).gr(), "body", body));

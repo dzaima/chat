@@ -30,7 +30,7 @@ public abstract class ChatEvent {
   public MsgNode n;
   public MsgNode show(boolean live, boolean asContext) {
     assert !visible; visible = true;
-    n = room().m.createMessage(this, asContext);
+    n = MsgNode.create(this, asContext);
     updateBody(live);
     return n;
   }

@@ -13,7 +13,7 @@ public class MsgNode extends WrapNode {
   
   public final boolean asContext;
   
-  public MsgNode(Ctx ctx, MsgType type, ChatEvent msg, boolean asContext) {
+  private MsgNode(Ctx ctx, MsgType type, ChatEvent msg, boolean asContext) {
     super(ctx, ctx.makeHere(ctx.gc.getProp("chat.msg.mainP").gr()));
     this.type = type;
     this.msg = msg;
@@ -21,6 +21,12 @@ public class MsgNode extends WrapNode {
     border.n = this;
     this.asContext = asContext;
     setBG();
+  }
+  
+  public static MsgNode create(ChatEvent cm, boolean asContext) {
+    MsgNode r = new MsgNode(cm.room().m.ctx.shadow(), cm.type(), cm, asContext);
+    r.ctx.id("user").replace(0, new UserTagNode(cm.room().m, cm));
+    return r;
   }
   
   public enum MsgType { MSG, NOTICE }
