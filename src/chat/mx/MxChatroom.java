@@ -711,9 +711,10 @@ public class MxChatroom extends Chatroom {
   }
   
   public MxLog logOfView(View v) {
-    if (v instanceof MxLiveView) return ((MxLiveView) v).log;
-    if (v instanceof MxTranscriptView) return ((MxTranscriptView) v).log;
-    return null;
+    MxLog l = null;
+    if (v instanceof MxLiveView) l = ((MxLiveView) v).log;
+    else if (v instanceof MxTranscriptView) l = ((MxTranscriptView) v).log;
+    return l!=null && l.r==this? l : null;
   }
   
   public MxLog visibleLog() {
