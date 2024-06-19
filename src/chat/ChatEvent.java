@@ -3,7 +3,9 @@ package chat;
 import chat.ui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.ScrollNode;
+import dzaima.ui.node.ctx.Ctx;
+import dzaima.ui.node.prop.*;
+import dzaima.ui.node.types.*;
 
 import java.time.Instant;
 import java.util.*;
@@ -22,6 +24,27 @@ public abstract class ChatEvent {
     this.time = time;
     this.username = username;
     this.target = target;
+  }
+  
+  private static final Props.Gen COL_IBEAM = Props.keys("ibeam","color");
+  private Node mkSText(Ctx ctx) {
+    if (n==null || !n.asContext) return new STextNode(ctx, true);
+    return new STextNode(ctx, COL_IBEAM.values(ctx.gc.getProp("chat.search.ctx.color"), EnumProp.TRUE));
+  }
+  public void updBody(Node body) {
+    Ctx ctx = n.ctx;
+    Node nb;
+    if (target!=null) {
+      nb = mkSText(ctx);
+      nb.add(new ChatMain.LinkBtn(nb.ctx, nb.ctx.makeHere(ctx.gc.getProp("chat.icon.replyP").gr()), this));
+      nb.add(body);
+    } else if (body instanceof InlineNode) {
+      nb = mkSText(ctx);
+      nb.add(body);
+    } else nb = body;
+    if (edited) nb.add(nb.ctx.make(ctx.gc.getProp("chat.msg.editedEndP").gr()));
+    nb.add(MsgExtraNode.createEnd(this));
+    setMsgBody(nb);
   }
   
   public abstract boolean userEq(ChatEvent o);

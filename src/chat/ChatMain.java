@@ -412,26 +412,10 @@ public class ChatMain extends NodeWindow {
     if (atEnd) msgsScroll.ignoreYE();
   }
   
-  private static final Props.Gen col_ibeam = Props.keys("ibeam","color");
-  private Node mkSText(ChatEvent e) {
-    if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
-    return new STextNode(ctx, col_ibeam.values(EnumProp.TRUE, gc.getProp("chat.search.ctx.color")));
-  }
   public void updMessage(ChatEvent ce, Node body, boolean live) { // TODO move to ChatEvent?
     boolean end = atEnd();
     newHover = true;
-    Node nb;
-    if (ce.target!=null) {
-      nb = mkSText(ce);
-      nb.add(new LinkBtn(ctx, nb.ctx.makeHere(gc.getProp("chat.icon.replyP").gr()), ce));
-      nb.add(body);
-    } else if (body instanceof InlineNode) {
-      nb = mkSText(ce);
-      nb.add(body);
-    } else nb = body;
-    if (ce.edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
-    nb.add(MsgExtraNode.createEnd(ce));
-    ce.setMsgBody(nb);
+    ce.updBody(body);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
   }
   
