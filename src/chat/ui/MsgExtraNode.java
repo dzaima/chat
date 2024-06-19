@@ -87,6 +87,15 @@ public class MsgExtraNode extends InlineNode {
     return Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.reaction.family"), gc.getProp("chat.reaction.col").col(), gc.getProp("chat.reaction.size").lenF()), b.toString());
   }
   
+  public static Node createEnd(ChatEvent ce) {
+    ChatMain m = ce.room().m;
+    HashMap<String, Integer> rs = ce.getReactions();
+    HashSet<String> vs = ce.getReceipts(m.view);
+    boolean edit = m.newEdit(ce) && ce.edited; // TODO is this needed here?
+    boolean hasThread = ce.startsThread(m.view);
+    return rs!=null || vs!=null || edit || hasThread? new MsgExtraNode(m.ctx, ce, rs, vs, hasThread) : new LineEnd(m.ctx, false);
+  }
+  
   public void hoverS() { r.m.msgExtra = this; }
   public void hoverE() { r.m.msgExtra = null; }
   

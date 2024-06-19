@@ -316,7 +316,6 @@ public class ChatMain extends NodeWindow {
     newHover = true;
   }
   
-  
   public void removeAllMessages() {
     newHover = true;
     msgs.clearCh();
@@ -412,19 +411,13 @@ public class ChatMain extends NodeWindow {
     if (atEnd && toLast==0) toLast = 1;
     if (atEnd) msgsScroll.ignoreYE();
   }
-  private Node makeExtra(ChatEvent ce) {
-    HashMap<String, Integer> rs = ce.getReactions();
-    HashSet<String> vs = ce.getReceipts(view);
-    boolean edit = newEdit(ce) && ce.edited;
-    boolean hasThread = ce.startsThread(view);
-    return rs!=null || vs!=null || edit || hasThread? new MsgExtraNode(ctx, ce, rs, vs, hasThread) : new InlineNode.LineEnd(ctx, false);
-  }
+  
   private static final Props.Gen col_ibeam = Props.keys("ibeam","color");
   private Node mkSText(ChatEvent e) {
     if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
     return new STextNode(ctx, col_ibeam.values(EnumProp.TRUE, gc.getProp("chat.search.ctx.color")));
   }
-  private boolean newEdit(ChatEvent e) {
+  public boolean newEdit(ChatEvent e) {
     return e.n.ctx.idNullable("edit")==null;
   }
   public void updMessage(ChatEvent ce, Node body, boolean live) { // TODO move to ChatEvent?
@@ -445,14 +438,14 @@ public class ChatMain extends NodeWindow {
       nb.add(body);
     } else nb = body;
     if (newEdit(ce) && ce.edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
-    nb.add(makeExtra(ce));
+    nb.add(MsgExtraNode.createEnd(ce));
     ce.setMsgBody(nb);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
   }
   public void updateExtra(ChatEvent e) { // TODO move to ChatEvent?
     if (!e.visible) return;
     Node b = e.getMsgBody();
-    b.replace(b.ch.sz-1, makeExtra(e));
+    b.replace(b.ch.sz-1, MsgExtraNode.createEnd(e));
   }
   
   public void unreadChanged() {
