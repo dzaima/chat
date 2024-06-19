@@ -1,6 +1,6 @@
 package chat.ui;
 
-import dzaima.utils.*;
+import dzaima.utils.Log;
 import io.github.humbleui.skija.*;
 
 public class Animation {

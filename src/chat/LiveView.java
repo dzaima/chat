@@ -3,7 +3,7 @@ package chat;
 import chat.ui.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
-import dzaima.utils.*;
+import dzaima.utils.Pair;
 
 public abstract class LiveView extends View {
   public final ChatMain m;
