@@ -40,7 +40,7 @@ public class MxChatroom extends Chatroom {
   public final PowerLevelManager powerLevels = new PowerLevelManager();
   
   public final HashMap<String, MxLog.Reaction> reactions = new HashMap<>();
-  private static class EventInfo { String closestVisible; int monotonicID; }
+  private static class EventInfo { String closestVisible; int monotonicID; } // TODO thread?
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
   
@@ -303,7 +303,7 @@ public class MxChatroom extends Chatroom {
     MxChatEvent pm = prevID==null? null : find(prevID);
     MxChatEvent nm = find(visID);
     
-    Log.fine("mx receipt", uid+" in "+prettyID()+": "+
+    Log.fine("mx receipt", () -> uid+" in "+prettyID()+"+"+(threadID==null? "main" : threadID)+": "+
       prevID + (pm==null? " (not in log)" : "") +
       " → " + mid +
       (!Objects.equals(visID, mid)? " → "+visID : "") + (nm==null? " (not in log)" : ""));
@@ -585,7 +585,7 @@ public class MxChatroom extends Chatroom {
     MxEvent last = lastEvent;
     if (last==null) return;
     if (!last.uid.equals(u.id())) {
-      u.queueNetwork(() -> r.readTo(last.id));
+      u.queueNetwork(() -> r.readToUnthreaded(last.id));
     }
   }
   

@@ -104,8 +104,15 @@ public class MxRoom {
     return o.has("chunk")? o.arr("chunk") : null;
   }
   
-  public void readTo(String id) {
-    request("receipt","m.read",id).gToken().post(Obj.E).runJ();
+  public void readTo(String id, String threadID) {
+    readToImpl(id, Obj.fromKV("thread_id", threadID));
+  }
+  public void readToUnthreaded(String id) {
+    readToImpl(id, Obj.E);
+  }
+  
+  private void readToImpl(String id, Obj z) {
+    request("receipt","m.read", id).gToken().post(z).runJ();
   }
   
   public String sendState(String type, String data) {
