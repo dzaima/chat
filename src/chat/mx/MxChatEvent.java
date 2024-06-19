@@ -149,7 +149,9 @@ public abstract class MxChatEvent extends ChatEvent {
       new ViewSource(r.m, b.toString()).open();
     });
     
-    pm.open(r.m.ctx, c, () -> n.border.openMenu(false));
+    pm.open(r.m.ctx, c, () -> {
+      if (n!=null) n.border.openMenu(false);
+    });
   }
   
   public void delete(JSON.Obj ev) {
