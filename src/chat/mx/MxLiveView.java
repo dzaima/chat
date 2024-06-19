@@ -107,8 +107,9 @@ public class MxLiveView extends LiveView {
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return log.nextMsg(msg, mine); }
   
   public void older() {
-    r.older(); // TODO thread (if that's really possible)
+    if (this == r.mainLiveView) r.older(); // TODO thread (if that's even possible)
   }
+  
   
   
   public String upload(byte[] data, String name, String mime) {
