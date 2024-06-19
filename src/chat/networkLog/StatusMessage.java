@@ -11,6 +11,7 @@ import dzaima.utils.*;
 import libMx.*;
 
 import java.time.*;
+import java.util.HashMap;
 import java.util.regex.*;
 
 public class StatusMessage extends BasicChatEvent {
@@ -64,9 +65,10 @@ public class StatusMessage extends BasicChatEvent {
     pm.open(l.m.ctx, c);
   }
   
+  private static final HashMap<String, String> uniqueStrings = new HashMap<>();
   public String userString() {
     MxLogin l = ri.s.primaryLogin;
-    return ri.rq.t.toString()+" "+(l==null? "" : l.uid);
+    return uniqueStrings.computeIfAbsent(ri.rq.t.toString()+" "+(l==null? "" : l.uid), s -> String.valueOf(uniqueStrings.size()));
   }
   
   public class EventView extends BasicNetworkView {
