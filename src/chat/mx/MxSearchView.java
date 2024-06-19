@@ -87,8 +87,9 @@ public class MxSearchView extends SearchView {
     }
     
     Vec<Vec<Pair<Boolean, MxChatEvent>>> groups = new Vec<>();
+    HashSet<MxChatEvent> alreadyShown = new HashSet<>();
     for (MxLog l : logs) {
-      Vec<MxChatEvent> ms = l.list.filter(c -> !(c instanceof MxChatNotice));
+      Vec<MxChatEvent> ms = l.list.filter(c -> !(c instanceof MxChatNotice) && alreadyShown.add(c));
       Vec<Integer> matches = new Vec<>();
       for (int i = 0; i < ms.sz; i++) {
         MxChatEvent e = ms.get(i);
@@ -103,6 +104,7 @@ public class MxSearchView extends SearchView {
           for (int i = Math.max(0, m-ctxSz); i <= Math.min(m+ctxSz, ms.sz-1); i++) {
             MxChatEvent e = ms.get(i);
             if (tooFar(e.time, exp)) continue;
+            alreadyShown.add(e);
             if (prev.containsKey(e)) {
               cGroup = groups.peek();
               if (m==i) cGroup.set(prev.get(e), new Pair<>(true, e));
@@ -115,7 +117,9 @@ public class MxSearchView extends SearchView {
         }
       } else {
         for (int c : matches) {
-          groups.add(Vec.of(new Pair<>(true, ms.get(c))));
+          MxChatEvent e = ms.get(c);
+          alreadyShown.add(e);
+          groups.add(Vec.of(new Pair<>(true, e)));
         }
       }
     }
