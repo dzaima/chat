@@ -1,13 +1,13 @@
 package chat.networkLog;
 
-import chat.Chatroom;
+import chat.*;
 import chat.ui.ViewSource;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
-import dzaima.utils.JSON;
+import dzaima.utils.*;
 import libMx.*;
 
 import java.time.*;
@@ -53,7 +53,7 @@ public class StatusMessage extends BasicChatEvent {
   
   public void rightClick(Click c, int x, int y) {
     PartialMenu pm = new PartialMenu(l.m.gc);
-    pm.add("events", () -> l.m.toViewDirect(new EventView(ri)));
+    pm.add("events", () -> l.m.toViewDirect(new EventView(l.m, ri)));
     if (ri.rq.ct!=null) pm.add("request body", () -> {
       String ct = ri.rq.ct;
       try {
@@ -71,20 +71,22 @@ public class StatusMessage extends BasicChatEvent {
   
   public class EventView extends BasicNetworkView {
     public final NetworkLog.RequestInfo ri;
-    public EventView(NetworkLog.RequestInfo ri) { this.ri = ri; }
+    public EventView(ChatMain m, NetworkLog.RequestInfo ri) { super(m); this.ri = ri; }
     
     public Chatroom room() { return l.room; }
-    public void openViewTick() { }
     public void show() {
       for (NetworkLog.Event c : ri.events) addEvent(c);
       l.m.updateCurrentViewTitle();
     }
     
+    private final Vec<ChatEvent> visEvents = new Vec<>();
     public void addEvent(NetworkLog.Event c) {
-      l.m.addMessage(new StatusEvent(l, c), true);
+      l.m.addMessage(visEvents.add(new StatusEvent(l, c)), true);
     }
     
-    public void hide() { }
+    public void hide() {
+      for (ChatEvent c : visEvents) if (c.visible) c.hide();
+    }
     public String title() { return "Network log request details"; }
     public boolean key(Key key, int scancode, KeyAction a) {
       if (l.m.gc.keymap(key, a, "chat").equals("cancel")) {
@@ -94,7 +96,5 @@ public class StatusMessage extends BasicChatEvent {
       }
       return false;
     }
-    
-    
   }
 }

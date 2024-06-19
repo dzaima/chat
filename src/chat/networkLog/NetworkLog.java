@@ -29,6 +29,7 @@ public class NetworkLog extends BasicNetworkView {
   public final Chatroom room;
   
   public NetworkLog(ChatMain m) {
+    super(m);
     this.m = m;
     user = new ChatUser(m) {
       public Vec<Chatroom> rooms() { return Vec.of(room); }
@@ -128,19 +129,19 @@ public class NetworkLog extends BasicNetworkView {
   }
   
   public Chatroom room() { return room; }
-  public void openViewTick() { }
+  
+  private final Vec<ChatEvent> visEvents = new Vec<>();
+  private void addRI(RequestInfo ri) {
+    m.addMessage(visEvents.add(statusMessages.computeIfAbsent(ri, s -> new StatusMessage(this, s))), true);
+  }
   public void show() {
     for (RequestInfo ri : list) addRI(ri);
     m.updateCurrentViewTitle();
   }
-  
-  private void addRI(RequestInfo ri) {
-    m.addMessage(statusMessages.computeIfAbsent(ri, s -> new StatusMessage(this, s)), true);
-  }
-  
   public void hide() {
-    for (StatusMessage c : statusMessages.values()) c.hide();
+    for (ChatEvent c : visEvents) if (c.visible) c.hide();
   }
+  
   public String title() { return "Network log"; }
   public final boolean key(Key key, int scancode, KeyAction a) { return false; }
   
