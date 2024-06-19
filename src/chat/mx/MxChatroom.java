@@ -415,7 +415,7 @@ public class MxChatroom extends Chatroom {
       assert memberEventsToProcess==null;
       String tk = u.currentSyncToken;
       memberEventsToProcess = new Vec<>();
-      u.queueRequest(null, () -> r.getFullMemberState(tk), us -> {
+      u.queueRequest(() -> r.getFullMemberState(tk), us -> {
         for (Obj c : us.objs()) processMemberEvent(c, false, false);
         for (Obj c : memberEventsToProcess) processMemberEvent(c, true, false);
         Log.info("mx", "Got full user list of "+prettyID());
@@ -590,7 +590,7 @@ public class MxChatroom extends Chatroom {
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
-    u.queueRequest(null, () -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), r -> {
+    u.queueRequest(() -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), r -> {
       if (r==null) { Log.warn("mx", "MxRoom::before failed on token "+prevBatch); return; }
       loadQuestionableMemberState(r);
       olderRes = r;
@@ -635,7 +635,7 @@ public class MxChatroom extends Chatroom {
     assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
     if (d==null && inProgressUserLoads.add(uid)) {
-      u.queueRequest(null, () -> r.getMemberState(uid), e -> {
+      u.queueRequest(() -> r.getMemberState(uid), e -> {
         inProgressUserLoads.remove(uid);
         if (e!=null) loadQuestionableMemberState(e);
       });
@@ -699,7 +699,7 @@ public class MxChatroom extends Chatroom {
     
     Runnable done = m.doAction("loading message context...");
     int action = roomChangeCounter.next();
-    u.queueRequest(null, () -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
+    u.queueRequest(() -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
       loadQuestionableMemberState(c);
       done.run();
       if (roomChangeCounter.superseded(action)) return;

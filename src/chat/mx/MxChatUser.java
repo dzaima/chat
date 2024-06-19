@@ -64,15 +64,13 @@ public class MxChatUser extends ChatUser {
   public void queueNetwork(Runnable r) { network.add(r); }
   @FunctionalInterface public interface Request<T> { T get() throws Throwable; }
   
-  // calling again with the same counter will cancel the previous request if it wasn't already invoked on the main thread
-  public <T> void queueRequest(Counter c, Request<T> network, Consumer<T> primary) {
-    int v = c==null? 0 : c.next();
+  public <T> void queueRequest(Request<T> network, Consumer<T> primary) {
     queueNetwork(() -> {
       T r;
       try { r = network.get(); }
       catch (Throwable e) { Log.stacktrace("mx queueRequest", e); r = null; }
       T finalR = r;
-      this.primary.add(() -> { if (c==null || v==c.value) primary.accept(finalR); });
+      this.primary.add(() -> primary.accept(finalR));
     });
   }
   
@@ -220,7 +218,7 @@ public class MxChatUser extends ChatUser {
   
   
   public Promise<byte[]> queueGet(String msg, String url) {
-    return Promise.create(res -> queueRequest(null, () -> MxChatUser.rawCachedGet(m, msg, url), res::set));
+    return Promise.create(res -> queueRequest(() -> MxChatUser.rawCachedGet(m, msg, url), res::set));
   }
   public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) {
     loadImg(url, url, loaded, ctor, stillNeeded);
@@ -304,7 +302,7 @@ public class MxChatUser extends ChatUser {
       }
       
       Runnable done = m.doAction("loading image...");
-      queueRequest(null, () -> CacheObj.compute("head_isImage\0"+url, () -> {
+      queueRequest(() -> CacheObj.compute("head_isImage\0"+url, () -> {
         try {
           Utils.log("head", url);
           HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();

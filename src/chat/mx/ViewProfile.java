@@ -75,7 +75,7 @@ public class ViewProfile {
       
       ((BtnNode) n.ctx.id("run")).setFn(b -> {
         String got = getReason.get();
-        r.u.queueRequest(null, () -> { f.accept(got==null || got.isEmpty()? null : got); return null; }, v -> onDone.run());
+        r.u.queueRequest(() -> { f.accept(got==null || got.isEmpty()? null : got); return null; }, v -> onDone.run());
         p.close();
       });
     });
@@ -132,7 +132,7 @@ public class ViewProfile {
       ((BtnNode) p.node.ctx.id("run")).setFn(b -> {
         p.close();
         Runnable[] next = new Runnable[1];
-        next[0] = () -> r.u.queueRequest(null, () -> {
+        next[0] = () -> r.u.queueRequest(() -> {
           MxChatEvent e = es.pop();
           Log.info("mod", "Deleting message "+e.id);
           r.delete(e);
