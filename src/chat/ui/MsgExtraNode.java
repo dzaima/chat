@@ -4,30 +4,42 @@ import chat.Chatroom;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
+import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.prop.Props;
+import dzaima.ui.node.prop.*;
 import dzaima.ui.node.types.*;
 import dzaima.utils.*;
 import io.github.humbleui.skija.paragraph.Paragraph;
 
 import java.util.*;
-import java.util.function.Consumer;
+import java.util.function.*;
 
 public class MsgExtraNode extends InlineNode {
+  public static int maxReactions = 3;
+  
   private final Chatroom r;
   private final HashSet<String> receipts;
-  private final ArrayList<Map.Entry<String, Integer>> reactions;
+  private final ParaNode receiptPara;
   
   public MsgExtraNode(Ctx ctx, Chatroom r, HashMap<String, Integer> reactions, HashSet<String> receipts) {
     super(ctx, Props.none());
     this.r = r;
-    if (reactions==null) {
-      this.reactions = null;
-    } else {
-      this.reactions = new ArrayList<>(reactions.entrySet());
-      this.reactions.sort(Comparator.comparingInt((Map.Entry<String, Integer> a) -> a.getValue()).thenComparing(Map.Entry::getKey));
-    }
     this.receipts = receipts;
+    
+    HlNode l = new HlNode(ctx, Props.of("h", new EnumProp("min")));
+    add(l);
+    if (reactions!=null) {
+      ArrayList<Map.Entry<String, Integer>> reactionCounts = new ArrayList<>(reactions.entrySet());
+      reactionCounts.sort(Comparator.comparingInt((Map.Entry<String, Integer> a) -> a.getValue()).thenComparing(Map.Entry::getKey));
+      l.add(new ParaNode(ctx, () -> reactionPara(ctx.gc, reactionCounts)));
+    }
+    
+    if (receipts!=null) {
+      receiptPara = new ParaNode(ctx, () -> receiptPara(ctx.gc, receipts));
+      l.add(receiptPara);
+    } else {
+      receiptPara = null;
+    }
   }
   
   private static Paragraph receiptPara(GConfig gc, HashSet<String> receipts) {
@@ -55,71 +67,33 @@ public class MsgExtraNode extends InlineNode {
     return Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.reaction.family"), gc.getProp("chat.reaction.col").col(), gc.getProp("chat.reaction.size").lenF()), b.toString());
   }
   
-  private int th,wt,wr;
-  private Paragraph pr, pv;
-  public static int maxReactions = 3;
-  public void propsUpd() { super.propsUpd();
-    int h = 0;
-  
-    if (reactions!=null) {
-      pr = reactionPara(gc, reactions);
-      wr = Tools.ceil(pr.getMaxIntrinsicWidth());
-      h = Math.max(Tools.ceil(pr.getHeight()), h);
-    } else {
-      pr = null;
-      wr = 0;
-    }
-  
-    int wv;
-    if (receipts!=null) {
-      pv = receiptPara(gc, receipts);
-      wv = Tools.ceil(pv.getMaxIntrinsicWidth());
-      h = Math.max(Tools.ceil(pv.getHeight()), h);
-    } else {
-      pv = null;
-      wv = 0;
-    }
-    
-    wt = wv + wr + gc.em/5;
-    th = h;
-  }
+  public void hoverS() { r.m.msgExtra = this; }
+  public void hoverE() { r.m.msgExtra = null; }
   
   protected void baseline(int asc, int dsc, int h) { }
   protected void addInline(InlineSolver sv) {
-    if (sv.w-sv.x < wt) {
+    Node c = ch.get(0);
+    int w = c.minW() + gc.em/5;
+    int h = c.minH(w);
+    if (sv.w-sv.x < w) {
       sv.nl();
       sX = (short) sv.x;
       sY1 = (short) sv.y;
     }
-    sv.h = Math.max(sv.h, th);
+    sv.h = Math.max(sv.h, h);
     sv.x = sv.w;
-  }
-  
-  public void drawC(Graphics g) {
-    if (pr!=null) pr.paint(g.canvas, w-wt   , eY1);
-    if (pv!=null) pv.paint(g.canvas, w-wt+wr, eY1);
-  }
-  
-  public void hoverS() { r.m.msgExtra = this; }
-  public void hoverE() { r.m.msgExtra = null; }
-  
-  boolean rHovered(XY me) {
-    NodeVW vw = ctx.vw();
-    int mx = vw.mx-me.x;
-    int my = vw.my-me.y;
-    return mx >= w-wt+wr && mx<w && my>=eY1 && my<eY2;
+    if (sv.resize) c.resize(w, h, sv.w-w, sv.y);
   }
   
   public void tickExtra() {
-    XY me = relPos(null);
-    if (receipts!=null && rHovered(me) && r.m.hoverPopup==null) {
+    if (receiptPara!=null && receiptPara.hover && r.m.hoverPopup==null) {
       PNodeGroup g = gc.getProp("chat.receipt.list").gr().copy();
       
       NodeVW[] vwh = new NodeVW[1];
       HoverPopup popup = new HoverPopup(ctx, s -> {
         if (s.equals("(closed)")) r.m.hoverPopup = null;
       }) {
-        public boolean shouldClose() { return !rHovered(MsgExtraNode.this.relPos(null)) && !vwh[0].mIn; }
+        public boolean shouldClose() { return !receiptPara.hover && !vwh[0].mIn; }
       };
       
       r.m.hoverPopup = popup;
@@ -139,5 +113,35 @@ public class MsgExtraNode extends InlineNode {
       super(ctx, action);
     }
     public abstract boolean shouldClose();
+  }
+  
+  private static class ParaNode extends Node {
+    private final Supplier<Paragraph> gen;
+    private Paragraph para;
+    private int mw, mh;
+    
+    public ParaNode(Ctx ctx, Supplier<Paragraph> gen) {
+      super(ctx, Props.none());
+      this.gen = gen;
+    }
+    
+    public void propsUpd() { super.propsUpd();
+      para = gen.get();
+      mw = Tools.ceil(para.getMaxIntrinsicWidth());
+      mh = Tools.ceil(para.getHeight());
+    }
+    
+    private boolean hover;
+    public void hoverS() { hover = true; }
+    public void hoverE() { hover = false; }
+    
+    public void drawC(Graphics g) {
+      para.paint(g.canvas, 0, 0);
+    }
+    
+    public int minW() { return mw; }
+    public int maxW() { return mw; }
+    public int minH(int w) { return mh; }
+    public int maxH(int w) { return mh; }
   }
 }
