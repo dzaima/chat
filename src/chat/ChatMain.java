@@ -417,17 +417,10 @@ public class ChatMain extends NodeWindow {
     if (e.n==null || !e.n.asContext) return new STextNode(ctx, true);
     return new STextNode(ctx, col_ibeam.values(EnumProp.TRUE, gc.getProp("chat.search.ctx.color")));
   }
-  public boolean newEdit(ChatEvent e) {
-    return e.n.ctx.idNullable("edit")==null;
-  }
+  
   public void updMessage(ChatEvent ce, Node body, boolean live) { // TODO move to ChatEvent?
-    Node msg = ce.n;
     boolean end = atEnd();
     newHover = true;
-    if (ce.edited && !newEdit(ce)) {
-      Node n = msg.ctx.id("edit");
-      if (n.ch.sz==0) n.add(n.ctx.make(n.gc.getProp("chat.icon.editedP").gr()));
-    }
     Node nb;
     if (ce.target!=null) {
       nb = mkSText(ce);
@@ -437,7 +430,7 @@ public class ChatMain extends NodeWindow {
       nb = mkSText(ce);
       nb.add(body);
     } else nb = body;
-    if (newEdit(ce) && ce.edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
+    if (ce.edited) nb.add(nb.ctx.make(gc.getProp("chat.msg.editedEndP").gr()));
     nb.add(MsgExtraNode.createEnd(ce));
     ce.setMsgBody(nb);
     if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);

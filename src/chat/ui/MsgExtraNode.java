@@ -91,9 +91,8 @@ public class MsgExtraNode extends InlineNode {
     ChatMain m = ce.room().m;
     HashMap<String, Integer> rs = ce.getReactions();
     HashSet<String> vs = ce.getReceipts(m.view);
-    boolean edit = m.newEdit(ce) && ce.edited; // TODO is this needed here?
     boolean hasThread = ce.startsThread(m.view);
-    return rs!=null || vs!=null || edit || hasThread? new MsgExtraNode(m.ctx, ce, rs, vs, hasThread) : new LineEnd(m.ctx, false);
+    return rs!=null || vs!=null || hasThread? new MsgExtraNode(m.ctx, ce, rs, vs, hasThread) : new LineEnd(m.ctx, false);
   }
   
   public void hoverS() { r.m.msgExtra = this; }

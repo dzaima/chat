@@ -40,11 +40,11 @@ public abstract class ChatEvent {
   }
   public Node getMsgBody() {
     Node b = n.ctx.id("body");
-    return b.ch.get(b.ch.sz-1);
+    return b.ch.get(0);
   }
   public void setMsgBody(Node ct) {
     Node b = n.ctx.id("body");
-    b.replace(b.ch.sz-1, ct);
+    b.replace(0, ct);
   }
   public void mark(int mode) { // 1-edited; 2-replying to
     n.mark(mode);

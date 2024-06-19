@@ -404,7 +404,6 @@ chat {
       msgBorder { id=border bg=#00FF00
         pad { y=.1em l=.4em
           h { id=body
-            // h { w=1.5em alX=center h=min id=edit }
             ""
           }
         }
