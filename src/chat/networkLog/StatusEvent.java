@@ -1,31 +1,26 @@
 package chat.networkLog;
 
-import chat.*;
-import chat.ui.*;
+import chat.ui.ViewSource;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Log;
 
 import java.io.*;
-import java.util.*;
+import java.util.Objects;
 
-public class StatusEvent extends ChatEvent {
+public class StatusEvent extends BasicChatEvent {
   private static final int MAX_PREVIEW = 100;
-  public final NetworkLog l;
   public final NetworkLog.Event ev;
   public final Object obj;
   
   public StatusEvent(NetworkLog l, NetworkLog.Event ev) {
-    super(String.valueOf(ev.id), false, ev.when, "", null);
-    this.l = l;
+    super(String.valueOf(ev.id), ev.when, "", l);
     this.ev = ev;
     this.obj = ev.obj;
     
     username = StatusMessage.fmtTime(time);
   }
-  
-  public Chatroom room() { return l.room; }
   
   public void updateBody(boolean live) {
     String msg = ev.type;
@@ -60,14 +55,4 @@ public class StatusEvent extends ChatEvent {
     pm.open(l.m.ctx, c);
   }
   
-  public String getSrc() { return "(log event)"; }
-  public MsgNode.MsgType type() { return MsgNode.MsgType.MSG; }
-  public boolean userEq(ChatEvent o) { return false; }
-  public void toTarget() { }
-  public void markRel(boolean on) { }
-  public boolean isDeleted() { return false; }
-  public HashMap<String, Integer> getReactions() { return null; }
-  public HashSet<String> getReceipts(View view) { return null; }
-  public boolean startsThread(View view) { return false; }
-  public void toThread() { }
 }

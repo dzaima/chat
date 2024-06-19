@@ -1,7 +1,7 @@
 package chat.networkLog;
 
-import chat.*;
-import chat.ui.*;
+import chat.Chatroom;
+import chat.ui.ViewSource;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.ctx.Ctx;
@@ -11,18 +11,15 @@ import dzaima.utils.JSON;
 import libMx.*;
 
 import java.time.*;
-import java.util.*;
 import java.util.regex.*;
 
-public class StatusMessage extends ChatEvent {
+public class StatusMessage extends BasicChatEvent {
   private static final Pattern MATRIX = Pattern.compile("^_matrix/client/([vr]\\d)/");
-  public final NetworkLog l;
   public final NetworkLog.RequestInfo ri;
   private final String body;
   
   protected StatusMessage(NetworkLog l, NetworkLog.RequestInfo ri) {
-    super(String.valueOf(ri.id), false, ri.start, "?", null);
-    this.l = l;
+    super(String.valueOf(ri.id), ri.start, "?", l);
     this.ri = ri;
     
     String p = MxServer.redactAccessToken(ri.rq.calcURL());
@@ -37,10 +34,6 @@ public class StatusMessage extends ChatEvent {
   public static String fmtTime(Instant time) {
     LocalTime t = time.atZone(ZoneId.systemDefault()).toLocalTime();
     return t.withNano(t.getNano()/1000000*1000000).toString();
-  }
-  
-  public Chatroom room() {
-    return l.room;
   }
   
   public void updateBody(boolean live) {
@@ -75,17 +68,6 @@ public class StatusMessage extends ChatEvent {
     MxLogin l = ri.s.primaryLogin;
     return ri.rq.t.toString()+" "+(l==null? "" : l.uid);
   }
-  
-  public String getSrc() { return "(log event)"; }
-  public MsgNode.MsgType type() { return MsgNode.MsgType.MSG; }
-  public boolean userEq(ChatEvent o) { return false; }
-  public void toTarget() { }
-  public void markRel(boolean on) { }
-  public boolean isDeleted() { return false; }
-  public HashMap<String, Integer> getReactions() { return null; }
-  public HashSet<String> getReceipts(View view) { return null; }
-  public boolean startsThread(View view) { return false; }
-  public void toThread() { }
   
   public class EventView extends BasicNetworkView {
     public final NetworkLog.RequestInfo ri;
