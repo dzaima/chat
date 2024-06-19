@@ -30,6 +30,18 @@ public class MsgExtraNode extends InlineNode {
     HlNode l = new HlNode(ctx, Props.of("pad", new LenProp(ctx.gc, 0.5, "em")));
     add(l);
     
+    if (reactions!=null) {
+      ArrayList<Map.Entry<String, Integer>> reactionCounts = new ArrayList<>(reactions.entrySet());
+      reactionCounts.sort(Comparator.comparingInt((Map.Entry<String, Integer> a) -> a.getValue()).thenComparing(Map.Entry::getKey));
+      l.add(new ParaNode(ctx, () -> reactionPara(ctx.gc, reactionCounts)));
+    }
+    
+    if (receipts!=null) {
+      receiptPara = new ParaNode(ctx, () -> receiptPara(ctx.gc, receipts));
+      l.add(receiptPara);
+    } else {
+      receiptPara = null;
+    }
     
     if (hasThread) {
       l.add(new WrapNode(ctx, ctx.make(ctx.gc.getProp("chat.msg.openThread").gr())) {
@@ -47,19 +59,6 @@ public class MsgExtraNode extends InlineNode {
           if (visible && c.bL()) e.toThread();
         }
       });
-    }
-    
-    if (reactions!=null) {
-      ArrayList<Map.Entry<String, Integer>> reactionCounts = new ArrayList<>(reactions.entrySet());
-      reactionCounts.sort(Comparator.comparingInt((Map.Entry<String, Integer> a) -> a.getValue()).thenComparing(Map.Entry::getKey));
-      l.add(new ParaNode(ctx, () -> reactionPara(ctx.gc, reactionCounts)));
-    }
-    
-    if (receipts!=null) {
-      receiptPara = new ParaNode(ctx, () -> receiptPara(ctx.gc, receipts));
-      l.add(receiptPara);
-    } else {
-      receiptPara = null;
     }
   }
   
