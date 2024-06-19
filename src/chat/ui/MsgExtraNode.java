@@ -73,7 +73,7 @@ public class MsgExtraNode extends InlineNode {
   protected void baseline(int asc, int dsc, int h) { }
   protected void addInline(InlineSolver sv) {
     Node c = ch.get(0);
-    int w = c.minW() + gc.em/5;
+    int w = c.minW() + gc.em/5; // TODO theme?
     int h = c.minH(w);
     if (sv.w-sv.x < w) {
       sv.nl();
@@ -86,26 +86,26 @@ public class MsgExtraNode extends InlineNode {
   }
   
   public void tickExtra() {
-    if (receiptPara!=null && receiptPara.hover && r.m.hoverPopup==null) {
-      PNodeGroup g = gc.getProp("chat.receipt.list").gr().copy();
-      
-      NodeVW[] vwh = new NodeVW[1];
-      HoverPopup popup = new HoverPopup(ctx, s -> {
-        if (s.equals("(closed)")) r.m.hoverPopup = null;
-      }) {
-        public boolean shouldClose() { return !receiptPara.hover && !vwh[0].mIn; }
-      };
-      
-      r.m.hoverPopup = popup;
-      NodeVW vw = popup.openVW(gc, ctx, g, true);
-      vwh[0] = vw;
-      
-      ArrayList<String> rs = new ArrayList<>();
-      for (String c : receipts) rs.add(r.getUsername(c, false));
-      Collections.sort(rs);
-      for (String r : rs) popup.node.add(new MenuNode.MINode(vw.base.ctx, r, ""));
-      vw.newRect();
-    }
+    if (r.m.hoverPopup!=null) return;
+    if (receiptPara!=null && receiptPara.hover) hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> r.getUsername(c, false)));
+  }
+  private void hoverPopup(ParaNode source, Vec<String> lines) {
+    PNodeGroup g = gc.getProp("chat.receipt.list").gr().copy();
+    
+    Box<NodeVW> vw1 = new Box<>();
+    HoverPopup popup = new HoverPopup(ctx, s -> {
+      if (s.equals("(closed)")) r.m.hoverPopup = null;
+    }) {
+      public boolean shouldClose() { return !source.hover && !vw1.get().mIn; }
+    };
+    
+    r.m.hoverPopup = popup;
+    NodeVW vw = popup.openVW(gc, ctx, g, true);
+    vw1.set(vw);
+    
+    lines.sort();
+    for (String r : lines) popup.node.add(new MenuNode.MINode(vw.base.ctx, r, ""));
+    vw.newRect();
   }
   
   public static abstract class HoverPopup extends Popup.RightClickMenu {
