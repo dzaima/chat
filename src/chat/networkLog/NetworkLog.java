@@ -72,6 +72,7 @@ public class NetworkLog extends BasicNetworkView {
     ConcurrentLinkedQueue<TodoEntry> todo = new ConcurrentLinkedQueue<>();
     MxServer.requestLogger = (rq, type, o) -> {
       Instant now = Instant.now();
+      if ("new".equals(type)) m.insertNetworkDelay();
       TodoEntry e = new TodoEntry();
       e.w = now;
       e.rq = rq;

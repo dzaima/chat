@@ -65,7 +65,6 @@ public class MxChatUser extends ChatUser {
       try { r = network.get(); }
       catch (Throwable e) { Log.stacktrace("mx queueRequest", e); r = null; }
       T finalR = r;
-      m.insertNetworkDelay();
       this.primary.add(() -> { if (c==null || v==c.value) primary.accept(finalR); });
     });
   }
