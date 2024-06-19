@@ -2,6 +2,8 @@ package chat.networkLog;
 
 import chat.*;
 import dzaima.ui.node.Node;
+import dzaima.ui.node.prop.Props;
+import dzaima.ui.node.types.VlNode;
 
 public abstract class BasicNetworkView extends LiveView {
   protected BasicNetworkView(ChatMain m) {
@@ -16,7 +18,7 @@ public abstract class BasicNetworkView extends LiveView {
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return null; }
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return null; }
   public void older() { }
-  public Node inputPlaceContent() { return null; }
+  public Node inputPlaceContent() { return new VlNode(m.ctx, Props.none()); }
   public void post(String raw, String replyTo) { }
   public void edit(ChatEvent m, String raw) { }
   public void upload() { }

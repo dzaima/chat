@@ -90,8 +90,7 @@ public class StatusMessage extends BasicChatEvent {
     public String title() { return "Network log request details"; }
     public boolean key(Key key, int scancode, KeyAction a) {
       if (l.m.gc.keymap(key, a, "chat").equals("cancel")) {
-        l.m.toViewDirect(l);
-        highlight(true);
+        l.m.toRoom(l, StatusMessage.this);
         return true;
       }
       return false;
