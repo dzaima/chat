@@ -1,8 +1,8 @@
 package libMx;
 
 public class MxUser {
-  public MxServer s;
-  public String uid;
+  public final MxServer s;
+  public final String uid;
   
   public MxUser(MxServer s, String uid) {
     this.s = s;

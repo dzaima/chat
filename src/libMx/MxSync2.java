@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MxSync2 {
   public final MxServer s;
   public final Obj filter;
-  ConcurrentLinkedQueue<Obj> recv = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<Obj> recv = new ConcurrentLinkedQueue<>();
   
   public MxSync2(MxServer s, String since, Obj filter) {
     this(s, s.messagesSince(filter, since, 0), filter);

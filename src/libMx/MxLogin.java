@@ -5,10 +5,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import static dzaima.utils.JSON.*;
 
 public class MxLogin {
-  public MxServer s;
+  public final MxServer s;
   public final String uid;
   public final String uidURI;
-  public String token;
+  public final String token;
   
   public MxLogin(MxServer s, String id, String mxToken) {
     this.s = s;

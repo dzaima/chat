@@ -3,8 +3,8 @@ package libMx;
 import dzaima.utils.JSON.*;
 
 public class MxFmt extends MxSendMsg {
-  public StringBuilder body;
-  public StringBuilder html;
+  public final StringBuilder body;
+  public final StringBuilder html;
   String replyID;
   String threadID;
   public Type type = Type.TEXT;

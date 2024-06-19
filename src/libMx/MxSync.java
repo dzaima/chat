@@ -7,7 +7,7 @@ import static dzaima.utils.JSON.*;
 
 public class MxSync {
   public final MxServer s;
-  ConcurrentLinkedQueue<MxEvent> recv = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<MxEvent> recv = new ConcurrentLinkedQueue<>();
   
   public MxSync(MxServer s, String since) {
     this(s, s.messagesSince(null, since, 0));
