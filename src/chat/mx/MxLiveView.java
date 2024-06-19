@@ -81,11 +81,17 @@ public class MxLiveView extends LiveView {
     return new MxSearchView(r.m, this);
   }
   
+  private String lastReadTo;
   public void markAsRead() {
-    log.markReadToEnd();
-    if (r.unread==0 && !r.ping) return;
-    r.unread = 0; // TODO thread
-    r.ping = false;
+    MxEvent last = log.lastEvent;
+    if (last==null || last.id.equals(lastReadTo)) return;
+    lastReadTo = last.id;
+    if (!last.uid.equals(r.u.id())) {
+      r.u.queueNetwork(() -> r.r.readTo(last.id, log.threadID));
+    }
+    if (unread==0 && !ping) return;
+    unread = 0;
+    ping = false;
     r.m.updateUnread();
   }
   

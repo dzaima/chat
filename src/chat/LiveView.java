@@ -7,6 +7,8 @@ import dzaima.ui.node.prop.*;
 public abstract class LiveView extends View {
   public final ChatMain m;
   public ChatTextArea input;
+  public int unread;
+  public boolean ping;
   
   protected LiveView(ChatMain m) {
     this.m = m;
@@ -20,6 +22,13 @@ public abstract class LiveView extends View {
   
   public final LiveView baseLiveView() { return this; }
   public abstract MuteState muteState();
+  
+  public void changeUnread(int addUnread, boolean addPing) {
+    if (addUnread==0 && !addPing) return;
+    if (unread==0 && !ping) firstUnreadTime = m.gc.lastMs;
+    unread+= addUnread;
+    ping|= addPing;
+  }
   
   public long atEndStart;
   public long firstUnreadTime;

@@ -16,14 +16,12 @@ public abstract class Chatroom {
   public final MuteState muteState;
   public String customName;
   public final RoomEditing editor;
-  public int unread;
-  public boolean ping;
   
   protected Chatroom(ChatUser u) {
     this.m = u.m;
     muteState = new MuteState(m) {
-      protected int ownedUnreads() { return unread; }
-      protected boolean ownedPings() { return ping; }
+      protected int ownedUnreads() { return unreadInfo().a; }
+      protected boolean ownedPings() { return unreadInfo().b; }
       protected void updated() { unreadChanged(); muteStateChanged(); }
     };
     
@@ -105,18 +103,11 @@ public abstract class Chatroom {
   
   
   
-  public abstract void pinged();
-  
-  
-  protected void changeUnread(int addUnread, boolean addPing) {
-    if (addUnread==0 && !addPing) return;
-    if (unread==0 && !ping) mainView().firstUnreadTime = m.gc.lastMs; // TODO thread
-    unread+= addUnread;
-    ping|= addPing;
-  }
+  public abstract Pair<Integer, Boolean> unreadInfo(); // count, ping
   
   public void unreadChanged() {
-    RoomListNode.setUnread(m, node, muteState, ping, unread);
+    Pair<Integer, Boolean> i = unreadInfo();
+    RoomListNode.setUnread(m, node, muteState, i.b, i.a);
     m.unreadChanged();
     user().updateFolderUnread();
   }

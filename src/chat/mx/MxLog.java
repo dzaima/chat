@@ -104,16 +104,6 @@ public class MxLog {
     return null;
   }
   
-  private String lastReadTo;
-  public void markReadToEnd() {
-    MxEvent last = lastEvent;
-    if (last==null || last.id.equals(lastReadTo)) return;
-    lastReadTo = last.id;
-    if (!last.uid.equals(r.u.id())) {
-      r.u.queueNetwork(() -> r.r.readTo(last.id, threadID));
-    }
-  }
-  
   public void completelyClear() {
     list.clear();
     msgMap.clear();

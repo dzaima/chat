@@ -79,7 +79,15 @@ public class MxChatroom extends Chatroom {
         setOfficialName(n.toString());
       }
     }
-    if (status0!=MyStatus.INVITED) { ping = false; unread = 0; unreadChanged(); }
+    if (status0!=MyStatus.INVITED) {
+      for (MxLog l : liveLogs.values()) {
+        if (l.lv!=null) {
+          l.lv.ping = false;
+          l.lv.unread = 0;
+        }
+      }
+      unreadChanged();
+    }
     
     commands.add(new MxCommand("md", true, left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname))));
     
@@ -427,6 +435,18 @@ public class MxChatroom extends Chatroom {
   public MxLog globalLog() { return liveLogs.get(null); }
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
+  public Pair<Integer, Boolean> unreadInfo() {
+    int count = 0;
+    boolean pinged = false;
+    for (MxLog l : liveLogs.values()) {
+      if (l.lv!=null) {
+        count+= l.lv.unread;
+        pinged|= l.lv.ping;
+      }
+    }
+    return new Pair<>(count, pinged);
+  }
+  
   public MxLog getThreadLog(String threadID) {
     MxLog l = liveLogs.get(threadID);
     if (l!=null) return l;
@@ -460,11 +480,12 @@ public class MxChatroom extends Chatroom {
     maybeThreadRoot(cm);
     
     if (!e.uid.equals(u.id())) {
+      MxLiveView v = l.liveView();
       if (cm==null) {
-        if (m.gc.getProp("chat.notifyOnEdit").b()) changeUnread(1, false);
-        else if (unread==0) l.markReadToEnd();
+        if (m.gc.getProp("chat.notifyOnEdit").b()) v.changeUnread(1, false);
+        else if (v.unread==0) v.markAsRead();
       } else if (cm.important()) {
-        changeUnread(1, false);
+        v.changeUnread(1, false);
       }
     }
     unreadChanged();
@@ -525,7 +546,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public void pinged() {
-    changeUnread(0, true);
+    mainLiveView.changeUnread(0, true);
   }
   
   public String asCodeblock(String s) {
