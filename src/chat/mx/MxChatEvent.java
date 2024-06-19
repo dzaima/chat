@@ -114,6 +114,10 @@ public abstract class MxChatEvent extends ChatEvent {
         pm.add(n.gc.getProp("chat.mx.msgMenu.code").gr(), "copyCode", () -> r.m.copyString(InlineNode.getNodeText(finalCode)));
       }
       
+      pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", () -> {
+        r.m.toView(r.getThreadLog(id).liveView());
+      });
+      
       pm.addSep();
       
       if (mine && !isDeleted() && !search) pm.add(n.gc.getProp("chat.mx.msgMenu.mine").gr(), (s) -> {

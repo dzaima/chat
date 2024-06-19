@@ -43,6 +43,7 @@ chat {
     editHistory = { "h" }
     reply = { "r" }
     edit = { "e" }
+    thread = { "t" }
     viewSource = { "s" }
     viewProfile = { "v" }
     folder = { "f" }
@@ -398,6 +399,9 @@ chat {
   mx.msgMenu {
     reply = {
       mi { id=replyTo "Reply to" key=chat.menuKeys.reply }
+    }
+    openThread = {
+      mi { id=openThread "Open thread" key=chat.menuKeys.thread }
     }
     copyLink = {
       // mi { id=viewHistory "View edit history" }

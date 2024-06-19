@@ -427,7 +427,7 @@ public class MxChatroom extends Chatroom {
   public MxLog globalLog() { return liveLogs.get(null); }
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
-  private MxLog getThreadLog(String threadID) {
+  public MxLog getThreadLog(String threadID) {
     MxLog l = liveLogs.get(threadID);
     if (l!=null) return l;
     
