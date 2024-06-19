@@ -237,7 +237,7 @@ chat {
             scroll { h=6.2em w=chat.inputWidth bg=chat.ly.bgInput x=off
               pad { all=.3em id=inputPlace "" }
             }
-            v { pad=.2em weight=.2 w=10em:99em // todo figure out why this breaks with weight=.1
+            v { pad=.2em weight=.01 w=10em:99em
               h { h=min pad=.5em
                 btn { style=rect id=send "send" padX=.5em padY=.3em }
                 btn { style=rect id=upload "upload" padX=.5em padY=.3em }
