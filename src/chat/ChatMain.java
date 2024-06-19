@@ -499,8 +499,8 @@ public class ChatMain extends NodeWindow {
       b.append(") ");
       ct = b.toString();
     }
-    
     else ct = "";
+    
     if (view==null) setTitle(ct+"chat");
     else setTitle(ct+view.title());
   }

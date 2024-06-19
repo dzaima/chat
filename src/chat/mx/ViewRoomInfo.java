@@ -1,9 +1,10 @@
 package chat.mx;
 
 import chat.ChatMain;
-import chat.ui.Extras;
+import chat.ui.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
+import dzaima.utils.Pair;
 
 public class ViewRoomInfo {
   private final ChatMain m;
@@ -33,6 +34,11 @@ public class ViewRoomInfo {
         Node n = m.ctx.make(m.gc.getProp("chat.roomInfo.threadEntry").gr());
         ((Extras.ClickableTextNode) n.ctx.id("link")).fn = () -> m.toView(l.liveView());
         Node ct = n.ctx.id("content");
+        Pair<Integer, Boolean> u = l.unreadInfo();
+        if (u.a!=0 || u.b) {
+          ct.add(RoomListNode.makeUnread(m, u.b, u.a));
+          ct.add(new StringNode(m.ctx, " "));
+        }
         ct.add(new StringNode(m.ctx, l.threadDesc(0)));
         ct.add(new InlineNode.LineEnd(base.ctx, false));
         threadList.ctx.id("more").add(n);

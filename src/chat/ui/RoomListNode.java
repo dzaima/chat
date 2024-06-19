@@ -389,9 +389,13 @@ public class RoomListNode extends ReorderableNode {
     if (muteState.hidden(ping, unread)) {
       un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
     } else if (unread>0 || ping) {
-      Node n = node.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
-      n.ctx.id("num").add(new StringNode(n.ctx, "("+(unread>0?unread+"":"")+(ping? "*" : "")+")"));
-      un.add(n);
+      un.add(makeUnread(m, ping, unread));
     }
+  }
+  
+   public static Node makeUnread(ChatMain m, boolean ping, int unread) {
+    Node n = m.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
+    n.ctx.id("num").add(new StringNode(n.ctx, "("+(unread >0? unread +"":"")+(ping? "*" : "")+")"));
+    return n;
   }
 }
