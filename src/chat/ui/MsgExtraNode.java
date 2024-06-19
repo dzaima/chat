@@ -88,11 +88,10 @@ public class MsgExtraNode extends InlineNode {
   }
   
   public static Node createEnd(ChatEvent ce) {
-    ChatMain m = ce.room().m;
     HashMap<String, Integer> rs = ce.getReactions();
-    HashSet<String> vs = ce.getReceipts(m.view);
-    boolean hasThread = ce.startsThread(m.view);
-    return rs!=null || vs!=null || hasThread? new MsgExtraNode(m.ctx, ce, rs, vs, hasThread) : new LineEnd(m.ctx, false);
+    HashSet<String> vs = ce.getReceipts(ce.m().view);
+    boolean hasThread = ce.startsThread(ce.m().view);
+    return rs!=null || vs!=null || hasThread? new MsgExtraNode(ce.m().ctx, ce, rs, vs, hasThread) : new LineEnd(ce.m().ctx, false);
   }
   
   public void hoverS() { r.m.msgExtra = this; }

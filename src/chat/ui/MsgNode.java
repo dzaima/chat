@@ -24,8 +24,8 @@ public class MsgNode extends WrapNode {
   }
   
   public static MsgNode create(ChatEvent cm, boolean asContext) {
-    MsgNode r = new MsgNode(cm.room().m.ctx.shadow(), cm.type(), cm, asContext);
-    r.ctx.id("user").replace(0, new UserTagNode(cm.room().m, cm));
+    MsgNode r = new MsgNode(cm.m().ctx.shadow(), cm.type(), cm, asContext);
+    r.ctx.id("user").replace(0, new UserTagNode(cm.m(), cm));
     return r;
   }
   
@@ -76,7 +76,7 @@ public class MsgNode extends WrapNode {
   public void mouseTick(int x, int y, Click c) { c.onClickEnd(); }
   public void mouseUp(int x, int y, Click c) {
     if (visible) {
-      LiveView v = msg.room().m.liveView();
+      LiveView v = msg.m().liveView();
       if (v!=null) v.input.markReply(msg);
     }
   }

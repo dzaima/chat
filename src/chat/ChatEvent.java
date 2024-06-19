@@ -62,6 +62,7 @@ public abstract class ChatEvent {
   }
   
   public abstract Chatroom room();
+  public ChatMain m() { return room().m; }
   public abstract MsgNode.MsgType type();
   public abstract String userString();
   public abstract boolean isDeleted();

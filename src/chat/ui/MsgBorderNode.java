@@ -25,8 +25,8 @@ public class MsgBorderNode extends Node {
   public int maxH(int w) { return ch.get(0).maxH(w-2)+2; }
   protected void resized() { ch.get(0).resize(w-2, h-2, 1, 1); }
   
-  public void hoverS() { hover( true); n.msg.room().m.hovered(n); }
-  public void hoverE() { hover(false); n.msg.room().m.hovered(null); }
+  public void hoverS() { hover( true); n.msg.m().hovered(n); }
+  public void hoverE() { hover(false); n.msg.m().hovered(null); }
   
   public boolean hovered, openMenu;
   public void hover(boolean v) { this.hovered = v; mRedraw(); }
@@ -48,7 +48,7 @@ public class MsgBorderNode extends Node {
   
   public void drawC(Graphics g) {
     if (hovered || openMenu) {
-      Paint p = n.msg.room().m.msgBorder;
+      Paint p = n.msg.m().msgBorder;
       g.dashH(0, 0  , w, p);
       g.dashH(0, h-1, w, p);
       g.dashV(0  , 0, h, p);
