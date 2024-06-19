@@ -3,6 +3,8 @@ package libMx;
 import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
@@ -75,7 +77,7 @@ public class MxServer {
     
     public Request prop(String key, String value) {
       if (value.indexOf('&')!=-1) throw new IllegalStateException("'&' in property value");
-      props.add(key+"="+value);
+      props.add(key+"="+Utils.toURI(value));
       return this;
     }
     public Request prop(String key, Number value) {
@@ -103,6 +105,7 @@ public class MxServer {
     public RunnableRequest post(Obj o) { return post(o.toString()); }
     
   }
+  
   public class RunnableRequest extends Utils.LoggableRequest {
     public final Request r;
     
@@ -115,7 +118,7 @@ public class MxServer {
       StringBuilder p = new StringBuilder();
       for (int i = 0; i < r.pathParts.length; i++) {
         if (i!=0) p.append('/');
-        p.append(r.pathParts[i]);
+        p.append(Utils.toURI(r.pathParts[i]));
       }
       for (int i = 0; i < r.props.size(); i++) {
         p.append(i==0? '?' : '&');
