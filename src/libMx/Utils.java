@@ -6,7 +6,9 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class Utils {
   public static final Object qnull = null;
@@ -38,10 +40,6 @@ public class Utils {
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);
     }
-  }
-  
-  public static String toMx(String s) {
-    return s.replace("\\","\\\\").replace("_","\\_").replace("*","\\*").replace("[","\\[").replace("]","\\]");
   }
   
   public static String post(String path, byte[] data) {
@@ -128,7 +126,7 @@ public class Utils {
           o.flush();
         }
       } catch (Exception e) {
-        e.printStackTrace();
+        warnStacktrace(e);
       }
     }, false);
   }
@@ -157,5 +155,37 @@ public class Utils {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+  
+  // these must be thread-safe!
+  public static boolean enableLogging = true;
+  public static BiConsumer<String, String> logFn = (id, s) -> System.out.println("["+ LocalDateTime.now()+" "+id+"] "+s);
+  public static BiConsumer<String, String> warnFn = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
+  public static RequestStatus requestLogger = (rq, type, o) -> {};
+  
+  public static void log(String id, String s) {
+    if (enableLogging) logFn.accept(id, s);
+  }
+  public static void warn(String s) {
+    warnFn.accept("mx itf", s);
+  }
+  public static void warnStacktrace(Throwable t) {
+    StringWriter w = new StringWriter();
+    t.printStackTrace(new PrintWriter(w));
+    warnFn.accept("mx itf", w.toString());
+  }
+  
+  public enum RequestType { POST, GET, PUT }
+  
+  @FunctionalInterface public interface RequestStatus { void got(LoggableRequest rq, String type, Object o); }
+  
+  public static abstract class LoggableRequest {
+    public final RequestType t;
+    public final String ct;
+    public LoggableRequest(RequestType t, String ct) {
+      this.t = t;
+      this.ct = ct;
+    }
+    public abstract String calcURL();
   }
 }

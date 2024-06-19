@@ -41,15 +41,15 @@ public class MxChatUser extends ChatUser {
   private final LinkedBlockingDeque<Runnable> network = new LinkedBlockingDeque<>();
   
   public static void logGet(String logText, String url) {
-    MxServer.log("file", logText+" "+url);
+    Utils.log("file", logText+" "+url);
   }
   private static byte[] rawCachedGet(ChatMain m, String logText, String url) {
-    MxServer.LoggableRequest rq = new NetworkLog.CustomRequest(MxServer.RequestType.GET, url);
-    MxServer.requestLogger.got(rq, "new", null);
+    Utils.LoggableRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.GET, url);
+    Utils.requestLogger.got(rq, "new", null);
     byte[] res = CacheObj.compute(url, () -> {
       try {
         logGet(logText, url);
-        MxServer.requestLogger.got(rq, "not in cache, requesting", null);
+        Utils.requestLogger.got(rq, "not in cache, requesting", null);
         return Tools.get(url);
       } catch (RuntimeException e) {
         Log.warn(logText, "Failed to load " + url);
@@ -57,7 +57,7 @@ public class MxChatUser extends ChatUser {
         return null;
       }
     });
-    MxServer.requestLogger.got(rq, "result", res);
+    Utils.requestLogger.got(rq, "result", res);
     return res;
   }
   
@@ -303,7 +303,7 @@ public class MxChatUser extends ChatUser {
       Runnable done = m.doAction("loading image...");
       queueRequest(null, () -> CacheObj.compute("head_isImage\0"+url, () -> {
         try {
-          MxServer.log("head", url);
+          Utils.log("head", url);
           HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
           c.setRequestMethod("HEAD");
           String[] ct = new String[1];

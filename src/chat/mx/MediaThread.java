@@ -3,7 +3,7 @@ package chat.mx;
 import chat.CacheObj;
 import chat.networkLog.NetworkLog;
 import dzaima.utils.*;
-import libMx.MxServer;
+import libMx.Utils;
 
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -33,21 +33,21 @@ public class MediaThread {
       
       if (needed) {
         active.incrementAndGet();
-        MxServer.LoggableRequest rq = new NetworkLog.CustomRequest(MxServer.RequestType.GET, r.url);
-        MxServer.requestLogger.got(rq, "new", null);
+        Utils.LoggableRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.GET, r.url);
+        Utils.requestLogger.got(rq, "new", null);
         Tools.thread(() -> {
           byte[] res;
           try {
             res = CacheObj.compute(r.url, () -> {
               MxChatUser.logGet("Load image", r.url);
-              MxServer.requestLogger.got(rq, "not in cache, requesting", null);
+              Utils.requestLogger.got(rq, "not in cache, requesting", null);
               return Tools.get(r.url, true);
             });
           } catch (Throwable t) {
             res = null;
             Log.warn("media", "Failed to load "+r.url);
           }
-          MxServer.requestLogger.got(rq, "result", res);
+          Utils.requestLogger.got(rq, "result", res);
           map.remove(r.url); // result is already in cache, so it's fine; we need r.users to stop being modified
           for (Pair<Consumer<byte[]>, Supplier<Boolean>> u : r.users) u.a.accept(res);
           

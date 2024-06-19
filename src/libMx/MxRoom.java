@@ -1,6 +1,6 @@
 package libMx;
 
-import dzaima.utils.*;
+import dzaima.utils.JSON;
 
 import java.util.*;
 

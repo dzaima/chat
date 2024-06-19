@@ -719,8 +719,8 @@ public class ChatMain extends NodeWindow {
     }
     Box<Theme> theme = new Box<>(Theme.valueOf(loadedProfile.obj("global", Obj.E).str("theme", "dark")));
     
-    MxServer.logFn = Log::fine;
-    MxServer.warnFn = Log::warn;
+    Utils.logFn = Log::fine;
+    Utils.warnFn = Log::warn;
     Windows.setManager(Windows.Manager.JWM);
     // Windows.setManager(Windows.Manager.LWJGL);
     

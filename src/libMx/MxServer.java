@@ -3,11 +3,11 @@ package libMx;
 import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
 
-import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.*;
+import java.util.function.Function;
+
+import static libMx.Utils.requestLogger;
 
 
 public class MxServer {
@@ -56,7 +56,7 @@ public class MxServer {
     try {
       Obj j = requestV3("login").post(Obj.fromKV("type","m.login.password", "user",uid, "password",passwd)).runJ();
       if (j.has("errcode")) {
-        warn("failed to log in");
+        Utils.warn("failed to log in");
         return null;
       }
       return new MxLogin(this, uid, j.str("access_token"));
@@ -93,20 +93,20 @@ public class MxServer {
       return token(gToken);
     }
     
-    private RunnableRequest type(RequestType n, String ct) {
+    private RunnableRequest type(Utils.RequestType n, String ct) {
       return new RunnableRequest(this, n, ct);
     }
-    public RunnableRequest get() { return type(RequestType.GET, null); }
-    public RunnableRequest  put(String content) { return type(RequestType.PUT, content); }
-    public RunnableRequest post(String content) { return type(RequestType.POST, content); }
+    public RunnableRequest get() { return type(Utils.RequestType.GET, null); }
+    public RunnableRequest  put(String content) { return type(Utils.RequestType.PUT, content); }
+    public RunnableRequest post(String content) { return type(Utils.RequestType.POST, content); }
     public RunnableRequest  put(Obj o) { return put(o.toString()); }
     public RunnableRequest post(Obj o) { return post(o.toString()); }
     
   }
-  public class RunnableRequest extends LoggableRequest {
+  public class RunnableRequest extends Utils.LoggableRequest {
     public final Request r;
     
-    public RunnableRequest(Request r, RequestType t, String ct) {
+    public RunnableRequest(Request r, Utils.RequestType t, String ct) {
       super(t, ct);
       this.r = r;
     }
@@ -153,14 +153,14 @@ public class MxServer {
           }
           requestedRetry = r.b;
         } catch (RuntimeException e) {
-          warn("Failed to parse result:");
-          warnStacktrace(e);
+          Utils.warn("Failed to parse result:");
+          Utils.warnStacktrace(e);
           requestLogger.got(this, "exception", e);
         }
         
         requestedRetry = Math.max(requestedRetry, expTime);
         requestLogger.got(this, "retry", "in "+requestedRetry+"ms");
-        log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
+        Utils.log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
         Utils.sleep(requestedRetry);
         expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);
       }
@@ -175,8 +175,8 @@ public class MxServer {
         try {
           r = JSON.parseObj(s);
         } catch (Throwable e) {
-          warn("Failed to parse JSON");
-          warnStacktrace(e);
+          Utils.warn("Failed to parse JSON");
+          Utils.warnStacktrace(e);
           requestLogger.got(this, "exception", e);
           r = null;
         }
@@ -186,8 +186,6 @@ public class MxServer {
       });
     }
   }
-  
-  public enum RequestType { POST, GET, PUT }
   
   public static String[] concat(String[] a, String[] b) {
     String[] res = new String[a.length+b.length];
@@ -272,14 +270,6 @@ public class MxServer {
   }
   
   
-  
-  
-  
-  
-  
-  public static void log(String s) {
-    log("mx", s);
-  }
   private static boolean hide_data = false;
   public static String redactAccessToken(String uri) {
     return uri.replaceAll("access_token=[^&]+", "access_token=<redacted>");
@@ -287,46 +277,17 @@ public class MxServer {
   private void log(String method, String uri, String data) {
     if (uri.startsWith("/")) System.err.println("!!!!!!!!!!!!! STARTING SLASH !!!!!!!!!!!!!");
     String df = data==null? "" : " "+(data.length()>100 || hide_data? "..." : data);
-    log("mxq", method+" "+url+"/"+redactAccessToken(uri)+df);
+    Utils.log("mxq", method+" "+url+"/"+redactAccessToken(uri)+df);
+  }
+  public static void log(String s) {
+    Utils.log("mx", s);
   }
   
   public boolean handleError(Obj j, String do_what) {
     if (!j.has("errcode")) return false;
-    warn("Failed to "+do_what+": "+j);
+    Utils.warn("Failed to "+do_what+": "+j);
     return true;
   }
-  
-  public static void log(String id, String s) {
-    if (enableLogging) logFn.accept(id, s);
-  }
-  public static void warn(String s) {
-    warnFn.accept("mx itf", s);
-  }
-  public static void warnStacktrace(Throwable t) {
-    StringWriter w = new StringWriter();
-    t.printStackTrace(new PrintWriter(w));
-    warnFn.accept("mx itf", w.toString());
-  }
-  
-  
-  
-  // these must be thread-safe!
-  public static boolean enableLogging = true;
-  public static BiConsumer<String, String> logFn = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
-  public static BiConsumer<String, String> warnFn = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
-  
-  public static abstract class LoggableRequest {
-    public final RequestType t;
-    public final String ct;
-    public LoggableRequest(RequestType t, String ct) {
-      this.t = t;
-      this.ct = ct;
-    }
-    public abstract String calcURL();
-  }
-  @FunctionalInterface public interface RequestStatus { void got(LoggableRequest rq, String type, Object o); }
-  public static RequestStatus requestLogger = (rq, type, o) -> {};
-  
   
   
   public static boolean isMxc(String uri) {

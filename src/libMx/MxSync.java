@@ -51,9 +51,9 @@ public class MxSync {
           failTime = 16;
         } catch (Throwable t) {
           failTime = Math.min(2*failTime, 180);
-          MxServer.warn("Failed to update:");
-          MxServer.warnStacktrace(t);
-          MxServer.warn("Retrying in "+(failTime)+"s");
+          Utils.warn("Failed to update:");
+          Utils.warnStacktrace(t);
+          Utils.warn("Retrying in "+(failTime)+"s");
           Utils.sleep(failTime*1000);
         }
         Utils.sleep(100);

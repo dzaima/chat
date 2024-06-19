@@ -6,7 +6,7 @@ import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.utils.*;
-import libMx.MxServer;
+import libMx.*;
 
 import java.lang.reflect.Array;
 import java.time.Instant;
@@ -17,10 +17,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.*;
 
 public class NetworkLog extends BasicNetworkView {
-  private static class TodoEntry { Instant w; MxServer.LoggableRequest rq; String type; Object o; }
+  private static class TodoEntry { Instant w; Utils.LoggableRequest rq; String type; Object o; }
   
   public static final Deque<RequestInfo> list = new ArrayDeque<>();
-  public static final HashMap<MxServer.LoggableRequest, RequestInfo> map = new HashMap<>();
+  public static final HashMap<Utils.LoggableRequest, RequestInfo> map = new HashMap<>();
   
   public static boolean detailed;
   public final HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
@@ -71,7 +71,7 @@ public class NetworkLog extends BasicNetworkView {
     NetworkLog.detailed = detailed0;
     
     ConcurrentLinkedQueue<TodoEntry> todo = new ConcurrentLinkedQueue<>();
-    MxServer.requestLogger = (rq, type, o) -> {
+    Utils.requestLogger = (rq, type, o) -> {
       Instant now = Instant.now();
       if ("new".equals(type)) m.insertNetworkDelay();
       TodoEntry e = new TodoEntry();
@@ -151,12 +151,12 @@ public class NetworkLog extends BasicNetworkView {
     public final long id = idCtr.incrementAndGet();
     public final Instant start;
     public final MxServer s;
-    public final MxServer.LoggableRequest rq;
+    public final Utils.LoggableRequest rq;
     public enum Status { RUNNING, RETRYING, CANCELED, DONE }
     public Status status = Status.RUNNING;
     public final Vec<Event> events = new Vec<>();
     
-    public RequestInfo(Instant start, MxServer s, MxServer.LoggableRequest rq) {
+    public RequestInfo(Instant start, MxServer s, Utils.LoggableRequest rq) {
       this.s = s;
       this.rq = rq;
       this.start = start;
@@ -187,9 +187,9 @@ public class NetworkLog extends BasicNetworkView {
     }
   }
   
-  public static class CustomRequest extends MxServer.LoggableRequest {
+  public static class CustomRequest extends Utils.LoggableRequest {
     private final String url;
-    public CustomRequest(MxServer.RequestType type, String url) {
+    public CustomRequest(Utils.RequestType type, String url) {
       super(type, null);
       this.url = url;
     }
