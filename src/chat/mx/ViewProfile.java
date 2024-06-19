@@ -95,7 +95,7 @@ public class ViewProfile {
     }
     
     ((Extras.ClickableTextNode) base.ctx.id("toReadReceipt")).fn = () -> {
-      String id = r.latestReceipts.get(uid);
+      String id = r.globalLog().latestReceipts.get(uid);
       if (id!=null) r.highlightMessage(id, null, false);
       else Log.warn("mx", "Unknown read receipt for "+uid);
     };

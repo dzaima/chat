@@ -423,7 +423,7 @@ public class ChatMain extends NodeWindow {
   }
   private Node makeExtra(ChatEvent ce) {
     HashMap<String, Integer> rs = ce.getReactions();
-    HashSet<String> vs = ce.getReceipts();
+    HashSet<String> vs = ce.getReceipts(view);
     boolean edit = newEdit(ce) && ce.edited;
     boolean hasThread = ce.startsThread(view);
     return rs!=null || vs!=null || edit || hasThread? new MsgExtraNode(ctx, ce, rs, vs, hasThread) : new InlineNode.LineEnd(ctx, false);

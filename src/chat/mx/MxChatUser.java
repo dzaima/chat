@@ -113,7 +113,7 @@ public class MxChatUser extends ChatUser {
         node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
       });
       
-      Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(DEFAULT_MSGS, lazyLoadUsers).toString()).token(u0.token).get().runJ();
+      Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(DEFAULT_MSGS, lazyLoadUsers, true).toString()).token(u0.token).get().runJ();
       Log.info("mx stats", () -> "Initial sync of "+u0.uid+": "+j.toString().length()+" characters");
       primary.add(() -> {
         try {
@@ -137,7 +137,7 @@ public class MxChatUser extends ChatUser {
         saveRooms();
       });
       
-      MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"), MxServer.syncFilter(-1, lazyLoadUsers));
+      MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"), MxServer.syncFilter(-1, lazyLoadUsers, true));
       sync0.start();
       sync = sync0;
     });

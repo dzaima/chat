@@ -61,7 +61,7 @@ public abstract class ChatEvent {
   public abstract void rightClick(Click c, int x, int y);
   
   public abstract HashMap<String, Integer> getReactions(); // null if none
-  public abstract HashSet<String> getReceipts(); // null if none
+  public abstract HashSet<String> getReceipts(View view); // null if none
   public abstract boolean startsThread(View view);
   public abstract void toThread();
 }

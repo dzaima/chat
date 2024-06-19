@@ -2,6 +2,7 @@ package chat.mx;
 
 import chat.ChatEvent;
 import dzaima.utils.*;
+import dzaima.utils.options.TupleHashSet;
 import libMx.MxEvent;
 
 import java.util.*;
@@ -15,6 +16,8 @@ public class MxLog {
   public final Vec<MxChatEvent> list = new Vec<>();
   private final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
   
+  public final HashMap<String, String> latestReceipts = new HashMap<>(); // user ID → event ID of their receipt
+  public final TupleHashSet<String, String> messageReceipts = new TupleHashSet<>(); // event ID → set of users
   private final HashMap<String, Vec<String>> msgReplies = new HashMap<>(); // id → ids of messages replying to it
   public static class Reaction { MxChatEvent to; String key; }
   

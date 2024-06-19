@@ -8,7 +8,6 @@ import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.*;
 import dzaima.utils.JSON.*;
 import dzaima.utils.*;
-import dzaima.utils.options.TupleHashSet;
 import libMx.*;
 
 import java.util.*;
@@ -40,9 +39,7 @@ public class MxChatroom extends Chatroom {
   
   public final PowerLevelManager powerLevels = new PowerLevelManager();
   
-  public final HashMap<String, String> latestReceipts = new HashMap<>(); // user ID → event ID of their receipt
   public final HashMap<String, MxLog.Reaction> reactions = new HashMap<>();
-  public final TupleHashSet<String, String> messageReceipts = new TupleHashSet<>(); // event ID → set of users
   private static class EventInfo { String closestVisible; int monotonicID; }
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
@@ -253,7 +250,7 @@ public class MxChatroom extends Chatroom {
       ei.monotonicID = monotonicCounter++;
       if (newObj!=null) newObj.monotonicID = ei.monotonicID;
       eventInfo.put(mxEv.id, ei);
-      if (ev.hasStr("sender")) setReceipt(ev.str("sender"), mxEv.id);
+      if (ev.hasStr("sender")) setReceipt(newObj!=null && newObj.e0.m!=null? newObj.e0.m.threadId : null, ev.str("sender"), mxEv.id);
       anyEvent(ev);
       switch (ev.str("type")) {
         case "m.room.redaction":
@@ -284,7 +281,9 @@ public class MxChatroom extends Chatroom {
           for (Entry msg : ct.entries()) {
             String newID = msg.k;
             for (Entry user : msg.v.obj().obj("m.read", Obj.E).entries()) {
-              setReceipt(user.k, newID);
+              String threadID = user.v.obj().str("thread_id", null);
+              if ("main".equals(threadID)) threadID = null; // TODO better handle unthreaded read receipts?
+              setReceipt(threadID, user.k, newID);
             }
           }
           break;
@@ -294,11 +293,13 @@ public class MxChatroom extends Chatroom {
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field; TODO thread
   }
   
-  public void setReceipt(String uid, String mid) {
+  public void setReceipt(String threadID, String uid, String mid) {
+    MxLog l = getThreadLog(threadID);
+    
     EventInfo ei = eventInfo.get(mid);
     String visID = ei==null? mid : ei.closestVisible;
     
-    String prevID = latestReceipts.get(uid);
+    String prevID = l.latestReceipts.get(uid);
     MxChatEvent pm = prevID==null? null : find(prevID);
     MxChatEvent nm = find(visID);
     
@@ -315,10 +316,10 @@ public class MxChatroom extends Chatroom {
       Log.fine("mx receipt", "Cancelling read receipt update due to non-monotonic");
       return;
     }
-    latestReceipts.put(uid, visID);
+    l.latestReceipts.put(uid, visID);
     
-    messageReceipts.remove(prevID, uid);
-    messageReceipts.add(visID, uid);
+    l.messageReceipts.remove(prevID, uid);
+    l.messageReceipts.add(visID, uid);
     
     if (pm!=null) m.updateExtra(pm);
     if (nm!=null) m.updateExtra(nm);
@@ -693,10 +694,15 @@ public class MxChatroom extends Chatroom {
     m.toTranscript(v, v.log.get(highlightID));
   }
   
-  public MxLog visibleLog() {
-    if (m.view instanceof MxLiveView) return ((MxLiveView) m.view).log;
-    if (m.view instanceof MxTranscriptView) return ((MxTranscriptView) m.view).log;
+  public MxLog logOfView(View v) {
+    if (v instanceof MxLiveView) return ((MxLiveView) v).log;
+    if (v instanceof MxTranscriptView) return ((MxTranscriptView) v).log;
     return null;
+  }
+  
+  public MxLog visibleLog() {
+    View v = m.view;
+    return logOfView(v);
   }
   
   public MxLiveView currLiveView() {

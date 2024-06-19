@@ -178,13 +178,14 @@ public abstract class MxChatEvent extends ChatEvent {
     return reactions;
   }
   
-  public HashSet<String> getReceipts() {
-    return r.messageReceipts.getSetForA(id);
+  public HashSet<String> getReceipts(View view) {
+    MxLog log = r.logOfView(view);
+    return log==null? null : log.messageReceipts.getSetForA(id);
   }
   
   public boolean startsThread(View view) {
-    LiveView lv = view.baseLiveView();
-    return hasThread && lv instanceof MxLiveView && ((MxLiveView) lv).log.threadID==null;
+    MxLog log = r.logOfView(view);
+    return hasThread && log!=null && log.threadID==null;
   }
   
   public void toThread() {

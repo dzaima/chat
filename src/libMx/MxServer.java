@@ -227,8 +227,12 @@ public class MxServer {
   }
   
   
-  public static Obj syncFilter(int count, boolean lazyLoadMembers) {
-    Obj room = Obj.fromKV("state", Obj.fromKV("lazy_load_members", lazyLoadMembers));
+  
+  public static Obj syncFilter(int count, boolean lazyLoadMembers, boolean unreadThreadNotifications) {
+    Obj stateFilter = new Obj();
+    if (lazyLoadMembers) stateFilter.put("lazy_load_members", JSON.TRUE);
+    if (unreadThreadNotifications) stateFilter.put("unread_thread_notifications", JSON.TRUE);
+    Obj room = Obj.fromKV("state", stateFilter);
     if (count!=-1) room.put("timeline", Obj.fromKV("limit", count));
     return Obj.fromKV("room", room);
   }
@@ -236,7 +240,7 @@ public class MxServer {
     return requestV3("sync").prop("filter", filter.toString()).gToken().get().runJ();
   }
   public String latestBatch() {
-    return sync(syncFilter(1, true)).str("next_batch");
+    return sync(syncFilter(1, true, false)).str("next_batch");
   }
   
   public MxLogin register(String id, String device, String passwd) {
