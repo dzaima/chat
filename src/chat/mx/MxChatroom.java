@@ -108,10 +108,11 @@ public class MxChatroom extends Chatroom {
       u.queueNetwork(() -> r.setRoomName(left));
       return null;
     }));
-    commands.add(new MxCommand("invite", true, left -> {
-      u.queueNetwork(() -> r.invite(left.replace(" ", ""), null));
-      return null;
-    }));
+    commands.add(new MxCommand("kick",   true, left -> { u.queueNetwork(() -> r.kick  (left.replace(" ", ""), null)); return null; }));
+    commands.add(new MxCommand("ban",    true, left -> { u.queueNetwork(() -> r.ban   (left.replace(" ", ""), null)); return null; }));
+    commands.add(new MxCommand("unban",  true, left -> { u.queueNetwork(() -> r.unban (left.replace(" ", "")      )); return null; }));
+    commands.add(new MxCommand("invite", true, left -> { u.queueNetwork(() -> r.invite(left.replace(" ", ""), null)); return null; }));
+    commands.add(new MxCommand("view-user", true, left -> { ViewProfile.viewProfile(left.replace(" ", ""), this); return null; }));
     commands.add(new MxCommand("sort", false, left -> {
       MxLog l = visibleLog();
       if (l!=null) {
@@ -420,6 +421,7 @@ public class MxChatroom extends Chatroom {
       String tk = u.currentSyncToken;
       memberEventsToProcess = new Vec<>();
       u.queueRequest(() -> r.getFullMemberState(tk), us -> {
+        if (us==null) return;
         for (Obj c : us.objs()) processMemberEvent(c, false, false);
         for (Obj c : memberEventsToProcess) processMemberEvent(c, true, false);
         Log.info("mx", "Got full user list of "+prettyID());
