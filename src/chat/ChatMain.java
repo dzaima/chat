@@ -649,6 +649,7 @@ public class ChatMain extends NodeWindow {
     o.argBoolRun("--disable-threads", "Disable structuring messages by threads", () -> MxMessage.supportThreads = false);
     o.argBool("--detailed-network-log", "Preserve all info about network requests");
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
+    o.argBool("--dry-run-autoban", "Disable autoban taking any actions");
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);
     o.autoHelp();
