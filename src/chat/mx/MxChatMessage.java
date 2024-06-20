@@ -160,9 +160,10 @@ public class MxChatMessage extends MxChatEvent {
           n.add(disp);
           disp = n;
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
-        if (live && containsPill(disp)) {
+        if (live && containsMyPill(disp)) {
           Vec<MxLog> ls = r.allLogsOf(e0);
           for (MxLog l : ls) r.addPing(l, this);
+          r.unreadChanged();
         }
         
         if (!visible) return;
@@ -183,9 +184,9 @@ public class MxChatMessage extends MxChatEvent {
     return body;
   }
   
-  private static boolean containsPill(Node n) {
+  private static boolean containsMyPill(Node n) {
     if (n instanceof HTMLParser.Pill) return ((HTMLParser.Pill)n).mine;
-    for (Node c : n.ch) if (containsPill(c)) return true;
+    for (Node c : n.ch) if (containsMyPill(c)) return true;
     return false;
   }
   

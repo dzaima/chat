@@ -310,7 +310,10 @@ public class MxChatroom extends Chatroom {
       }
     }
     
-    if (nInv && globalLog().list.sz>0) addPing(globalLog(), globalLog().list.peek());
+    if (nInv && globalLog().list.sz>0) {
+      addPing(globalLog(), globalLog().list.peek());
+      unreadChanged();
+    }
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
@@ -492,13 +495,13 @@ public class MxChatroom extends Chatroom {
     }
   }
   
-  public void addPing(MxLog l, MxChatEvent m) {
+  public void addPing(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
     if (l.lv!=null) l.lv.beforeUnreadChange();
-    pings.add(l, m);
+    pings.add(l, e);
   }
-  public void addUnread(MxLog l, MxChatEvent m) {
+  public void addUnread(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
     if (l.lv!=null) l.lv.beforeUnreadChange();
-    unreads.add(l, m);
+    unreads.add(l, e);
   }
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
