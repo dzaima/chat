@@ -338,7 +338,7 @@ chat {
       "(autobanned users are stored in the profile, thus preserved across client restarts)"
     }}
     unautobanConfirmUI = chat.profile.$generalConfirmUI { content = {
-      "Remove autoban of " text { id=username } "?"
+      "Remove autoban of " text { id=username } " (" text { id=userID } ")" "?"
     }}
     
     
