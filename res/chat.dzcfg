@@ -333,8 +333,8 @@ chat {
     }}
     autobanConfirmUI = chat.profile.$generalConfirmUI { content = {
       "Autoban " text { id=username } "?\n"
-      "This will not affect anything immediately, instead taking effect on only future events.\n"
-      "While this client is open, for any rooms where you have the necessary permissions, future messages from this user will be deleted, and they will be immediately banned in rooms they join.\n"
+      "This will not affect anything immediately, instead only taking effect on future events.\n"
+      "While this client is open, for any rooms where you have the necessary permissions, future messages from this user will be deleted, and they will be immediately banned upon taking any action (incl. being immediately banned upon joining another room).\n"
       "(autobanned users are stored in the profile, thus preserved across client restarts)"
     }}
     unautobanConfirmUI = chat.profile.$generalConfirmUI { content = {

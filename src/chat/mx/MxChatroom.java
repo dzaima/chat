@@ -181,8 +181,7 @@ public class MxChatroom extends Chatroom {
         } else {
           String uid = processMemberEvent(ev, true, false);
           if (liveTimeline && uid!=null && u.autoban.contains(uid)) {
-            Log.warn("mx auto-ban", "auto-banning "+uid+" in "+prettyID());
-            if (!m.options.has("--dry-run-autoban")) u.queueNetwork(() -> r.ban(uid, null));
+            u.autobanMember(uid, this);
           }
         }
         break;
@@ -263,9 +262,7 @@ public class MxChatroom extends Chatroom {
       if (newObj!=null) {
         lastVisible = mxEv.id;
         if (live && mxEv.m!=null && u.autoban.contains(mxEv.m.uid)) {
-          if (!u.autoban.contains(newObj.userString())) throw new RuntimeException();
-          Log.warn("mx auto-ban", "auto-removing message "+mxEv.id+" from "+ mxEv.m.uid +" in "+ prettyID());
-          if (!m.options.has("--dry-run-autoban")) u.queueNetwork(() -> delete(newObj));
+          u.autobanRemoveMessage(newObj);
         }
       }
       EventInfo ei = new EventInfo();
