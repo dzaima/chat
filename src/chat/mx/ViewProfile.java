@@ -168,6 +168,7 @@ public class ViewProfile {
         new StringNode(m.ctx, m.gc.getProp(isAutobanned()? "chat.profile.unautobanOption" : "chat.profile.autobanOption").str())
       );
       autobanRow = link.apply("chat.profile.banUI", () -> confirm(isAutobanned()? "chat.profile.unautobanConfirmUI" : "chat.profile.autobanConfirmUI", p -> {
+        p.node.ctx.id("userID").add(new StringNode(p.node.ctx, uid));
         BtnNode run = (BtnNode) p.node.ctx.id("run");
         boolean unban = isAutobanned();
         run.add(new StringNode(run.ctx, unban? "unautoban" : "autoban"));
