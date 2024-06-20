@@ -151,7 +151,7 @@ public class MxChatroom extends Chatroom {
     Obj ct = ev.obj("content");
     String id = ev.str(ev.hasStr("state_key")? "state_key" : "sender");
     assert id.startsWith("@") : id;
-    UserData d = this.userData.computeIfAbsent(id, (s) -> new UserData());
+    UserData d = userData.computeIfAbsent(id, (s) -> new UserData());
     
     if (questionable && !d.questionable) return id;
     d.questionable = questionable;
@@ -435,15 +435,19 @@ public class MxChatroom extends Chatroom {
   
   public Promise<HashMap<String, UserData>> getFullUserList() {
     if (fullUserList==null) fullUserList = Promise.create(res -> {
-      Log.info("mx", "getting full user list of "+prettyID());
+      Log.info("mx users", "Getting full user list of "+prettyID());
       assert memberEventsToProcess==null;
       String tk = u.currentSyncToken;
       memberEventsToProcess = new Vec<>();
       u.queueRequest(() -> r.getFullMemberState(tk), us -> {
-        if (us==null) return;
+        if (us==null) {
+          Log.warn("mx users", "Couldn't get full user list");
+          fullUserList = null;
+          return;
+        }
         for (Obj c : us.objs()) processMemberEvent(c, false, false);
         for (Obj c : memberEventsToProcess) processMemberEvent(c, true, false);
-        Log.info("mx", "Got full user list of "+prettyID());
+        Log.info("mx users", "Got full user list of "+prettyID());
         memberEventsToProcess = null;
         res.set(userData);
         joinedCount = Vec.ofCollection(userData.values()).filter(c -> c.s==MxChatroom.UserStatus.JOINED).sz;
@@ -663,7 +667,10 @@ public class MxChatroom extends Chatroom {
     if (d==null && inProgressUserLoads.add(uid)) {
       u.queueRequest(() -> r.getMemberState(uid), e -> {
         inProgressUserLoads.remove(uid);
-        if (e!=null) loadQuestionableMemberState(e);
+        if (e == null) {
+          Log.warn("mx users", "Couldn't get member state of "+uid);
+          userData.computeIfAbsent(uid, s -> new UserData());
+        } else loadQuestionableMemberState(e);
       });
     }
     if (d==null || d.username==null) return uid.split(":")[0].substring(1);
