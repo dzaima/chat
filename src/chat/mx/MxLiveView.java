@@ -98,7 +98,7 @@ public class MxLiveView extends LiveView {
       for (MxChatEvent e : Vec.ofCollection(r.pings.getForA(log))) r.pings.removeAllB(e);
       r.unreadChanged();
     }
-    
+    if (log.list.size()<=1) return;
     MxEvent last = log.lastEvent;
     if (last==null || last.id.equals(lastReadTo)) return;
     lastReadTo = last.id;

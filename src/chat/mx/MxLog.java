@@ -51,6 +51,7 @@ public class MxLog {
   public Vec<MxChatEvent> addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
+      if (atEnd) lastEvent = e;
       MxChatEvent ev = r.processEvent(e, false);
       if (ev==null) continue;
       evs.add(ev);
