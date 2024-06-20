@@ -15,8 +15,8 @@ public final class MxMessage {
   public final String type; // "deleted" if this is a redaction
   public final Instant time;
   
-  public final String id;
-  public final String uid;
+  public final String id; // event ID
+  public final String uid; // sender
   public final String editsId; // null if none
   public final MxFmted fmt;
   public final MxFmted latestFmt; // if this event has info on the latest edit
