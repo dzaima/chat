@@ -27,7 +27,7 @@ public abstract class ChatEvent {
     this.target = target;
   }
   
-  private static final Props.Gen COL_IBEAM = Props.keys("ibeam","color");
+  private static final Props.Gen COL_IBEAM = Props.keys("color","ibeam");
   
   public void updBody(Node body) {
     GConfig gc = n.ctx.gc;
