@@ -26,7 +26,7 @@ public abstract class RoomEditing {
     Node rename = u.node.ctx.make(u.node.gc.getProp(fieldName).gr());
     TextFieldNode f = (TextFieldNode) rename.ctx.id("val");
     f.setFn((a, m) -> {
-      if (!editing() || (!a.done && a!= EditNode.EditAction.CUSTOM1)) return false;
+      if (!editing() || (!a.done && a!=EditNode.EditAction.CUSTOM1)) return false;
       endEdit(a.enter? f.getAll() : null);
       return true;
     });

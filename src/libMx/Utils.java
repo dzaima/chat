@@ -158,7 +158,7 @@ public class Utils {
   
   // these must be thread-safe!
   public static boolean enableLogging = true;
-  public static BiConsumer<String, String> logFn = (id, s) -> System.out.println("["+ LocalDateTime.now()+" "+id+"] "+s);
+  public static BiConsumer<String, String> logFn  = (id, s) -> System.out.println("["+LocalDateTime.now()+" "+id+"] "+s);
   public static BiConsumer<String, String> warnFn = (id, s) -> System.err.println("["+LocalDateTime.now()+" !!] "+s);
   public static RequestStatus requestLogger = (rq, type, o) -> {};
   

@@ -64,7 +64,7 @@ public class MxChatUser extends ChatUser {
   }
   
   public String upload(byte[] data, String name, String mime) {
-    String location = "/_matrix/media/r0/upload?filename="+ Utils.toURI(name)+"&access_token="+ this.s.gToken;
+    String location = "/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+s.gToken;
     String req = this.s.url + location;
     NetworkLog.CustomRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.POST, location);
     Utils.requestLogger.got(rq, "new", this.s);
