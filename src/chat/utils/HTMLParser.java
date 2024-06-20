@@ -1,5 +1,6 @@
-package chat;
+package chat.utils;
 
+import chat.*;
 import chat.ui.*;
 import chat.ui.Extras.LinkType;
 import dzaima.ui.eval.PNodeGroup;

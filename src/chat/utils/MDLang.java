@@ -1,6 +1,7 @@
-package chat.ui;
+package chat.utils;
 
 import chat.*;
+import chat.ui.ChatTextArea;
 import dzaima.ui.gui.Font;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.types.editable.EditNode;

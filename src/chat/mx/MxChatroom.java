@@ -3,7 +3,7 @@ package chat.mx;
 import chat.*;
 import chat.networkLog.NetworkLog;
 import chat.ui.*;
-import chat.utils.UnreadInfo;
+import chat.utils.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.*;

@@ -1,7 +1,8 @@
 package chat.mx;
 
-import chat.*;
+import chat.ChatEvent;
 import chat.ui.MsgNode;
+import chat.utils.HTMLParser;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.JSON.Obj;

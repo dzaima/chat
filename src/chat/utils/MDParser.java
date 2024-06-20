@@ -1,4 +1,4 @@
-package chat;
+package chat.utils;
 
 import dzaima.utils.*;
 import libMx.*;
