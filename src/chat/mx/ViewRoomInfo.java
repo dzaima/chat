@@ -4,7 +4,9 @@ import chat.ChatMain;
 import chat.ui.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
-import dzaima.utils.Pair;
+import dzaima.utils.*;
+
+import java.util.HashMap;
 
 public class ViewRoomInfo {
   private final ChatMain m;
@@ -26,11 +28,11 @@ public class ViewRoomInfo {
     
     Node more = base.ctx.id("more");
     
-    if (r.liveLogs.size()>1) {
+    Vec<MxLog> logs = Vec.ofCollection(r.liveLogs.values()).filter(c -> c.threadID!=null && c.list.sz>0); // checking size 0 for logs which only have read receipt info (because yeah that's a thing that happens)
+    if (logs.size()>0) {
       Node threadList = m.ctx.make(m.gc.getProp("chat.roomInfo.threads").gr());
       more.add(threadList);
-      for (MxLog l : r.liveLogs.values()) {
-        if (l.threadID==null) continue;
+      for (MxLog l : logs) {
         Node n = m.ctx.make(m.gc.getProp("chat.roomInfo.threadEntry").gr());
         ((Extras.ClickableTextNode) n.ctx.id("link")).fn = () -> m.toView(l.liveView());
         Node ct = n.ctx.id("content");
