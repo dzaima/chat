@@ -159,6 +159,10 @@ public class MxChatroom extends Chatroom {
     if (m.equals("join")) {
       d.username = ct.str("displayname", null);
       d.avatar = ct.str("avatar_url", null);
+      if (u.autoban.contains(id)) {
+        Log.info("mx auto-ban", "auto-banning "+ id +" in "+ prettyID());
+        u.queueNetwork(() -> r.ban(id, null));
+      }
     }
     if (isNew && d.s == UserStatus.JOINED) joinedCount--;
     
@@ -255,7 +259,14 @@ public class MxChatroom extends Chatroom {
       }
       MxEvent mxEv = new MxEvent(r, ev);
       MxChatEvent newObj = pushMsg(mxEv);
-      if (newObj!=null) lastVisible = mxEv.id;
+      if (newObj!=null) {
+        lastVisible = mxEv.id;
+        if (mxEv.m!=null && u.autoban.contains(mxEv.m.uid)) {
+          if (!u.autoban.contains(newObj.userString())) throw new RuntimeException();
+          Log.info("mx auto-ban", "auto-removing message "+mxEv.id+" from "+ mxEv.m.uid +" in "+ prettyID());
+          u.queueNetwork(() -> delete(newObj));
+        }
+      }
       EventInfo ei = new EventInfo();
       ei.closestVisible = lastVisible;
       ei.monotonicID = monotonicCounter++;

@@ -316,17 +316,32 @@ chat {
     banUI          = chat.rightPanel.$link { id=run t=text { "  " text { id=text "" } } }
 //    advancedBanUI  = chat.rightPanel.$link { id=run "  Advanced ban" }
     banMsg="Ban" unbanMsg="Unban"
+    autobanOption="Autoban" unautobanOption="Unautoban"
     
     $btn = btn { id=$id style=rect padX=.5em padY=.3em $t }
     $btns = h { alX=right chat.profile.$btn { t="cancel" id=cancel } chat.profile.$btn { id=run t=$run } pad=1em }
     
-    confirmUI = pad { bg=bg.middle all=1.2em
+    $generalConfirmUI = pad { bg=bg.middle all=1.2em
       v { h=min w=50em pad=1em
-        text { text { id=msg } " \"" text { id=username } "\" from the room \"" text { id=room } "\"?" }
+        text { $content }
         h { id=reasonPlace }
         chat.profile.$btns { run={} }
       }
     }
+    confirmUI = chat.profile.$generalConfirmUI { content = {
+      text { id=msg } " \"" text { id=username } "\" from the room \"" text { id=room } "\"?"
+    }}
+    autobanConfirmUI = chat.profile.$generalConfirmUI { content = {
+      "Autoban " text { id=username } "?\n"
+      "This will not affect anything immediately, instead taking effect on only future events.\n"
+      "While this client is open, for any rooms where you have the necessary permissions, future messages from this user will be deleted, and they will be immediately banned in rooms they join.\n"
+      "(autobanned users are stored in the profile, thus preserved across client restarts)"
+    }}
+    unautobanConfirmUI = chat.profile.$generalConfirmUI { content = {
+      "Remove autoban of " text { id=username } "?"
+    }}
+    
+    
     reasonField = h { alY=center text { "reason: " } chat.$sField { bg=chat.ly.bgUploadField id=reason } }
     removeRecentConfirmUI = pad { bg=bg.middle all=1.2em
       v { h=min w=50em pad=1em

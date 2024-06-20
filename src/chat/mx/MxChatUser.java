@@ -34,6 +34,7 @@ public class MxChatUser extends ChatUser {
   public MxSync2 sync;
   public String currentSyncToken;
   
+  public final HashSet<String> autoban = new HashSet<>();
   public final HashMap<String, MxChatroom> roomMap = new HashMap<>();
   public final Collection<MxChatroom> roomSet = roomMap.values();
   
@@ -100,6 +101,7 @@ public class MxChatUser extends ChatUser {
         m.requestSave();
       }
     };
+    for (String c : data.arr("autoBan", Arr.E).strs()) autoban.add(c);
     lazyLoadUsers = !m.options.takeBool("--no-lazy-load-members");
     node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
     queueNetwork(() -> {
@@ -152,6 +154,10 @@ public class MxChatUser extends ChatUser {
   }
   
   
+  public void autobanUpdated() {
+    data.put("autoban", new Arr(Vec.ofCollection(autoban).map(Str::new).toArray(new Val[0])));
+    m.requestSave();
+  }
   public void saveRooms() {
     data.put("roomStructure", RoomTree.saveTree(roomListNode));
     m.requestSave();

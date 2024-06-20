@@ -54,7 +54,8 @@ public class ViewProfile {
       protected void setup() { }
       protected void preSetup() {
         node.ctx.id("username").add(new StringNode(m.ctx, username));
-        node.ctx.id("room").add(new StringNode(m.ctx, r.title()));
+        Node r = node.ctx.idNullable("room");
+        if (r!=null) r.add(new StringNode(m.ctx, ViewProfile.this.r.title()));
         ((BtnNode) node.ctx.id("cancel")).setFn(b -> close());
         setup.accept(this);
       }
@@ -81,7 +82,11 @@ public class ViewProfile {
     });
   }
   
-  Node banRow;
+  boolean isAutobanned() {
+    return r.u.autoban.contains(uid);
+  }
+  
+  Node banRow, autobanRow;
   public void run() {
     m.rightPanel.make("users", r::viewUsers).add(base);
     base.ctx.id("name").add(new StringNode(m.ctx, username));
@@ -147,7 +152,9 @@ public class ViewProfile {
     if (r.powerLevels.can(me, Action.BAN)) {
       banned = data!=null && data.s==MxChatroom.UserStatus.BANNED;
       
-      Runnable banStateUpdated = () -> banRow.ctx.id("text").replace(0, new StringNode(m.ctx, m.gc.getProp(banned? "chat.profile.unbanMsg" : "chat.profile.banMsg").str()));
+      Runnable banStateUpdated = () -> banRow.ctx.id("text").replace(0,
+        new StringNode(m.ctx, m.gc.getProp(banned? "chat.profile.unbanMsg" : "chat.profile.banMsg").str())
+      );
       banRow = link.apply("chat.profile.banUI", () -> confirmNetwork(banned? "unban" : "ban", reason -> {
         if (banned) r.r.unban(uid);
         else r.r.ban(uid, reason);
@@ -157,9 +164,23 @@ public class ViewProfile {
       }));
       banStateUpdated.run();
       
-      // link.apply("chat.profile.advancedBanUI", () -> {
-      //  
-      // });
+      Runnable autobanStateUpdated = () -> autobanRow.ctx.id("text").replace(0,
+        new StringNode(m.ctx, m.gc.getProp(isAutobanned()? "chat.profile.unautobanOption" : "chat.profile.autobanOption").str())
+      );
+      autobanRow = link.apply("chat.profile.banUI", () -> confirm(isAutobanned()? "chat.profile.unautobanConfirmUI" : "chat.profile.autobanConfirmUI", p -> {
+        BtnNode run = (BtnNode) p.node.ctx.id("run");
+        boolean unban = isAutobanned();
+        run.add(new StringNode(run.ctx, unban? "unautoban" : "autoban"));
+        run.setFn(b -> {
+          p.close();
+          if (unban) r.u.autoban.remove(uid);
+          else r.u.autoban.add(uid);
+          r.u.autobanUpdated();
+          r.m.requestSave();
+          autobanStateUpdated.run();
+        });
+      }));
+      autobanStateUpdated.run();
     }
   }
 }
