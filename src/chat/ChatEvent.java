@@ -17,13 +17,11 @@ public abstract class ChatEvent {
   public final boolean mine;
   public boolean edited;
   public String target; // identifier of message this is replying to
-  public String senderDisp;
   
-  protected ChatEvent(String id, boolean mine, Instant time, String senderDisp, String target) { // set body yourself
+  protected ChatEvent(String id, boolean mine, Instant time, String target) { // set body yourself
     this.id = id;
     this.mine = mine;
     this.time = time;
-    this.senderDisp = senderDisp;
     this.target = target;
   }
   
@@ -73,6 +71,7 @@ public abstract class ChatEvent {
   public ChatMain m() { return room().m; }
   public abstract MsgNode.MsgType type();
   public abstract String senderID();
+  public abstract String senderDisplay();
   public abstract boolean isDeleted();
   
   public abstract String getSrc();

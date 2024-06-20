@@ -15,11 +15,9 @@ public class StatusEvent extends BasicChatEvent {
   public final Object obj;
   
   public StatusEvent(NetworkLog l, NetworkLog.Event ev) {
-    super(String.valueOf(ev.id), ev.when, "", l);
+    super(String.valueOf(ev.id), ev.when, StatusMessage.fmtTime(ev.when), l);
     this.ev = ev;
     this.obj = ev.obj;
-    
-    senderDisp = StatusMessage.fmtTime(time);
   }
   
   public void updateBody(boolean live) {

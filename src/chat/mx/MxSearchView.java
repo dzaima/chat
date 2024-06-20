@@ -93,7 +93,7 @@ public class MxSearchView extends SearchView {
       Vec<Integer> matches = new Vec<>();
       for (int i = 0; i < ms.sz; i++) {
         MxChatEvent e = ms.get(i);
-        if ((s.matchesUser(e.senderDisp) || s.matchesUser(e.senderID())) && (s.matches(e.body) || s.matches(e.src))) matches.add(i);
+        if ((s.matchesUser(e.senderDisplay()) || s.matchesUser(e.senderID())) && (s.matches(e.body) || s.matches(e.src))) matches.add(i);
       }
       if (matches.sz==0) continue;
       if (needCtx) {

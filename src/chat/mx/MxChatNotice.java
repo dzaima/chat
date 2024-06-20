@@ -15,15 +15,23 @@ public class MxChatNotice extends MxChatEvent {
   public final String euid, eName; // executer user ID & name
   
   public MxChatNotice(MxChatroom r, MxEvent e, boolean live) {
-    super(r, false, e, e.id, "", null);
+    super(r, false, e, e.id, null);
     this.e = e;
     this.euid = e.uid;
     eName = r.getUsername(euid, false);
     if (!live) loadReactions();
   }
   
+  public MsgNode.MsgType type() { return MsgNode.MsgType.NOTICE; }
+  
+  public String senderDisplay() { return ""; }
   public boolean userEq(ChatEvent o) { return false; }
   
+  public boolean increasesUnread() {
+    return e.type.equals("m.room.encrypted"); // TODO maybe have some setting to set this to always true for rooms you're a mod/admin in?
+  }
+  
+  public String getSrc() { return "?"; }
   public void toTarget() { }
   
   public void updateBody(boolean live) {
@@ -109,15 +117,5 @@ public class MxChatNotice extends MxChatEvent {
   }
   public Node mks(String text) {
     return new StringNode(n.ctx, text);
-  }
-  
-  public String getSrc() { return "?"; }
-  
-  public MsgNode.MsgType type() {
-    return MsgNode.MsgType.NOTICE;
-  }
-  
-  public boolean increasesUnread() {
-    return e.type.equals("m.room.encrypted"); // TODO maybe have some setting to set this to always true for rooms you're a mod/admin in?
   }
 }

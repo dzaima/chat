@@ -144,7 +144,7 @@ public class MxLiveView extends LiveView {
     
     if (replyTo!=null) {
       MxChatEvent tce = r.allKnownEvents.get(replyTo);
-      if (tce!=null) f.reply(r.r, replyTo, tce.e0.uid, tce.senderDisp);
+      if (tce!=null) f.reply(r.r, replyTo, tce.e0.uid, tce.senderDisplay());
       else f.replyTo(r.r, replyTo);
     }
     

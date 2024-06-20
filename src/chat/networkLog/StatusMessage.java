@@ -20,7 +20,7 @@ public class StatusMessage extends BasicChatEvent {
   private final String body;
   
   protected StatusMessage(NetworkLog l, NetworkLog.RequestInfo ri) {
-    super(String.valueOf(ri.id), ri.start, "?", l);
+    super(String.valueOf(ri.id), ri.start, fmtTime(ri.start), l);
     this.ri = ri;
     
     String p = MxServer.redactAccessToken(ri.rq.calcURL());
@@ -28,8 +28,6 @@ public class StatusMessage extends BasicChatEvent {
     if (m.find()) p = m.group(1) + " " + p.substring(m.group().length());
     
     body = ri.rq.t.toString()+" "+p;
-    
-    senderDisp = fmtTime(time);
   }
   
   public static String fmtTime(Instant time) {

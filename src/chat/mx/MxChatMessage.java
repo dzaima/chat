@@ -17,7 +17,7 @@ public class MxChatMessage extends MxChatEvent {
   private boolean replyRequested;
   
   public MxChatMessage(MxMessage m0, MxEvent e0, MxChatroom r, boolean isNew) {
-    super(r, m0.uid.equals(r.u.u.uid), e0, m0.id, r.getUsername(m0.uid, false), m0.replyId);
+    super(r, m0.uid.equals(r.u.u.uid), e0, m0.id, m0.replyId);
     assert !m0.isEditEvent();
     this.m0 = m0;
     edited = m0.latestFmt!=null;
@@ -41,7 +41,9 @@ public class MxChatMessage extends MxChatEvent {
     updateBody(isNew);
   }
   
-  
+  public String senderDisplay() {
+    return r.getUsername(m0.uid, false);
+  }
   public boolean userEq(ChatEvent o) {
     return o instanceof MxChatMessage && e0.uid.equals(((MxChatEvent) o).e0.uid);
   }
@@ -59,7 +61,7 @@ public class MxChatMessage extends MxChatEvent {
       MxChatEvent tg = r.allKnownEvents.get(m0.replyId);
       if (tg!=null) {
         String uid = tg.e0.uid;
-        String name = tg.senderDisp;
+        String name = tg.senderDisplay();
         if (name==null || name.isEmpty()) name = r.getUsername(uid, false);
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
@@ -156,7 +158,7 @@ public class MxChatMessage extends MxChatEvent {
         Node disp = HTMLParser.parse(r, bodyPrefix+body);
         if (type.equals("m.emote")) {
           Node n = new TextNode(disp.ctx, Props.none());
-          n.add(new StringNode(disp.ctx, "· "+senderDisp+" "));
+          n.add(new StringNode(disp.ctx, "· "+senderDisplay()+" "));
           n.add(disp);
           disp = n;
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);

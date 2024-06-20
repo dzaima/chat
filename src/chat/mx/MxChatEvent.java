@@ -22,8 +22,8 @@ public abstract class MxChatEvent extends ChatEvent {
   public int monotonicID;
   public boolean hasThread;
   
-  public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String senderDisp, String target) {
-    super(id, mine, e0.time, senderDisp, target);
+  public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String target) {
+    super(id, mine, e0.time, target);
     this.r = r;
     this.e0 = e0;
     this.lastEvent = e0;

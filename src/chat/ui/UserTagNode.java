@@ -20,7 +20,7 @@ public class UserTagNode extends TextNode {
     this.userID = ev.senderID();
     mine = ev.mine;
     this.ev = ev;
-    add(new StringNode(ctx, ev.senderDisp));
+    add(new StringNode(ctx, ev.senderDisplay()));
   }
   
   private boolean cursorPushed;
