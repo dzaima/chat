@@ -19,7 +19,7 @@ public class StatusEvent extends BasicChatEvent {
     this.ev = ev;
     this.obj = ev.obj;
     
-    username = StatusMessage.fmtTime(time);
+    senderDisp = StatusMessage.fmtTime(time);
   }
   
   public void updateBody(boolean live) {
@@ -33,7 +33,7 @@ public class StatusEvent extends BasicChatEvent {
     l.m.updMessage(this, new StringNode(l.m.ctx, msg), live);
   }
   
-  public String userString() { return ev.type; }
+  public String senderID() { return ev.type; }
   
   public void rightClick(Click c, int x, int y) {
     PartialMenu pm = new PartialMenu(l.m.gc);

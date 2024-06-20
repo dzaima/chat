@@ -59,7 +59,7 @@ public class MxChatMessage extends MxChatEvent {
       MxChatEvent tg = r.allKnownEvents.get(m0.replyId);
       if (tg!=null) {
         String uid = tg.e0.uid;
-        String name = tg.username;
+        String name = tg.senderDisp;
         if (name==null || name.isEmpty()) name = r.getUsername(uid, false);
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
@@ -156,7 +156,7 @@ public class MxChatMessage extends MxChatEvent {
         Node disp = HTMLParser.parse(r, bodyPrefix+body);
         if (type.equals("m.emote")) {
           Node n = new TextNode(disp.ctx, Props.none());
-          n.add(new StringNode(disp.ctx, "· "+username+" "));
+          n.add(new StringNode(disp.ctx, "· "+senderDisp+" "));
           n.add(disp);
           disp = n;
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);

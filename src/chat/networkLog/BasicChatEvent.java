@@ -9,8 +9,8 @@ import java.util.*;
 public abstract class BasicChatEvent extends ChatEvent {
   public final NetworkLog l;
   
-  protected BasicChatEvent(String id, Instant time, String username, NetworkLog l) {
-    super(id, false, time, username, null);
+  protected BasicChatEvent(String id, Instant time, String sender, NetworkLog l) {
+    super(id, false, time, sender, null);
     this.l = l;
   }
   

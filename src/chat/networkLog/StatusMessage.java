@@ -29,7 +29,7 @@ public class StatusMessage extends BasicChatEvent {
     
     body = ri.rq.t.toString()+" "+p;
     
-    username = fmtTime(time);
+    senderDisp = fmtTime(time);
   }
   
   public static String fmtTime(Instant time) {
@@ -66,7 +66,7 @@ public class StatusMessage extends BasicChatEvent {
   }
   
   private static final HashMap<String, String> uniqueStrings = new HashMap<>();
-  public String userString() {
+  public String senderID() {
     MxLogin l = ri.s==null? null : ri.s.primaryLogin;
     return uniqueStrings.computeIfAbsent(ri.rq.t.toString()+" "+(l==null? "" : l.uid), s -> String.valueOf(uniqueStrings.size()));
   }

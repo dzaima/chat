@@ -198,7 +198,7 @@ public class ChatMain extends NodeWindow {
     info+= "\n";
     if (input!=null) {
       if (input.editing!=null) info+= "editing message";
-      else if (input.replying!=null) info+= "replying to "+(input.replying.username);
+      else if (input.replying!=null) info+= "replying to "+input.replying.senderDisp;
     }
     Chatroom room = room();
     if (room!=null && room.typing.length()>0) {

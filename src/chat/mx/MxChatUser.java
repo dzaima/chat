@@ -155,10 +155,10 @@ public class MxChatUser extends ChatUser {
   
   
   public void autobanRemoveMessage(MxChatEvent ev) {
-    String uid = ev.userString();
+    String uid = ev.senderID();
     if (!autoban.contains(uid)) throw new RuntimeException();
     if (!ev.r.powerLevels.can(u.uid, PowerLevelManager.Action.REDACT)) return;
-    Log.warn("mx auto-ban", "auto-removing message "+ev.id+" from "+ev.userString()+" in "+ev.r.prettyID());
+    Log.warn("mx auto-ban", "auto-removing message "+ev.id+" from "+ev.senderID()+" in "+ev.r.prettyID());
     if (!m.options.has("--dry-run-autoban")) queueNetwork(() -> ev.r.delete(ev));
     autobanMember(uid, ev.r);
   }

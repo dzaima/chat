@@ -501,12 +501,12 @@ public class MxChatroom extends Chatroom {
   }
   
   public void addPing(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
-    if (e.userString().equals(u.id())) return;
+    if (e.senderID().equals(u.id())) return;
     if (l.lv!=null) l.lv.beforeUnreadChange();
     pings.add(l, e);
   }
   public void addUnread(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
-    if (e.userString().equals(u.id())) return;
+    if (e.senderID().equals(u.id())) return;
     if (l.lv!=null) l.lv.beforeUnreadChange();
     unreads.add(l, e);
   }

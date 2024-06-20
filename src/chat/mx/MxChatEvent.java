@@ -22,8 +22,8 @@ public abstract class MxChatEvent extends ChatEvent {
   public int monotonicID;
   public boolean hasThread;
   
-  public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String username, String target) {
-    super(id, mine, e0.time, username, target);
+  public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String senderDisp, String target) {
+    super(id, mine, e0.time, senderDisp, target);
     this.r = r;
     this.e0 = e0;
     this.lastEvent = e0;
@@ -63,7 +63,7 @@ public abstract class MxChatEvent extends ChatEvent {
     }
   }
   
-  public String userString() { return e0.uid; }
+  public String senderID() { return e0.uid; }
   
   public void rightClick(Click c, int x, int y) {
     n.border.openMenu(true);
