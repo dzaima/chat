@@ -108,11 +108,12 @@ public class MxChatroom extends Chatroom {
       u.queueNetwork(() -> r.setRoomName(left));
       return null;
     }));
-    commands.add(new MxCommand("kick",   true, left -> { u.queueNetwork(() -> r.kick  (left.replace(" ", ""), null)); return null; }));
-    commands.add(new MxCommand("ban",    true, left -> { u.queueNetwork(() -> r.ban   (left.replace(" ", ""), null)); return null; }));
-    commands.add(new MxCommand("unban",  true, left -> { u.queueNetwork(() -> r.unban (left.replace(" ", "")      )); return null; }));
-    commands.add(new MxCommand("invite", true, left -> { u.queueNetwork(() -> r.invite(left.replace(" ", ""), null)); return null; }));
-    commands.add(new MxCommand("view-user", true, left -> { ViewProfile.viewProfile(left.replace(" ", ""), this); return null; }));
+    commands.add(new MxIdArgCommand("join",   id -> u.queueNetwork(() -> u.u.join(u.u.s.room(id)))));
+    commands.add(new MxIdArgCommand("kick",   id -> u.queueNetwork(() -> r.kick  (id, null))));
+    commands.add(new MxIdArgCommand("ban",    id -> u.queueNetwork(() -> r.ban   (id, null))));
+    commands.add(new MxIdArgCommand("unban",  id -> u.queueNetwork(() -> r.unban (id      ))));
+    commands.add(new MxIdArgCommand("invite", id -> u.queueNetwork(() -> r.invite(id, null))));
+    commands.add(new MxIdArgCommand("view-user", id -> ViewProfile.viewProfile(id, this)));
     commands.add(new MxCommand("sort", false, left -> {
       MxLog l = visibleLog();
       if (l!=null) {
@@ -371,6 +372,11 @@ public class MxChatroom extends Chatroom {
       this.name = name;
       this.hasArgs = hasArgs;
       this.process = process;
+    }
+  }
+  public static class MxIdArgCommand extends MxCommand {
+    public MxIdArgCommand(String name, Consumer<String> id) {
+      super(name, true, left -> { id.accept(left.replace(" ", "")); return null; });
     }
   }
   public final Vec<MxCommand> commands = new Vec<>();
