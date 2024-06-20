@@ -26,6 +26,7 @@ public class MxChatroom extends Chatroom {
   public boolean msgLogToStart = false;
   public String prevBatch;
   public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>();
+  public final HashMap<String, String> editRoot = new HashMap<>(); // for broken discord bridge edits
   public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
   public final MxLiveView mainLiveView;
   
@@ -560,9 +561,12 @@ public class MxChatroom extends Chatroom {
       return new MxChatNotice(this, e, live);
     } else {
       if (e.m.isEditEvent()) {
-        MxChatEvent prev = allKnownEvents.get(e.m.editsId);
+        String edits = e.m.editsId;
+        if (editRoot.get(edits)!=null) edits = editRoot.get(edits);
+        editRoot.put(e.id, edits);
+        MxChatEvent prev = allKnownEvents.get(edits);
         if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, live);
-        else Log.fine("mx", e.id+" attempted to edit "+e.m.editsId+", which is unknown; assuming out of log");
+        else Log.fine("mx", e.id+" attempted to edit "+ edits +", which is unknown; assuming out of log");
         return makeDebugNotice(e, live);
       } else {
         return new MxChatMessage(e.m, e, this, live);
