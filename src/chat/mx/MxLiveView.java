@@ -25,14 +25,8 @@ public class MxLiveView extends LiveView {
   }
   
   public Chatroom room() { return r; }
-  
-  public MuteState muteState() {
-    return r.muteState;
-  }
-  
-  public Pair<Integer, Boolean> unreadInfo() {
-    return log.unreadInfo();
-  }
+  public MuteState muteState() { return r.muteState; }
+  public Pair<Integer, Boolean> unreadInfo() { return log.unreadInfo(); }
   
   public void show() { log.show(); super.show(); }
   public void hide() { super.hide(); log.hide(); }
@@ -70,7 +64,7 @@ public class MxLiveView extends LiveView {
       for (Cursor c : input.cs) {
         String s = input.getByCursor(c);
         c.clearSel();
-        input.insert(c.sx, c.sy, asCodeblock(s));
+        input.insert(c.sx, c.sy, r.asCodeblock(s));
       }
       input.um.pop();
       return true;
@@ -78,17 +72,8 @@ public class MxLiveView extends LiveView {
     return false;
   }
   
-  public String asCodeblock(String s) {
-    return r.asCodeblock(s);
-  }
-  
-  public boolean contains(ChatEvent ev) {
-    return log.contains(ev);
-  }
-  
-  public View getSearch() {
-    return new MxSearchView(r.m, this);
-  }
+  public boolean contains(ChatEvent ev) { return log.contains(ev); }
+  public View getSearch() { return new MxSearchView(r.m, this); }
   
   private String lastReadTo;
   public void markAsRead() {

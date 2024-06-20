@@ -46,10 +46,6 @@ public class MxTranscriptView extends TranscriptView {
   public void hide() { super.hide(); log.hide(); }
   public Chatroom room() { return r; }
   
-  public String asCodeblock(String s) {
-    return r.asCodeblock(s);
-  }
-  
   public String tokB;
   public String tokF;
   public void older() {

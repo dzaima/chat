@@ -107,8 +107,4 @@ public abstract class SearchView extends View {
   public boolean typed(int codepoint) {
     return false;
   }
-  
-  public String asCodeblock(String s) {
-    return originalView.asCodeblock(s);
-  }
 }

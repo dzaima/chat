@@ -20,7 +20,7 @@ public abstract class TranscriptView extends View {
   }
   
   public boolean navigationKey(Key key, KeyAction a) { return false; }
-  public boolean typed(int codepoint) { return false; }
+  public boolean typed(int codepoint) { return baseLiveView().typed(codepoint); }
   
   public abstract void highlight(ChatEvent eventID);
   

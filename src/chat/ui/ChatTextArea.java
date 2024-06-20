@@ -48,7 +48,7 @@ public class ChatTextArea extends CodeAreaNode {
         m.pasteString(g -> {
           if (g==null) return;
           um.pushL("paste code");
-          pasteText(v.asCodeblock(g));
+          pasteText(v.room().asCodeblock(g));
           um.pop();
         });
         return true;

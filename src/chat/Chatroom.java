@@ -34,17 +34,15 @@ public abstract class Chatroom {
     };
   }
   
-  public abstract void muteStateChanged();
-  
-  public void tick() {
-    muteState.tick();
-  }
-  
   public abstract LiveView mainView();
+  public abstract void muteStateChanged();
+  public abstract void cfgUpdated();
   
+  public void tick() { muteState.tick(); }
   public abstract String getUsername(String uid, boolean nullIfUnknown);
   
-  public abstract void cfgUpdated();
+  
+  
   
   public static class URLRes {
     public final String url;
@@ -100,6 +98,7 @@ public abstract class Chatroom {
   public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
   public abstract void delete(ChatEvent m);
   public abstract ChatEvent find(String id);
+  public abstract String asCodeblock(String s);
   
   
   

@@ -13,7 +13,6 @@ public abstract class BasicNetworkView extends LiveView {
   }
   
   public final boolean typed(int codepoint) { return false; }
-  public final String asCodeblock(String s) { return s; }
   public final boolean contains(ChatEvent ev) { return false; }
   
   public MuteState muteState() { return MuteState.UNMUTED; }

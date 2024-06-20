@@ -49,6 +49,7 @@ public class NetworkLog extends BasicNetworkView {
       public Pair<Integer, Boolean> unreadInfo() { return new Pair<>(0, false); }
       public String getUsername(String uid, boolean nullIfUnknown) { return uid; }
       public void cfgUpdated() { }
+      public String asCodeblock(String s) { return null; }
       public URLRes parseURL(String src) { return new URLRes(src, true); }
       public void retryOnFullUserList(Runnable then) { }
       public Vec<UserRes> autocompleteUsers(String prefix) { return new Vec<>(); }
