@@ -57,9 +57,11 @@ public class MxLiveView extends LiveView {
   
   public boolean navigationKey(Key key, KeyAction a) { return false; }
   public boolean actionKey(Key key, KeyAction a) {
-    return m.onCancel(key, a, () -> {
+    if (log.threadID!=null && m.onCancel(key, a, () -> {
       if (!r.mainView().open) m.toRoom(r.mainView());
-    }) || super.actionKey(key, a);
+    })) return true;
+    
+    return super.actionKey(key, a);
   }
   
   public boolean typed(int codepoint) {
