@@ -62,7 +62,7 @@ public class MxChatroom extends Chatroom {
     liveLogs.put(null, l0);
     if (!u.lazyLoadUsers) fullUserList = Promise.create(res -> res.set(userData));
     
-    update(status0, init);
+    update(status0, init, false);
     joinedCount = Obj.path(init, Num.ZERO, "summary", "m.joined_member_count").asInt();
     
     if (status0!=MyStatus.INVITED) initPrevBatch(init);
@@ -146,23 +146,19 @@ public class MxChatroom extends Chatroom {
     Obj timeline = init.obj("timeline", Obj.E);
     prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
   }
-  private void processMemberEvent(Obj ev, boolean isNew, boolean questionable) {
+  private String processMemberEvent(Obj ev, boolean isNew, boolean questionable) { // returns ID of joined user
     Obj ct = ev.obj("content");
     String id = ev.str(ev.hasStr("state_key")? "state_key" : "sender");
     assert id.startsWith("@") : id;
     UserData d = this.userData.computeIfAbsent(id, (s) -> new UserData());
     
-    if (questionable && !d.questionable) return;
+    if (questionable && !d.questionable) return id;
     d.questionable = questionable;
     
     String m = ct.str("membership", "");
     if (m.equals("join")) {
       d.username = ct.str("displayname", null);
       d.avatar = ct.str("avatar_url", null);
-      if (u.autoban.contains(id)) {
-        Log.info("mx auto-ban", "auto-banning "+ id +" in "+ prettyID());
-        u.queueNetwork(() -> r.ban(id, null));
-      }
     }
     if (isNew && d.s == UserStatus.JOINED) joinedCount--;
     
@@ -173,8 +169,9 @@ public class MxChatroom extends Chatroom {
       case "ban": d.s = UserStatus.BANNED; break;
       case "knock": d.s = UserStatus.KNOCKING; break;
     }
+    return m.equals("join")? id : null;
   }
-  public void anyEvent(Obj ev) {
+  public void anyEvent(Obj ev, boolean live) {
     Obj ct = ev.obj("content");
     switch (ev.str("type")) {
       case "m.room.member":
@@ -182,7 +179,11 @@ public class MxChatroom extends Chatroom {
           memberEventsToProcess.add(ev);
           return;
         } else {
-          processMemberEvent(ev, true, false);
+          String uid = processMemberEvent(ev, true, false);
+          if (live && uid!=null && u.autoban.contains(uid)) {
+            Log.warn("mx auto-ban", "auto-banning "+uid+" in "+prettyID());
+            u.queueNetwork(() -> r.ban(uid, null));
+          }
         }
         break;
       case "m.room.create":
@@ -219,7 +220,7 @@ public class MxChatroom extends Chatroom {
   }
   
   private int monotonicCounter = 0;
-  public void update(MyStatus ns, Obj sync) {
+  public void update(MyStatus ns, Obj sync, boolean live) {
     m.dumpAll.accept(r.rid, sync);
     MyStatus ps = myStatus;
     myStatus = ns;
@@ -240,7 +241,7 @@ public class MxChatroom extends Chatroom {
     
     // state
     for (Obj ev : stateList.objs()) {
-      anyEvent(ev);
+      anyEvent(ev, live);
     }
     
     // regular timeline events
@@ -261,9 +262,9 @@ public class MxChatroom extends Chatroom {
       MxChatEvent newObj = pushMsg(mxEv);
       if (newObj!=null) {
         lastVisible = mxEv.id;
-        if (mxEv.m!=null && u.autoban.contains(mxEv.m.uid)) {
+        if (live && mxEv.m!=null && u.autoban.contains(mxEv.m.uid)) {
           if (!u.autoban.contains(newObj.userString())) throw new RuntimeException();
-          Log.info("mx auto-ban", "auto-removing message "+mxEv.id+" from "+ mxEv.m.uid +" in "+ prettyID());
+          Log.warn("mx auto-ban", "auto-removing message "+mxEv.id+" from "+ mxEv.m.uid +" in "+ prettyID());
           u.queueNetwork(() -> delete(newObj));
         }
       }
@@ -273,7 +274,7 @@ public class MxChatroom extends Chatroom {
       if (newObj!=null) newObj.monotonicID = ei.monotonicID;
       eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) setReceipt(newObj!=null && newObj.e0.m!=null? newObj.e0.m.threadId : null, ev.str("sender"), mxEv.id);
-      anyEvent(ev);
+      anyEvent(ev, live);
       switch (ev.str("type")) {
         case "m.room.redaction":
           String e = ev.str("redacts", "");

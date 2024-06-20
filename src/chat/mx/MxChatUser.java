@@ -101,7 +101,7 @@ public class MxChatUser extends ChatUser {
         m.requestSave();
       }
     };
-    for (String c : data.arr("autoBan", Arr.E).strs()) autoban.add(c);
+    for (String c : data.arr("autoban", Arr.E).strs()) autoban.add(c);
     lazyLoadUsers = !m.options.takeBool("--no-lazy-load-members");
     node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
     queueNetwork(() -> {
@@ -194,7 +194,7 @@ public class MxChatUser extends ChatUser {
             roomMap.put(k.k, r);
             roomListNode.add(r.node); // TODO place in space if appropriate
             newRooms.set(true);
-          } else room.update(status, k.v.obj());
+          } else room.update(status, k.v.obj(), true);
         }
       };
       
