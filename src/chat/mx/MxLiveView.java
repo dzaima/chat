@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
@@ -26,7 +27,7 @@ public class MxLiveView extends LiveView {
   
   public Chatroom room() { return r; }
   public MuteState muteState() { return r.muteState; }
-  public Pair<Integer, Boolean> unreadInfo() { return log.unreadInfo(); }
+  public UnreadInfo unreadInfo() { return log.unreadInfo(); }
   
   public void show() { log.show(); super.show(); }
   public void hide() { super.hide(); log.hide(); }
@@ -78,8 +79,8 @@ public class MxLiveView extends LiveView {
   private String lastReadTo;
   public void markAsRead() {
     // mark all events in this log as read in all logs they're in
-    Pair<Integer, Boolean> u = unreadInfo();
-    if (u.a!=0 || u.b) {
+    UnreadInfo u = unreadInfo();
+    if (u.any()) {
       for (MxChatEvent e : Vec.ofCollection(r.unreads.getForA(log))) r.unreads.removeAllB(e);
       for (MxChatEvent e : Vec.ofCollection(r.pings.getForA(log))) r.pings.removeAllB(e);
       r.unreadChanged();

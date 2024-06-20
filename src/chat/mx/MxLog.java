@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.ChatEvent;
+import chat.utils.UnreadInfo;
 import dzaima.utils.*;
 import libMx.MxEvent;
 
@@ -41,8 +42,8 @@ public class MxLog {
   public int size() {
     return list.sz;
   }
-  Pair<Integer, Boolean> unreadInfo() {
-    return new Pair<>(r.unreads.getForA(this).size(), !r.pings.getForA(this).isEmpty());
+  public UnreadInfo unreadInfo() {
+    return new UnreadInfo(r.unreads.getForA(this).size(), !r.pings.getForA(this).isEmpty());
   }
   public Vec<String> getReplies(String id) {
     return msgReplies.get(id);

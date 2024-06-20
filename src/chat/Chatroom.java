@@ -1,6 +1,7 @@
 package chat;
 
 import chat.ui.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
@@ -20,8 +21,8 @@ public abstract class Chatroom {
   protected Chatroom(ChatUser u) {
     this.m = u.m;
     muteState = new MuteState(m) {
-      protected int ownedUnreads() { return unreadInfo().a; }
-      protected boolean ownedPings() { return unreadInfo().b; }
+      protected int ownedUnreads() { return unreadInfo().unread; }
+      protected boolean ownedPings() { return unreadInfo().ping; }
       protected void updated() { unreadChanged(); muteStateChanged(); }
     };
     
@@ -42,14 +43,6 @@ public abstract class Chatroom {
   public abstract String getUsername(String uid, boolean nullIfUnknown);
   
   
-  
-  
-  public static class URLRes {
-    public final String url;
-    public final boolean safe;
-    public URLRes(String url, boolean safe) { this.url = url; this.safe = safe; }
-  }
-  public abstract URLRes parseURL(String src);
   
   public static class UserRes {
     public final String disp, src;
@@ -99,14 +92,19 @@ public abstract class Chatroom {
   public abstract void delete(ChatEvent m);
   public abstract ChatEvent find(String id);
   public abstract String asCodeblock(String s);
+  public static class URLRes {
+    public final String url;
+    public final boolean safe;
+    public URLRes(String url, boolean safe) { this.url = url; this.safe = safe; }
+  }
+  public abstract URLRes parseURL(String src);
   
   
   
-  public abstract Pair<Integer, Boolean> unreadInfo(); // count, ping
+  public abstract UnreadInfo unreadInfo(); // count, ping
   
   public void unreadChanged() {
-    Pair<Integer, Boolean> i = unreadInfo();
-    RoomListNode.setUnread(m, node, muteState, i.b, i.a);
+    RoomListNode.setUnread(m, node, muteState, unreadInfo());
     m.unreadChanged();
     user().updateFolderUnread();
   }

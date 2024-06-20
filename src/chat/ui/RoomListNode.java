@@ -1,6 +1,7 @@
 package chat.ui;
 
 import chat.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
@@ -262,8 +263,7 @@ public class RoomListNode extends ReorderableNode {
   
     public void updateUnread() {
       if (editor.editing()) return;
-      boolean closed = !isOpen();
-      RoomListNode.setUnread(u.m, ch.get(0), MuteState.UNMUTED, closed && ping, closed? unread : 0);
+      RoomListNode.setUnread(u.m, ch.get(0), MuteState.UNMUTED, isOpen()? UnreadInfo.NONE : new UnreadInfo(unread, ping));
     }
     
     public boolean isOpen() {
@@ -383,19 +383,19 @@ public class RoomListNode extends ReorderableNode {
     public void rightClick(Click c, int x, int y, Runnable onClose) { r.roomMenu(c, x, y, onClose); }
   }
   
-  public static void setUnread(ChatMain m, Node node, MuteState muteState, boolean ping, int unread) {
+  public static void setUnread(ChatMain m, Node node, MuteState muteState, UnreadInfo u) {
     Node un = node.ctx.id("unread");
     un.clearCh();
-    if (muteState.hidden(ping, unread)) {
+    if (muteState.hidden(u.ping, u.unread)) {
       un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
-    } else if (unread>0 || ping) {
-      un.add(makeUnread(m, ping, unread));
+    } else if (u.any()) {
+      un.add(makeUnread(m, u));
     }
   }
   
-   public static Node makeUnread(ChatMain m, boolean ping, int unread) {
+   public static Node makeUnread(ChatMain m, UnreadInfo u) {
     Node n = m.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
-    n.ctx.id("num").add(new StringNode(n.ctx, "("+(unread >0? unread +"":"")+(ping? "*" : "")+")"));
+    n.ctx.id("num").add(new StringNode(n.ctx, "("+(u.unread>0? u.unread+"":"")+(u.ping? "*" : "")+")"));
     return n;
   }
 }

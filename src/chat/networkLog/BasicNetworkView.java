@@ -1,6 +1,7 @@
 package chat.networkLog;
 
 import chat.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
@@ -16,7 +17,7 @@ public abstract class BasicNetworkView extends LiveView {
   public final boolean contains(ChatEvent ev) { return false; }
   
   public MuteState muteState() { return MuteState.UNMUTED; }
-  public Pair<Integer, Boolean> unreadInfo() { return new Pair<>(0, false); }
+  public UnreadInfo unreadInfo() { return UnreadInfo.NONE; }
   public ChatEvent prevMsg(ChatEvent msg, boolean mine) { return null; }
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return null; }
   public void older() { }

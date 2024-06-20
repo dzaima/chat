@@ -2,6 +2,7 @@ package chat.networkLog;
 
 import chat.*;
 import chat.ui.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
@@ -46,7 +47,7 @@ public class NetworkLog extends BasicNetworkView {
       public void muteStateChanged() { }
       public LiveView mainView() { throw new RuntimeException("NetworkLog mainVew"); }
       public ChatEvent find(String id) { return null; } // TODO?
-      public Pair<Integer, Boolean> unreadInfo() { return new Pair<>(0, false); }
+      public UnreadInfo unreadInfo() { return UnreadInfo.NONE; }
       public String getUsername(String uid, boolean nullIfUnknown) { return uid; }
       public void cfgUpdated() { }
       public String asCodeblock(String s) { return null; }

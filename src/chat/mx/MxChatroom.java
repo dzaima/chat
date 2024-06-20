@@ -3,6 +3,7 @@ package chat.mx;
 import chat.*;
 import chat.networkLog.NetworkLog;
 import chat.ui.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.*;
@@ -463,8 +464,8 @@ public class MxChatroom extends Chatroom {
   public MxLog globalLog() { return liveLogs.get(null); }
   public MxChatEvent find(String id) { return allKnownEvents.get(id); }
   
-  public Pair<Integer, Boolean> unreadInfo() {
-    return new Pair<>(unreads.uniqueB(MxChatEvent.class), !pings.isEmpty());
+  public UnreadInfo unreadInfo() {
+    return new UnreadInfo(unreads.uniqueB(MxChatEvent.class), !pings.isEmpty());
   }
   
   public MxLog getThreadLog(String threadID) {
