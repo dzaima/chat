@@ -5,8 +5,6 @@ import dzaima.utils.JSON.*;
 public class MxFmt extends MxSendMsg {
   public final StringBuilder body;
   public final StringBuilder html;
-  String replyID;
-  String threadID;
   public Type type = Type.TEXT;
   
   public enum Type {
@@ -24,19 +22,13 @@ public class MxFmt extends MxSendMsg {
   }
   
   public void replyTo(MxRoom r, String mid) {
-    assert replyID==null;
-    replyID = mid;
+    replyToBase(mid);
     html.insert(0, "<mx-reply><a href="+htmlQuote(r.linkMsg(mid))+"> ↰ </a> </mx-reply>");
   }
   public void reply(MxRoom r, String mid, String uid, String username) {
     assert replyID==null;
     replyID = mid;
     html.insert(0, "<mx-reply><a href="+htmlQuote(r.linkMsg(mid))+"> ↰ </a> "+userHTML(uid, username)+" </mx-reply>");
-  }
-  
-  public void inThread(String id) {
-    assert threadID==null;
-    threadID = id;
   }
   
   public void txt(String text) {
@@ -140,15 +132,7 @@ public class MxFmt extends MxSendMsg {
   }
   public String msgJSON() {
     Obj ct = new Obj();
-    if (replyID!=null || threadID!=null) {
-      Obj rel = Obj.fromKV("m.in_reply_to", Obj.fromKV("event_id", replyID!=null? replyID : threadID));
-      if (threadID!=null) {
-        rel.put("rel_type", new Str("m.thread"));
-        rel.put("event_id", new Str(threadID));
-        rel.put("is_falling_back", Bool.of(replyID==null));
-      }
-      ct.put("m.relates_to", rel);
-    }
+    addReplyContent(ct);
     addContent(ct, body.toString(), html.toString());
     return ct.toString();
   }

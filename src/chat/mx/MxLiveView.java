@@ -1,7 +1,6 @@
 package chat.mx;
 
 import chat.*;
-import chat.networkLog.*;
 import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
@@ -114,19 +113,6 @@ public class MxLiveView extends LiveView {
     if (this == r.mainLiveView) r.older(); // TODO thread (if that's even possible)
   }
   
-  
-  
-  public String upload(byte[] data, String name, String mime) {
-    String location = "/_matrix/media/r0/upload?filename="+ Utils.toURI(name)+"&access_token="+r.r.s.gToken;
-    String req = r.r.s.url + location;
-    NetworkLog.CustomRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.POST, location);
-    Utils.requestLogger.got(rq, "new", r.r.s);
-    String res = Utils.postPut("POST", req, data, mime);
-    Utils.requestLogger.got(rq, "result", res);
-    JSON.Obj o = JSON.parseObj(res);
-    return o.str("content_uri");
-  }
-  
   public void post(String raw, String replyTo) {
     MxFmt f;
     String[] cmd = r.command(raw);
@@ -204,6 +190,11 @@ public class MxLiveView extends LiveView {
           }
           
           MxSendMsg f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
+          if (log.threadID!=null) f.inThread(log.threadID);
+          if (input.replying instanceof MxChatEvent) {
+            f.replyTo(r.r, input.replying.id);
+            input.markReply(null);
+          }
           r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f));
           close();
         });
@@ -212,7 +203,9 @@ public class MxLiveView extends LiveView {
       String getUpload() {
         try {
           data = Files.readAllBytes(Paths.get(path.getAll()));
-          return upload(data, name.getAll(), mime.getAll());
+          String name1 = name.getAll();
+          String mime1 = mime.getAll();
+          return r.u.upload(data, name1, mime1);
         } catch (IOException e) {
           Log.stacktrace("mx upload", e);
           return null;

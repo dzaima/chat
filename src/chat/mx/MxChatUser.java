@@ -62,6 +62,17 @@ public class MxChatUser extends ChatUser {
     return res;
   }
   
+  public String upload(byte[] data, String name, String mime) {
+    String location = "/_matrix/media/r0/upload?filename="+ Utils.toURI(name)+"&access_token="+ this.s.gToken;
+    String req = this.s.url + location;
+    NetworkLog.CustomRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.POST, location);
+    Utils.requestLogger.got(rq, "new", this.s);
+    String res = Utils.postPut("POST", req, data, mime);
+    Utils.requestLogger.got(rq, "result", res);
+    Obj o = JSON.parseObj(res);
+    return o.str("content_uri");
+  }
+  
   public void queueNetwork(Runnable r) { network.add(r); }
   @FunctionalInterface public interface Request<T> { T get() throws Throwable; }
   
