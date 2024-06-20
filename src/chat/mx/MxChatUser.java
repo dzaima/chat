@@ -157,17 +157,20 @@ public class MxChatUser extends ChatUser {
   public void autobanRemoveMessage(MxChatEvent ev) {
     String uid = ev.userString();
     if (!autoban.contains(uid)) throw new RuntimeException();
+    if (!ev.r.powerLevels.can(u.uid, PowerLevelManager.Action.REDACT)) return;
     Log.warn("mx auto-ban", "auto-removing message "+ev.id+" from "+ev.userString()+" in "+ev.r.prettyID());
     if (!m.options.has("--dry-run-autoban")) queueNetwork(() -> ev.r.delete(ev));
     autobanMember(uid, ev.r);
   }
   public void autobanMember(String uid, MxChatroom r) {
     if (!autoban.contains(uid)) throw new RuntimeException();
+    if (!r.powerLevels.can(u.uid, PowerLevelManager.Action.BAN)) return;
     Log.warn("mx auto-ban", "auto-banning "+uid+" in "+r.prettyID());
     if (!m.options.has("--dry-run-autoban")) queueNetwork(() -> r.r.ban(uid, null));
   }
   
   public void autobanUpdated() {
+    if (autoban.remove(u.uid)) Log.warn("mx", "don't autoban yourself!!");
     data.put("autoban", new Arr(Vec.ofCollection(autoban).map(Str::new).toArray(new Val[0])));
     m.requestSave();
   }
