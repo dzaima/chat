@@ -561,10 +561,8 @@ public class MxChatroom extends Chatroom {
     } else {
       if (e.m.isEditEvent()) {
         MxChatEvent prev = allKnownEvents.get(e.m.editsId);
-        if (prev instanceof MxChatMessage) {
-          ((MxChatMessage) prev).edit(e, live);
-          // prev.log.msgMap.put(e.id, prev);
-        } // else, it's an edit of a message further back in the log
+        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, live);
+        else Log.fine("mx", e.id+" attempted to edit "+e.m.editsId+", which is unknown; assuming out of log");
         return makeDebugNotice(e, live);
       } else {
         return new MxChatMessage(e.m, e, this, live);

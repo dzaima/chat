@@ -14,7 +14,7 @@ public class MxLog {
   public boolean globalPaging = true;
   public MxEvent lastEvent;
   public final Vec<MxChatEvent> list = new Vec<>();
-  private final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // id → message
+  private final HashMap<String, MxChatEvent> msgMap = new HashMap<>(); // message id → message
   
   public final HashMap<String, String> latestReceipts = new HashMap<>(); // user ID → event ID of their receipt
   public final PairHashSetA<String, String> messageReceipts = new PairHashSetA<>(); // event ID → set of users
@@ -36,7 +36,7 @@ public class MxLog {
     return msgMap.get(id);
   }
   public boolean contains(ChatEvent ev) {
-    return ev instanceof MxChatEvent && msgMap.get(ev.id)==ev;
+    return ev instanceof MxChatEvent && get(ev.id)==ev;
   }
   public int size() {
     return list.sz;
