@@ -72,7 +72,7 @@ public abstract class ChatEvent {
   public abstract Chatroom room();
   public ChatMain m() { return room().m; }
   public abstract MsgNode.MsgType type();
-  public abstract String userString();
+  public abstract String userString(); // TODO rename to userID?
   public abstract boolean isDeleted();
   
   public abstract String getSrc();

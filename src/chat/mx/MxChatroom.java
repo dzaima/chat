@@ -501,31 +501,30 @@ public class MxChatroom extends Chatroom {
   }
   
   public void addPing(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
+    if (e.userString().equals(u.id())) return;
     if (l.lv!=null) l.lv.beforeUnreadChange();
     pings.add(l, e);
   }
   public void addUnread(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
+    if (e.userString().equals(u.id())) return;
     if (l.lv!=null) l.lv.beforeUnreadChange();
     unreads.add(l, e);
   }
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
-    MxLog l = logOf(e);
-    MxChatEvent cm = l.addEventAtEnd(e);
+    MxChatEvent cm = logOf(e).addEventAtEnd(e);
     maybeThreadRoot(cm);
     
-    if (!e.uid.equals(u.id())) {
-      Vec<MxLog> ls = allLogsOf(e);
-      
-      if (cm!=null) {
-        if (cm.increasesUnread()) for (MxLog c : ls) addUnread(c, cm);
-      } else {
-        if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
-          // for (MxLog c : ls) addUnread(c, TODO);
-        }
-      }
+    if (cm!=null) {
+      if (cm.increasesUnread()) for (MxLog c : allLogsOf(e)) addUnread(c, cm);
+    } else if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
+      String editsID = e.m.editsId;
+      editsID = editRoot.getOrDefault(editsID, editsID);
+      MxChatEvent root = allKnownEvents.get(editsID);
+      if (root!=null) for (MxLog c : allLogsOf(root.e0)) addUnread(c, root);
     }
     unreadChanged();
+    
     return cm;
   }
   
@@ -566,7 +565,7 @@ public class MxChatroom extends Chatroom {
     } else {
       if (e.m.isEditEvent()) {
         String edits = e.m.editsId;
-        if (editRoot.get(edits)!=null) edits = editRoot.get(edits);
+        edits = editRoot.getOrDefault(edits, edits);
         editRoot.put(e.id, edits);
         MxChatEvent prev = allKnownEvents.get(edits);
         if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, live);
