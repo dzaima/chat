@@ -19,8 +19,7 @@ public abstract class TranscriptView extends View {
     if (!m.msgsScroll.ignoresYE() && m.msgsScroll.atYE(m.endDist)) newer();
   }
   
-  
-  public boolean key(Key key, int scancode, KeyAction a) { return false; }
+  public boolean navigationKey(Key key, KeyAction a) { return false; }
   public boolean typed(int codepoint) { return false; }
   
   public abstract void highlight(ChatEvent eventID);

@@ -13,7 +13,10 @@ public abstract class View {
   public abstract String title();
   
   
-  public abstract boolean key(Key key, int scancode, KeyAction a);
+  public abstract boolean navigationKey(Key key, KeyAction a); // runs before input
+  public /*open*/ boolean actionKey(Key key, KeyAction a) { // runs after input
+    return room().m.transferToInput(key, a, room().m.input());
+  }
   public abstract boolean typed(int codepoint);
   
   public abstract String asCodeblock(String s);

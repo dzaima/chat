@@ -56,10 +56,11 @@ public class MxLiveView extends LiveView {
   
   public String title() { return this==r.mainLiveView? r.title() : r.title() + " → thread"; }
   
-  public boolean key(Key key, int scancode, KeyAction a) {
+  public boolean navigationKey(Key key, KeyAction a) { return false; }
+  public boolean actionKey(Key key, KeyAction a) {
     return m.onCancel(key, a, () -> {
       if (!r.mainView().open) m.toRoom(r.mainView());
-    });
+    }) || super.actionKey(key, a);
   }
   
   public boolean typed(int codepoint) {

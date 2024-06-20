@@ -90,8 +90,8 @@ public class StatusMessage extends BasicChatEvent {
       for (ChatEvent c : visEvents) if (c.visible) c.hide();
     }
     public String title() { return "Network log request details"; }
-    public boolean key(Key key, int scancode, KeyAction a) {
-      return l.m.onCancel(key, a, () -> l.m.toRoom(l, StatusMessage.this));
+    public boolean actionKey(Key key, KeyAction a) {
+      return l.m.onCancel(key, a, () -> l.m.toRoom(l, StatusMessage.this)) || super.actionKey(key, a);
     }
   }
 }

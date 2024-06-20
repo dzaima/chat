@@ -86,7 +86,7 @@ public abstract class SearchView extends View {
     CheckboxNode c = (CheckboxNode) n.ctx.id(s);
     c.toggle();
   }
-  public boolean key(Key key, int scancode, KeyAction a) {
+  public boolean navigationKey(Key key, KeyAction a) {
     switch (m.gc.keymap(key, a, "chat.search")) {
       case "showContext": toggleCheckbox("showContext"); return true;
       case "allRooms": toggleCheckbox("allRooms"); return true;
@@ -98,6 +98,10 @@ public abstract class SearchView extends View {
       case "focusUser": n.ctx.id("user").focusMe(); return true;
     }
     return false;
+  }
+  
+  public boolean actionKey(Key key, KeyAction a) {
+    return m.transferToInput(key, a, textInput());
   }
   
   public boolean typed(int codepoint) {

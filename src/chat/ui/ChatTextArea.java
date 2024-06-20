@@ -139,14 +139,15 @@ public class ChatTextArea extends CodeAreaNode {
   }
   
   public int action(Key key, KeyAction a) {
-    if (m.chatKey(key, 0, a)) return 1;
+    if (globalKey(key, a)) return 1;
     int r0 = super.action(key, a);
     if (r0==1) return r0;
-    if (a.press && key.k_esc()) {
-      if (editing !=null) { setEdit  (null);     return 1; }
-      if (replying!=null) { markReply(null);     return 1; }
-      if (getAll().length() != 0) { removeAll(); return 1; }
-    }
+    if (m.onCancel(key, a, () -> {
+      if (editing !=null) { setEdit  (null);     return true; }
+      if (replying!=null) { markReply(null);     return true; }
+      if (getAll().length() != 0) { removeAll(); return true; }
+      return false;
+    })) return 1;
     return r0;
   }
   

@@ -25,7 +25,7 @@ import java.nio.file.*;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.function.BiConsumer;
+import java.util.function.*;
 
 public class ChatMain extends NodeWindow {
   public static final String DEFAULT_PROFILE = "accounts/profile.json";
@@ -549,18 +549,12 @@ public class ChatMain extends NodeWindow {
   }
   
   
-  public boolean chatKey(Key key, int scancode, KeyAction a) {
-    if (view==null) return false;
-    return view.key(key, scancode, a);
-  }
   
   public boolean onCancel(Key key, KeyAction a, Runnable run) {
-    ChatTextArea input = input();
-    if ((input==null || input.getAll().isEmpty()) && gc.keymap(key, a, "chat").equals("cancel")) {
-      run.run();
-      return true;
-    }
-    return false;
+    return onCancel(key, a, () -> { run.run(); return true; });
+  }
+  public boolean onCancel(Key key, KeyAction a, Supplier<Boolean> run) {
+    return gc.keymap(key, a, "chat").equals("cancel") && run.get();
   }
   
   public boolean chatTyped(int codepoint) {
@@ -568,18 +562,13 @@ public class ChatMain extends NodeWindow {
     return view.typed(codepoint);
   }
   
-  
   public boolean key(Key key, int scancode, KeyAction a) {
-    ChatTextArea input = input();
-    if (input!=null && input.globalKey(key, a)) return true;
-    if ((input==null && view!=null || view instanceof SearchView) && view.key(key, scancode, a)) return true; // TODO don't special-case SearchView? 
-    
-    String name = gc.keymap(key, a, "chat");
-    switch (name) {
+    String chatAction = gc.keymap(key, a, "chat");
+    switch (chatAction) {
       case "fontPlus":  gc.setEM(gc.em+1); return true;
       case "fontMinus": gc.setEM(gc.em-1); return true;
       case "roomUp": case "roomDn": {
-        boolean up = name.equals("roomUp");
+        boolean up = chatAction.equals("roomUp");
         Chatroom prev = room();
         Chatroom res = null;
         search: {
@@ -606,10 +595,7 @@ public class ChatMain extends NodeWindow {
         search();
         return true;
       }
-    }
-    
-    if (a.typed) {
-      if (key.k_f5()) {
+      case "reloadCfg": {
         try { gc.reloadCfg(); }
         catch (Throwable e) {
           Log.error("config reload", "Failed to load config:");
@@ -617,19 +603,25 @@ public class ChatMain extends NodeWindow {
         }
         return true;
       }
+      case "openDevtools": createTools(); return true;
+      case "toggleLegacyStringRendering": StringNode.PARAGRAPH_TEXT^= true; gc.cfgUpdated(); return true;
     }
-    if (a.press) {
-      if (key.k_f12()) { createTools(); return true; }
-      if (key.k_f2()) { StringNode.PARAGRAPH_TEXT^= true; gc.cfgUpdated(); return true; }
-    }
-    if (super.key(key, scancode, a)) return true;
+    
     if (rightPanel.key(key, a)) return true;
-    if (a.press && !key.isModifier() && !(focusNode() instanceof EditNode)) {
-      if (input!=null && input.visible) focus(input);
-      else if (view instanceof SearchView) focus(((SearchView) view).textInput());
-    }
-    return super.key(key, scancode, a);
+    if (view!=null && view.navigationKey(key, a)) return true;
+    
+    if (super.key(key, scancode, a)) return true;
+    
+    if (view==null) return transferToInput(key, a, input());
+    else return view.actionKey(key, a);
   }
+  
+  public boolean transferToInput(Key key, KeyAction a, EditNode node) {
+    if (node==null || !a.press || key.isModifier() || focusNode() instanceof EditNode) return false;
+    focus(node);
+    return node.keyF(key, 0, a);
+  }
+  
   private Chatroom edgeRoom(boolean up) {
     for (int i0 = 0; i0 < users.sz; i0++) {
       int i = up? i0 : users.sz-i0-1;

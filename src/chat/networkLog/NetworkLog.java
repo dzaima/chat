@@ -145,7 +145,6 @@ public class NetworkLog extends BasicNetworkView {
   }
   
   public String title() { return "Network log"; }
-  public final boolean key(Key key, int scancode, KeyAction a) { return false; }
   
   private static final AtomicLong idCtr = new AtomicLong();
   public static class RequestInfo {

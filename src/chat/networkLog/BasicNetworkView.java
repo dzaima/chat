@@ -1,6 +1,7 @@
 package chat.networkLog;
 
 import chat.*;
+import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.VlNode;
@@ -26,4 +27,5 @@ public abstract class BasicNetworkView extends LiveView {
   public void upload() { }
   public void mentionUser(String uid) { }
   public void markAsRead() { }
+  public boolean navigationKey(Key key, KeyAction a) { return false; }
 }
