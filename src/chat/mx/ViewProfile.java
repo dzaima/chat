@@ -30,8 +30,8 @@ public class ViewProfile {
     this.uid = uid;
   }
   
-  public static void viewProfile(String uid, MxChatroom r) {
-    new ViewProfile(r, uid).run();
+  public static void viewProfile(String uid, Chatroom r) {
+    if (r instanceof MxChatroom) new ViewProfile((MxChatroom) r, uid).run();
   }
   
   boolean adminPanel = false;

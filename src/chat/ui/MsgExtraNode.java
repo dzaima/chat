@@ -1,6 +1,7 @@
 package chat.ui;
 
 import chat.*;
+import chat.mx.*;
 import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
@@ -114,13 +115,15 @@ public class MsgExtraNode extends InlineNode {
   
   public void tickExtra() {
     if (r.m.hoverPopup!=null) return;
-    if (receiptPara!=null && receiptPara.hover) hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> r.getUsername(c, false)));
+    if (receiptPara!=null && receiptPara.hover) {
+      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, false), () -> ViewProfile.viewProfile(c, r))));
+    }
   }
-  private void hoverPopup(ParaNode source, Vec<String> lines) {
+  private void hoverPopup(ParaNode source, Vec<Pair<String, Runnable>> lines) {
     Box<NodeVW> vw1 = new Box<>();
     PartialMenu pm = new PartialMenu(gc);
-    lines.sort();
-    for (String l : lines) pm.add(l, () -> { });
+    lines.sort(Comparator.comparing(c -> c.a));
+    for (Pair<String, Runnable> l : lines) pm.add(l.a, l.b);
     r.m.hoverPopup = pm.openCustom(null, () -> r.m.hoverPopup = null, (gr, c) -> {
       HoverPopup p = new HoverPopup(ctx, c) {
         public boolean shouldClose() { return !source.hover && !vw1.get().mIn; }
