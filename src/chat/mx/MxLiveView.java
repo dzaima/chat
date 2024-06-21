@@ -98,7 +98,7 @@ public class MxLiveView extends LiveView {
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return log.nextMsg(msg, mine); }
   
   public void older() {
-    if (log.isMain()) r.older(); // TODO thread (if that's even possible)
+    if (log.isMain()) r.older(); // TODO thread
   }
   
   public void post(String raw, String replyTo) {

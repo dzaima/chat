@@ -135,6 +135,7 @@ public class MxLog {
     MxChatEvent root = r.allKnownEvents.get(threadID);
     if (root==null) return "thread";
     String body = root.src;
+    if (body.contains("\n")) body = body.substring(0, body.indexOf('\n'));
     if (body.length()>maxLen) body = body.substring(0, maxLen)+"…";
     return body;
   }
