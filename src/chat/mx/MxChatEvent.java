@@ -115,7 +115,7 @@ public abstract class MxChatEvent extends ChatEvent {
       }
       
       MxLiveView lv = r.currLiveView();
-      if (lv!=null && lv.log.threadID==null) pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", this::toThread);
+      if (lv!=null && lv.log.isMain()) pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", this::toThread);
       
       pm.addSep();
       
@@ -185,7 +185,7 @@ public abstract class MxChatEvent extends ChatEvent {
   
   public boolean startsThread(View view) {
     MxLog log = r.logOfView(view);
-    return hasThread && log!=null && log.threadID==null;
+    return hasThread && log!=null && log.isMain();
   }
   
   public void toThread() {

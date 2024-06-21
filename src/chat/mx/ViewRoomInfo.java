@@ -29,7 +29,7 @@ public class ViewRoomInfo {
     
     Node more = base.ctx.id("more");
     
-    Vec<MxLog> logs = Vec.ofCollection(r.liveLogs.values()).filter(c -> c.threadID!=null && c.list.sz>0); // checking size 0 for logs which only have read receipt info (because yeah that's a thing that happens)
+    Vec<MxLog> logs = Vec.ofCollection(r.liveLogs.values()).filter(c -> c.isThread() && c.list.sz>0); // checking size 0 for logs which only have read receipt info (because yeah that's a thing that happens)
     if (logs.size()>0) {
       Node threadList = m.ctx.make(m.gc.getProp("chat.roomInfo.threads").gr());
       more.add(threadList);

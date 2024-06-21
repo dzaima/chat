@@ -327,7 +327,7 @@ public class MxChatroom extends Chatroom {
     MxChatEvent pm = prevID==null? null : find(prevID);
     MxChatEvent nm = find(visID);
     
-    Log.fine("mx receipt", () -> uid+" in "+prettyID()+"+"+(l.threadID==null? "main" : l.threadID)+": "+
+    Log.fine("mx receipt", () -> uid+" in "+prettyID()+"+"+l.prettyID()+": "+
       prevID + (pm==null? " (not in log)" : "") +
       " → " + mid +
       (!Objects.equals(visID, mid)? " → "+visID : "") + (nm==null? " (not in log)" : ""));

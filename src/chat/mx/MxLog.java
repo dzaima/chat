@@ -33,6 +33,9 @@ public class MxLog {
     return lv;
   }
   
+  public boolean isMain() { return threadID==null; }
+  public boolean isThread() { return threadID!=null; }
+  
   public MxChatEvent get(String id) {
     return msgMap.get(id);
   }
@@ -80,7 +83,7 @@ public class MxLog {
   }
   
   private void putCompleteMessage(MxChatEvent ev) { // called after ev is already in list
-    if (threadID!=null && list.sz>=2) {
+    if (isThread() && list.sz>=2) {
       MxChatEvent root = r.allKnownEvents.get(threadID);
       if (root!=null && !root.hasThread) {
         root.hasThread = true;
@@ -128,7 +131,7 @@ public class MxLog {
   
   public String threadDesc(int maxLen) {
     if (maxLen==0) maxLen = Integer.MAX_VALUE;
-    if (threadID==null) return "main";
+    if (isMain()) return "main";
     MxChatEvent root = r.allKnownEvents.get(threadID);
     if (root==null) return "thread";
     String body = root.src;
@@ -136,7 +139,10 @@ public class MxLog {
     return body;
   }
   
+  public String prettyID() {
+    return isMain()? "main" : threadID;
+  }
   public String toString() {
-    return "MxLog→"+(threadID==null?"main":threadID);
+    return "MxLog→"+prettyID();
   }
 }

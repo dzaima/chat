@@ -52,7 +52,7 @@ public class MxLiveView extends LiveView {
   
   public boolean navigationKey(Key key, KeyAction a) { return false; }
   public boolean actionKey(Key key, KeyAction a) {
-    if (log.threadID!=null && m.onCancel(key, a, () -> {
+    if (log.isThread() && m.onCancel(key, a, () -> {
       if (!r.mainView().open) m.toRoom(r.mainView());
     })) return true;
     
@@ -98,7 +98,7 @@ public class MxLiveView extends LiveView {
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return log.nextMsg(msg, mine); }
   
   public void older() {
-    if (this == r.mainLiveView) r.older(); // TODO thread (if that's even possible)
+    if (log.isMain()) r.older(); // TODO thread (if that's even possible)
   }
   
   public void post(String raw, String replyTo) {
@@ -122,7 +122,7 @@ public class MxLiveView extends LiveView {
       else f.replyTo(r.r, replyTo);
     }
     
-    if (log.threadID!=null) f.inThread(log.threadID);
+    if (log.isThread()) f.inThread(log.threadID);
     
     r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f));
   }
@@ -178,7 +178,7 @@ public class MxLiveView extends LiveView {
           }
           
           MxSendMsg f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
-          if (log.threadID!=null) f.inThread(log.threadID);
+          if (log.isThread()) f.inThread(log.threadID);
           if (input.replying instanceof MxChatEvent) {
             f.replyTo(r.r, input.replying.id);
             input.markReply(null);
