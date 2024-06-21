@@ -27,7 +27,10 @@ public class RoomTree {
     
     HashMap<String, RoomTree> map = new HashMap<>();
     Vec<RoomTree> root = new Vec<>();
-    for (Obj o : state.objs()) root.add(buildTree(map, o)); // build target tree
+    for (Obj o : state.objs()) { // build target tree
+      RoomTree t = buildTree(map, o);
+      if (t!=null) root.add(t);
+    }
     
     HashSet<String> knownSpaces = new HashSet<>();
     allRooms.forEach((k, v) -> {
@@ -87,10 +90,17 @@ public class RoomTree {
   public static RoomTree buildTree(HashMap<String, RoomTree> map, Obj o) {
     RoomTree res = new RoomTree(o.str("id", null), null, o.str("name", null), o);
     res.open = o.bool("open", true);
+    if (map.containsKey(res.id)) {
+      Log.error("mx", "Duplicate room entry for "+res.id+"; ignoring");
+      return null;
+    }
     if (res.id!=null) map.put(res.id, res);
     if (o.has("folder")) {
       res.ch = new Vec<>();
-      for (Obj c : o.arr("folder").objs()) res.ch.add(buildTree(map, c));
+      for (Obj c : o.arr("folder").objs()) {
+        RoomTree t = buildTree(map, c);
+        if (t!=null) res.ch.add(t);
+      }
     }
     return res;
   }
