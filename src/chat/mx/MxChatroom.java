@@ -696,9 +696,10 @@ public class MxChatroom extends Chatroom {
   }
   
   public static final Counter roomChangeCounter = new Counter();
-  public void highlightMessage(String msgId, Consumer<Boolean> found0, boolean force) {
+  public void highlightMessage(String msgId0, Consumer<Boolean> found0, boolean force) {
+    String msgId = editRoot.getOrDefault(msgId0, msgId0);
     Consumer<Boolean> found = found0!=null? found0 : (b) -> {
-      if (!b) Log.warn("mx", "Expected to find message " + msgId + ", but didn't");
+      if (!b) Log.warn("mx", "Expected to find message "+msgId+", but didn't");
     };
     
     gotoDirect: if (!force) {
