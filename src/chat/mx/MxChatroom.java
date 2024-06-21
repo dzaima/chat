@@ -615,17 +615,25 @@ public class MxChatroom extends Chatroom {
   
   public ChatUser user() { return u; }
   
-  private MxRoom.Chunk olderRes;
   private long nextOlder;
   public void older() {
     if (msgLogToStart || prevBatch==null) return;
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
-    u.queueRequest(() -> r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), r -> {
-      if (r==null) { Log.warn("mx", "MxRoom::before failed on token "+prevBatch); return; }
-      loadQuestionableMemberState(r);
-      olderRes = r;
+    u.queueRequest(() -> r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), olderRes -> {
+      nextOlder = System.currentTimeMillis()+500;
+      if (olderRes==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+prevBatch); return; }
+      loadQuestionableMemberState(olderRes);
+      if (olderRes.events.isEmpty()) msgLogToStart = true;
+      prevBatch = olderRes.eTok;
+      Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
+      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), this::primaryLogOf)) {
+        if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
+      }
+      for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
+        maybeThreadRoot(c); // make sure to run this after all other potential events in thread are added
+      }
     });
   }
   
@@ -639,23 +647,6 @@ public class MxChatroom extends Chatroom {
   
   public void muteStateChanged() {
     u.saveRooms();
-  }
-  
-  public void tick() {
-    super.tick();
-    if (olderRes!=null) {
-      if (olderRes.events.isEmpty()) msgLogToStart = true;
-      prevBatch = olderRes.eTok;
-      Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
-      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), this::primaryLogOf)) {
-        if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
-      }
-      for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
-        maybeThreadRoot(c); // make sure to run this after all other potential events in thread are added
-      }
-      olderRes = null;
-      nextOlder = System.currentTimeMillis()+500;
-    }
   }
   
   public LiveView mainView() {
