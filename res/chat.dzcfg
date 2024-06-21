@@ -583,7 +583,6 @@ chat {
   msg.openThread = text { "thread" color=chat.link.col hover=true }
   
   msg.extra {
-    menu = menu { }
     hlProps = { pad=0.2em alY=center }
   }
   

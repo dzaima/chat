@@ -117,22 +117,17 @@ public class MsgExtraNode extends InlineNode {
     if (receiptPara!=null && receiptPara.hover) hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> r.getUsername(c, false)));
   }
   private void hoverPopup(ParaNode source, Vec<String> lines) {
-    PNodeGroup g = gc.getProp("chat.msg.extra.menu").gr().copy();
-    
     Box<NodeVW> vw1 = new Box<>();
-    HoverPopup popup = new HoverPopup(ctx, s -> {
-      if (s.equals("(closed)")) r.m.hoverPopup = null;
-    }) {
-      public boolean shouldClose() { return !source.hover && !vw1.get().mIn; }
-    };
-    
-    r.m.hoverPopup = popup;
-    NodeVW vw = popup.openVW(gc, ctx, g, true);
-    vw1.set(vw);
-    
+    PartialMenu pm = new PartialMenu(gc);
     lines.sort();
-    for (String r : lines) popup.node.add(new MenuNode.MINode(vw.base.ctx, r, ""));
-    vw.newRect();
+    for (String l : lines) pm.add(l, () -> { });
+    r.m.hoverPopup = pm.openCustom(null, () -> r.m.hoverPopup = null, (gr, c) -> {
+      HoverPopup p = new HoverPopup(ctx, c) {
+        public boolean shouldClose() { return !source.hover && !vw1.get().mIn; }
+      };
+      vw1.set(p.openVW(gc, ctx, gr, true));
+      return p;
+    });
   }
   
   public static abstract class HoverPopup extends Popup.RightClickMenu {
