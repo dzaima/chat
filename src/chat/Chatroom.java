@@ -87,7 +87,6 @@ public abstract class Chatroom {
   public abstract ChatUser user();
   public Chatroom room() { return this; }
   
-  public abstract void older();
   public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
   public abstract void delete(ChatEvent m);
   public abstract ChatEvent find(String id);

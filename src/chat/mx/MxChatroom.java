@@ -25,7 +25,6 @@ public class MxChatroom extends Chatroom {
   private int nameState = 0; // 0 - none; 1 - user; 2 - alias; 3 - primary
   
   public boolean msgLogToStart = false;
-  public String prevBatch;
   public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>(); // keys should be exactly value.id
   public final HashMap<String, String> editRoot = new HashMap<>(); // map edit-event-id → message-id, as a key of allKnownEvents
   public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
@@ -146,7 +145,7 @@ public class MxChatroom extends Chatroom {
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
-    prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
+    mainLiveView.prevBatchMain = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
   }
   private String processMemberEvent(Obj ev, boolean isNew, boolean questionable) { // returns ID of joined user
     Obj ct = ev.obj("content");
@@ -417,7 +416,7 @@ public class MxChatroom extends Chatroom {
     return res;
   }
   
-  private boolean hasFullUserList() {
+  public boolean hasFullUserList() {
     return fullUserList!=null && fullUserList.isResolved();
   }
   public int getJoinedMemberCount() { // probably correct-ish even without full user list loaded
@@ -498,7 +497,7 @@ public class MxChatroom extends Chatroom {
     return Vec.of(primaryLog);
   }
   
-  private void maybeThreadRoot(MxChatEvent c) {
+  public void maybeThreadRoot(MxChatEvent c) {
     if (c==null) return;
     MxLog selfThread = liveLogs.get(c.id);
     if (selfThread!=null && selfThread.globalPaging && !selfThread.contains(c)) {
@@ -615,29 +614,7 @@ public class MxChatroom extends Chatroom {
   
   public ChatUser user() { return u; }
   
-  private long nextOlder;
-  public void older() {
-    if (msgLogToStart || prevBatch==null) return;
-    if (System.currentTimeMillis()<nextOlder) return;
-    nextOlder = Long.MAX_VALUE;
-    Log.fine("mx", "Loading older messages in room");
-    u.queueRequest(() -> r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), olderRes -> {
-      nextOlder = System.currentTimeMillis()+500;
-      if (olderRes==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+prevBatch); return; }
-      loadQuestionableMemberState(olderRes);
-      if (olderRes.events.isEmpty()) msgLogToStart = true;
-      prevBatch = olderRes.eTok;
-      Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
-      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), this::primaryLogOf)) {
-        if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
-      }
-      for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
-        maybeThreadRoot(c); // make sure to run this after all other potential events in thread are added
-      }
-    });
-  }
-  
-  private void loadQuestionableMemberState(MxRoom.Chunk r) {
+  public void loadQuestionableMemberState(MxRoom.Chunk r) {
     if (r==null) return;
     for (MxEvent e : r.states) if (e.type.equals("m.room.member")) loadQuestionableMemberState(e);
   }

@@ -58,7 +58,6 @@ public class NetworkLog extends BasicNetworkView {
       public RoomListNode.ExternalDirInfo asDir() { return null; }
       public void viewRoomInfo() { }
       public ChatUser user() { return user; }
-      public void older() { }
       public Pair<Boolean, Integer> highlight(String s) { return new Pair<>(false, 0); }
       public void delete(ChatEvent m) { }
       public void userMenu(Click c, int x, int y, String uid) { }

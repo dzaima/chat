@@ -98,7 +98,7 @@ public class MxLiveView extends LiveView {
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return log.nextMsg(msg, mine); }
   
   public void older() {
-    if (log.isMain()) r.older(); // TODO thread
+    if (log.isMain()) r.mainLiveView.mxBaseOlder(); // TODO thread
   }
   
   public void post(String raw, String replyTo) {
@@ -200,5 +200,30 @@ public class MxLiveView extends LiveView {
         }
       }
     }.open(m.gc, m.ctx, m.gc.getProp("chat.mxUpload").gr());
+  }
+  
+  
+  private long nextOlder;
+  public String prevBatchMain;
+  public void mxBaseOlder() {
+    assert log.isMain();
+    if (r.msgLogToStart || prevBatchMain==null) return;
+    if (System.currentTimeMillis()< nextOlder) return;
+    nextOlder = Long.MAX_VALUE;
+    Log.fine("mx", "Loading older messages in room");
+    r.u.queueRequest(() -> r.r.beforeTok(MxRoom.roomEventFilter(!r.hasFullUserList()), prevBatchMain, r.globalLog().size()<50? 50 : 100), olderRes -> {
+      nextOlder = System.currentTimeMillis()+500;
+      if (olderRes==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+ prevBatchMain); return; }
+      r.loadQuestionableMemberState(olderRes);
+      if (olderRes.events.isEmpty()) r.msgLogToStart = true;
+      prevBatchMain = olderRes.eTok;
+      Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
+      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), r::primaryLogOf)) {
+        if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
+      }
+      for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
+        r.maybeThreadRoot(c); // make sure to run this after all other potential events in thread are added
+      }
+    });
   }
 }
