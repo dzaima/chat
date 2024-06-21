@@ -34,6 +34,9 @@ public class MxRoom {
   public MxServer.Request request(String... path) {
     return s.requestV3(MxServer.concat(new String[]{"rooms",rid}, path));
   }
+  public MxServer.Request requestV(int v, String... path) {
+    return s.requestV(v, MxServer.concat(new String[]{"rooms",rid}, path));
+  }
   
   public static class Chunk {
     public final ArrayList<MxEvent> events;
@@ -50,11 +53,16 @@ public class MxRoom {
   public Chunk afterTok(Obj filter, String from, int am) { return getMessages(filter, from, null, 'f', am); }
   public Chunk beforeTok(Obj filter, String from, String to, int am) { return getMessages(filter, from, to, 'b', am); }
   public Chunk getMessages(Obj filter, String from, String to, char d, int am) {
-    Obj o = request("messages")
-      .optProp("filter", filter==null? null : filter.toString())
-      .prop("limit", am)
-      .prop("from", from).prop("dir", String.valueOf(d)).optProp("to", to)
-      .gToken().get().runJ();
+    MxServer.Request r = request("messages");
+    r.optProp("filter", filter == null? null : filter.toString());
+    return getChunk(r, from, to, d, am, "start", "end");
+  }
+  private Chunk getChunk(MxServer.Request r, String from, String to, char d, int am, String sTokKey, String eTokKey) {
+    if (am!=-1) r.prop("limit", am);
+    r.prop("dir", String.valueOf(d));
+    r.optProp("from", from);
+    r.optProp("to", to);
+    Obj o = r.gToken().get().runJ();
     
     ArrayList<MxEvent> events = new ArrayList<>();
     if (!o.has("chunk")) return null;
@@ -62,7 +70,14 @@ public class MxRoom {
     
     
     if (d=='b') Collections.reverse(events);
-    return new Chunk(events, readState(o), o.str("start"), o.str("end", null));
+    return new Chunk(events, readState(o), o.str(sTokKey, null), o.str(eTokKey, null));
+  }
+  
+  public Chunk relationsBeforeTok(String id, String type, String from, int am) { return relationsBeforeTok(id, type, from, null, am); }
+  public Chunk relationsBeforeTok(String id, String type, String from, String to, int am) {
+    MxServer.Request r = type==null? requestV(1, "relations", id) : requestV(1, "relations", id, type);
+    r.prop("org.matrix.msc3981.recurse","true");
+    return getChunk(r, from, to, 'b', am, "prev_batch", "next_batch");
   }
   
   public Chunk msgContext(Obj filter, String id, int am) {

@@ -70,7 +70,7 @@ public class MxLog {
     if (open) r.m.insertMessages(atEnd, evs);
   }
   
-  public MxChatEvent addEventAtEnd(MxEvent e) {
+  public MxChatEvent pushEventAtEnd(MxEvent e) {
     lastEvent = e;
     int pos = size();
     MxChatEvent ev = r.processEvent(e, true);
@@ -85,10 +85,7 @@ public class MxLog {
   private void putCompleteMessage(MxChatEvent ev) { // called after ev is already in list
     if (isThread() && list.sz>=2) {
       MxChatEvent root = r.allKnownEvents.get(threadID);
-      if (root!=null && !root.hasThread) {
-        root.hasThread = true;
-        root.updateExtra();
-      }
+      if (root!=null) root.markHasThread();
     }
     msgMap.put(ev.id, ev);
     r.allKnownEvents.put(ev.id, ev);

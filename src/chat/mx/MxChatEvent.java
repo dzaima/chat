@@ -24,10 +24,12 @@ public abstract class MxChatEvent extends ChatEvent {
   
   public MxChatEvent(MxChatroom r, boolean mine, MxEvent e0, String id, String target) {
     super(id, mine, e0.time, target);
+    assert !r.allKnownEvents.containsKey(id);
     this.r = r;
     this.e0 = e0;
     this.lastEvent = e0;
   }
+  
   protected void loadReactions() {
     for (JSON.Obj c : JSON.Obj.arrPath(e0.o, JSON.Arr.E, "unsigned", "m.relations", "m.annotation", "chunk").objs()) {
       if ("m.reaction".equals(c.str("type",""))) {
@@ -186,6 +188,13 @@ public abstract class MxChatEvent extends ChatEvent {
   public boolean startsThread(View view) {
     MxLog log = r.logOfView(view);
     return hasThread && log!=null && log.isMain();
+  }
+  
+  public void markHasThread() {
+    if (!hasThread) {
+      hasThread = true;
+      updateExtra();
+    }
   }
   
   public void toThread() {

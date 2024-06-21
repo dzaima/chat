@@ -24,7 +24,6 @@ public class MxChatroom extends Chatroom {
   public String[] altAliases = new String[0];
   private int nameState = 0; // 0 - none; 1 - user; 2 - alias; 3 - primary
   
-  public boolean msgLogToStart = false;
   public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>(); // keys should be exactly value.id
   public final HashMap<String, String> editRoot = new HashMap<>(); // map edit-event-id → message-id, as a key of allKnownEvents
   public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
@@ -145,7 +144,7 @@ public class MxChatroom extends Chatroom {
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
-    mainLiveView.prevBatchMain = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
+    mainLiveView.prevBatch = !timeline.bool("limited", true)? null : timeline.str("prev_batch", null);
   }
   private String processMemberEvent(Obj ev, boolean isNew, boolean questionable) { // returns ID of joined user
     Obj ct = ev.obj("content");
@@ -517,7 +516,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
-    MxChatEvent cm = primaryLogOf(e).addEventAtEnd(e);
+    MxChatEvent cm = primaryLogOf(e).pushEventAtEnd(e);
     maybeThreadRoot(cm);
     
     if (cm!=null) {
@@ -532,6 +531,8 @@ public class MxChatroom extends Chatroom {
   }
   
   MxChatEvent processEvent(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
+    MxChatEvent known = allKnownEvents.get(e.id); // for when thread-specific pagination loads the event before the main pagination does; TODO impact on transcript?
+    if (known!=null) return known;
     if (e.type.equals("m.reaction")) {
       Obj o = Obj.objPath(e.ct, Obj.E, "m.relates_to");
       if (live) {
@@ -555,7 +556,7 @@ public class MxChatroom extends Chatroom {
       return makeDebugNotice(e, live);
     } else if (e.type.equals("m.room.redaction")) {
       MxLog.Reaction re = reactions.get(e.o.str("redacts", ""));
-      if (re != null) {
+      if (re!=null) {
         Log.fine("mx reaction", "Reaction "+re.key+" removed from "+re.to.id);
         reactions.remove(e.id);
         re.to.addReaction(re.key, -1);

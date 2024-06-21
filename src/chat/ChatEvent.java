@@ -44,7 +44,7 @@ public abstract class ChatEvent {
   
   public abstract boolean userEq(ChatEvent o);
   
-  public boolean visible;
+  public boolean visible; // TODO remove in favor of n!=null
   public MsgNode n;
   public MsgNode show(boolean live, boolean asContext) {
     assert !visible; visible = true;

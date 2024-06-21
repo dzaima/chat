@@ -199,8 +199,11 @@ public class MxServer {
     return res;
   }
   public Request requestV3(String... path) {
+    return requestV(3, path);
+  }
+  public Request requestV(int v, String... path) {
     for (String s : path) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
-    return new Request(concat(new String[]{"_matrix","client","v3"}, path));
+    return new Request(concat(new String[]{"_matrix","client","v"+v}, path));
   }
   
   public byte[] getB(String path) {

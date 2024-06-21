@@ -98,7 +98,14 @@ public class MxLiveView extends LiveView {
   public ChatEvent nextMsg(ChatEvent msg, boolean mine) { return log.nextMsg(msg, mine); }
   
   public void older() {
-    if (log.isMain()) r.mainLiveView.mxBaseOlder(); // TODO thread
+    if (!log.isMain()) {
+      if (log.get(log.threadID) != null) return;
+      if (log.globalPaging) {
+        prevBatch = r.mainLiveView.prevBatch;
+        log.globalPaging = false;
+      }
+    }
+    mxBaseOlder();
   }
   
   public void post(String raw, String replyTo) {
@@ -203,26 +210,42 @@ public class MxLiveView extends LiveView {
   }
   
   
+  private boolean msgLogToStart = false;
   private long nextOlder;
-  public String prevBatchMain;
+  public String prevBatch;
   public void mxBaseOlder() {
-    assert log.isMain();
-    if (r.msgLogToStart || prevBatchMain==null) return;
-    if (System.currentTimeMillis()< nextOlder) return;
+    if (msgLogToStart || prevBatch==null) return;
+    if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
-    Log.fine("mx", "Loading older messages in room");
-    r.u.queueRequest(() -> r.r.beforeTok(MxRoom.roomEventFilter(!r.hasFullUserList()), prevBatchMain, r.globalLog().size()<50? 50 : 100), olderRes -> {
+    Log.fine("mx", "Loading older messages in "+r.prettyID()+"+"+log.prettyID());
+    JSON.Obj filter = MxRoom.roomEventFilter(!r.hasFullUserList());
+    r.u.queueRequest(() -> {
+      int n = r.globalLog().size() < 50? 50 : 100;
+      if (log.isMain()) return r.r.beforeTok(filter, prevBatch, n);
+      else return r.r.relationsBeforeTok(log.threadID, null, prevBatch, n);
+    }, chunk -> {
       nextOlder = System.currentTimeMillis()+500;
-      if (olderRes==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+ prevBatchMain); return; }
-      r.loadQuestionableMemberState(olderRes);
-      if (olderRes.events.isEmpty()) r.msgLogToStart = true;
-      prevBatchMain = olderRes.eTok;
-      Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
-      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), r::primaryLogOf)) {
-        if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
-      }
-      for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
-        r.maybeThreadRoot(c); // make sure to run this after all other potential events in thread are added
+      if (chunk==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+ prevBatch); return; }
+      r.loadQuestionableMemberState(chunk); // TODO this doesn't actually exist for relation paging :|
+      if (chunk.events.isEmpty()) msgLogToStart = true;
+      prevBatch = chunk.eTok;
+      if (log.isMain()) {
+        Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
+        for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(chunk.events), r::primaryLogOf)) {
+          if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
+        }
+        for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
+          r.maybeThreadRoot(c); // make sure to run this after all other potential events in thread are added
+        }
+      } else {
+        log.addEvents(chunk.events, false);
+        if (chunk.eTok==null) {
+          r.u.queueRequest(() -> r.r.msgContext(filter, log.threadID, 0), root -> {
+            if (root==null) return;
+            r.loadQuestionableMemberState(root);
+            for (MxChatEvent e : log.addEvents(root.events, false)) e.markHasThread();
+          });
+        }
       }
     });
   }
