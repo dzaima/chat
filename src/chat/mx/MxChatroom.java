@@ -272,7 +272,7 @@ public class MxChatroom extends Chatroom {
       ei.monotonicID = monotonicCounter++;
       if (newObj!=null) newObj.monotonicID = ei.monotonicID;
       eventInfo.put(mxEv.id, ei);
-      if (ev.hasStr("sender")) setReceipt(newObj!=null && newObj.e0.m!=null? newObj.e0.m.threadId : null, ev.str("sender"), mxEv.id);
+      if (ev.hasStr("sender")) for (MxLog l : allLogsOf(mxEv)) setReceipt(l, ev.str("sender"), mxEv.id);
       anyEvent(ev, live);
       switch (ev.str("type")) {
         case "m.room.redaction":
@@ -305,7 +305,7 @@ public class MxChatroom extends Chatroom {
             for (Entry user : msg.v.obj().obj("m.read", Obj.E).entries()) {
               String threadID = user.v.obj().str("thread_id", null);
               if ("main".equals(threadID)) threadID = null; // TODO better handle unthreaded read receipts?
-              setReceipt(threadID, user.k, newID);
+              setReceipt(getThreadLog(threadID), user.k, newID);
             }
           }
           break;
@@ -319,9 +319,7 @@ public class MxChatroom extends Chatroom {
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
-  public void setReceipt(String threadID, String uid, String mid) {
-    MxLog l = getThreadLog(threadID);
-    
+  public void setReceipt(MxLog l, String uid, String mid) {
     EventInfo ei = eventInfo.get(mid);
     String visID = ei==null? mid : ei.closestVisible;
     
@@ -329,7 +327,7 @@ public class MxChatroom extends Chatroom {
     MxChatEvent pm = prevID==null? null : find(prevID);
     MxChatEvent nm = find(visID);
     
-    Log.fine("mx receipt", () -> uid+" in "+prettyID()+"+"+(threadID==null? "main" : threadID)+": "+
+    Log.fine("mx receipt", () -> uid+" in "+prettyID()+"+"+(l.threadID==null? "main" : l.threadID)+": "+
       prevID + (pm==null? " (not in log)" : "") +
       " → " + mid +
       (!Objects.equals(visID, mid)? " → "+visID : "") + (nm==null? " (not in log)" : ""));
@@ -477,7 +475,7 @@ public class MxChatroom extends Chatroom {
     maybeThreadRoot(globalLog().get(threadID));
     return l;
   }
-  public MxLog logOf(MxEvent e) { // TODO rename to primaryLogOf or something
+  public MxLog primaryLogOf(MxEvent e) {
     if (e.m == null) return globalLog();
     if (e.m.threadId!=null) return getThreadLog(e.m.threadId);
     if (e.m.isEditEvent()) {
@@ -486,8 +484,8 @@ public class MxChatroom extends Chatroom {
     }
     return globalLog();
   }
-  public Vec<MxLog> allLogsOf(MxEvent e) {
-    MxLog primaryLog = logOf(e);
+  public Vec<MxLog> allLogsOf(MxEvent e) { // doesn't include own thread if not created yet
+    MxLog primaryLog = primaryLogOf(e);
     MxLog myThread = liveLogs.get(e.id);
     if (myThread!=null) return Vec.of(primaryLog, myThread);
     return Vec.of(primaryLog);
@@ -513,7 +511,7 @@ public class MxChatroom extends Chatroom {
   }
   
   public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
-    MxChatEvent cm = logOf(e).addEventAtEnd(e);
+    MxChatEvent cm = primaryLogOf(e).addEventAtEnd(e);
     maybeThreadRoot(cm);
     
     if (cm!=null) {
@@ -645,7 +643,7 @@ public class MxChatroom extends Chatroom {
       if (olderRes.events.isEmpty()) msgLogToStart = true;
       prevBatch = olderRes.eTok;
       Vec<Vec<MxChatEvent>> allEvents = new Vec<>();
-      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), this::logOf)) {
+      for (Pair<MxLog, Vec<MxEvent>> p : Tools.group(Vec.ofCollection(olderRes.events), this::primaryLogOf)) {
         if (p.a.globalPaging) allEvents.add(p.a.addEvents(p.b, false));
       }
       for (Vec<MxChatEvent> events : allEvents) for (MxChatEvent c : events) {
