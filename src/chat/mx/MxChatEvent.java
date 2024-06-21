@@ -114,7 +114,8 @@ public abstract class MxChatEvent extends ChatEvent {
         pm.add(n.gc.getProp("chat.mx.msgMenu.code").gr(), "copyCode", () -> r.m.copyString(InlineNode.getNodeText(finalCode)));
       }
       
-      pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", this::toThread);
+      MxLiveView lv = r.currLiveView();
+      if (lv!=null && lv.log.threadID==null) pm.add(n.gc.getProp("chat.mx.msgMenu.openThread").gr(), "openThread", this::toThread);
       
       pm.addSep();
       
@@ -124,8 +125,7 @@ public abstract class MxChatEvent extends ChatEvent {
           return true;
         }
         if (s.equals("edit")) {
-          LiveView lv = r.currLiveView();
-          if (lv != null) {
+          if (lv!=null) {
             if (lv.input.editing==null) lv.input.setEdit(this);
             lv.input.focusMe();
           }
