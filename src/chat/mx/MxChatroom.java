@@ -26,8 +26,8 @@ public class MxChatroom extends Chatroom {
   
   public boolean msgLogToStart = false;
   public String prevBatch;
-  public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>();
-  public final HashMap<String, String> editRoot = new HashMap<>(); // for broken discord bridge edits
+  public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>(); // keys should be exactly value.id
+  public final HashMap<String, String> editRoot = new HashMap<>(); // map edit-event-id → message-id, as a key of allKnownEvents
   public final HashMap<String, MxLog> liveLogs = new HashMap<>(); // key is thread ID, or null key for outside-of-threads
   public final MxLiveView mainLiveView;
   
@@ -277,7 +277,7 @@ public class MxChatroom extends Chatroom {
       switch (ev.str("type")) {
         case "m.room.redaction":
           String e = ev.str("redacts", "");
-          MxChatEvent m = allKnownEvents.get(e);
+          MxChatEvent m = editRootEvent(e);
           if (m!=null) m.delete(ev);
           break;
       }
@@ -466,6 +466,13 @@ public class MxChatroom extends Chatroom {
     return new UnreadInfo(unreads.uniqueB(MxChatEvent.class), !pings.isEmpty());
   }
   
+  public String editRootOf(String id) {
+    return editRoot.getOrDefault(id, id);
+  }
+  public MxChatEvent editRootEvent(String id) {
+    return allKnownEvents.get(editRootOf(id));
+  }
+  
   public MxLog getThreadLog(String threadID) {
     MxLog l = liveLogs.get(threadID);
     if (l!=null) return l;
@@ -479,7 +486,7 @@ public class MxChatroom extends Chatroom {
     if (e.m == null) return globalLog();
     if (e.m.threadId!=null) return getThreadLog(e.m.threadId);
     if (e.m.isEditEvent()) {
-      MxChatEvent prev = allKnownEvents.get(e.m.editsId);
+      MxChatEvent prev = editRootEvent(e.m.editsId);
       if (prev!=null && prev.e0.m!=null && prev.e0.m.threadId!=null) return getThreadLog(prev.e0.m.threadId);
     }
     return globalLog();
@@ -517,9 +524,7 @@ public class MxChatroom extends Chatroom {
     if (cm!=null) {
       if (cm.increasesUnread()) for (MxLog c : allLogsOf(e)) addUnread(c, cm);
     } else if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
-      String editsID = e.m.editsId;
-      editsID = editRoot.getOrDefault(editsID, editsID);
-      MxChatEvent root = allKnownEvents.get(editsID);
+      MxChatEvent root = editRootEvent(e.m.editsId);
       if (root!=null) for (MxLog c : allLogsOf(root.e0)) addUnread(c, root);
     }
     unreadChanged();
@@ -534,7 +539,7 @@ public class MxChatroom extends Chatroom {
         if (o.str("rel_type","").equals("m.annotation")) {
           String key = o.str("key", "");
           String r_id = o.str("event_id", "");
-          MxChatEvent r_ce = allKnownEvents.get(r_id);
+          MxChatEvent r_ce = editRootEvent(r_id);
           Log.fine("mx reaction", "Reaction "+key+" added to "+r_id);
           
           if (r_ce!=null) {
@@ -563,10 +568,9 @@ public class MxChatroom extends Chatroom {
       return new MxChatNotice(this, e, live);
     } else {
       if (e.m.isEditEvent()) {
-        String edits = e.m.editsId;
-        edits = editRoot.getOrDefault(edits, edits);
+        String edits = editRootOf(e.m.editsId);
         editRoot.put(e.id, edits);
-        MxChatEvent prev = allKnownEvents.get(edits);
+        MxChatEvent prev = editRootEvent(e.m.editsId);
         if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, live);
         else Log.fine("mx", e.id+" attempted to edit "+edits+", which is unknown; assuming out of log");
         return makeDebugNotice(e, live);
@@ -697,13 +701,13 @@ public class MxChatroom extends Chatroom {
   
   public static final Counter roomChangeCounter = new Counter();
   public void highlightMessage(String msgId0, Consumer<Boolean> found0, boolean force) {
-    String msgId = editRoot.getOrDefault(msgId0, msgId0);
+    String msgId = editRootOf(msgId0);
     Consumer<Boolean> found = found0!=null? found0 : (b) -> {
       if (!b) Log.warn("mx", "Expected to find message "+msgId+", but didn't");
     };
     
     gotoDirect: if (!force) {
-      MxChatEvent ev = allKnownEvents.get(msgId);
+      MxChatEvent ev = editRootEvent(msgId);
       if (ev==null) break gotoDirect;
       
       // search first in current view, then main live view, then other views

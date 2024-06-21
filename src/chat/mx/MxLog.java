@@ -90,7 +90,7 @@ public class MxLog {
     msgMap.put(ev.id, ev);
     r.allKnownEvents.put(ev.id, ev);
     if (ev.e0.m!=null && ev.e0.m.replyId!=null) {
-      msgReplies.computeIfAbsent(ev.e0.m.replyId, k->new Vec<>(2)).add(ev.id);
+      msgReplies.computeIfAbsent(r.editRootOf(ev.e0.m.replyId), k->new Vec<>(2)).add(r.editRootOf(ev.id));
     }
   }
   

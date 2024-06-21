@@ -59,7 +59,7 @@ public class MxChatMessage extends MxChatEvent {
     
     if (visible && m0.replyId!=null && !replyRequested) {
       replyRequested = true;
-      MxChatEvent tg = r.allKnownEvents.get(m0.replyId);
+      MxChatEvent tg = r.editRootEvent(m0.replyId);
       if (tg!=null) {
         String uid = tg.e0.uid;
         String name = tg.senderDisplay();

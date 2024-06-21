@@ -52,7 +52,7 @@ public abstract class MxChatEvent extends ChatEvent {
     if (log==null) return;
     
     // what this is replying to
-    MxChatEvent re = log.get(target);
+    MxChatEvent re = r.editRootEvent(target);
     if (re!=null && re.n!=null) re.n.setRelBg(on);
     
     // what replies to this
