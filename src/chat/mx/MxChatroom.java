@@ -620,7 +620,7 @@ public class MxChatroom extends Chatroom {
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in room");
-    u.queueRequest(() -> this.r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), r -> {
+    u.queueRequest(() -> r.beforeTok(MxRoom.roomEventFilter(!hasFullUserList()), prevBatch, globalLog().size()<50? 50 : 100), r -> {
       if (r==null) { Log.warn("mx", "MxRoom::before failed on token "+prevBatch); return; }
       loadQuestionableMemberState(r);
       olderRes = r;

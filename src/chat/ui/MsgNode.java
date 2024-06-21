@@ -17,7 +17,7 @@ public class MsgNode extends WrapNode {
     super(ctx, ctx.makeHere(ctx.gc.getProp("chat.msg.mainP").gr()));
     this.type = type;
     this.msg = msg;
-    border = (MsgBorderNode) this.ctx.id("border");
+    border = (MsgBorderNode) ctx.id("border");
     border.n = this;
     this.asContext = asContext;
     setBG();

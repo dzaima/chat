@@ -65,9 +65,9 @@ public class MxChatUser extends ChatUser {
   
   public String upload(byte[] data, String name, String mime) {
     String location = "/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+s.gToken;
-    String req = this.s.url + location;
+    String req = s.url + location;
     NetworkLog.CustomRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.POST, location);
-    Utils.requestLogger.got(rq, "new", this.s);
+    Utils.requestLogger.got(rq, "new", s);
     String res = Utils.postPut("POST", req, data, mime);
     Utils.requestLogger.got(rq, "result", res);
     Obj o = JSON.parseObj(res);
@@ -77,13 +77,13 @@ public class MxChatUser extends ChatUser {
   public void queueNetwork(Runnable r) { network.add(r); }
   @FunctionalInterface public interface Request<T> { T get() throws Throwable; }
   
-  public <T> void queueRequest(Request<T> network, Consumer<T> primary) {
+  public <T> void queueRequest(Request<T> onNetwork, Consumer<T> onPrimary) {
     queueNetwork(() -> {
       T r;
-      try { r = network.get(); }
+      try { r = onNetwork.get(); }
       catch (Throwable e) { Log.stacktrace("mx queueRequest", e); r = null; }
       T finalR = r;
-      this.primary.add(() -> primary.accept(finalR));
+      primary.add(() -> onPrimary.accept(finalR));
     });
   }
   

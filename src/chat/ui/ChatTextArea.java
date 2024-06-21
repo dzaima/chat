@@ -161,20 +161,20 @@ public class ChatTextArea extends CodeAreaNode {
       um.clear();
     }
   }
-  private boolean markEdit(ChatEvent m) {
+  private boolean markEdit(ChatEvent e) {
     if (replying!=null) return false;
     if (editing!=null && editing.n!=null) editing.mark(0);
-    editing = m;
+    editing = e;
     if (editing!=null && editing.n!=null) editing.mark(1);
-    this.m.updActions();
+    m.updActions();
     return true;
   }
-  public void markReply(ChatEvent m) {
+  public void markReply(ChatEvent e) {
     if (editing!=null) return;
     if (replying!=null && replying.n!=null) replying.mark(0);
-    replying = m;
+    replying = e;
     if (replying!=null && replying.n!=null) replying.mark(2);
-    this.m.updActions();
+    m.updActions();
   }
   
   public void send() {

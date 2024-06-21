@@ -44,8 +44,8 @@ public class ViewUsers {
   public void updateList() {
     list.clearCh();
     Vec<Pair<String, String>> l = new Vec<>(new ArrayList<>(userData.keySet())).map(id -> new Pair<>(id, r.getUsername(id, false)));
-    String search = this.search.getAll().toLowerCase();
-    if (search.length()>0) l.filterInplace(c -> c.a.toLowerCase().contains(search) || c.b.toLowerCase().contains(search));
+    String s = search.getAll().toLowerCase();
+    if (s.length()>0) l.filterInplace(c -> c.a.toLowerCase().contains(s) || c.b.toLowerCase().contains(s));
     l.sort((a, b) -> String.CASE_INSENSITIVE_ORDER.compare(a.b, b.b));
     for (Pair<String, String> p : l) {
       MxChatroom.UserData d = userData.get(p.a);
