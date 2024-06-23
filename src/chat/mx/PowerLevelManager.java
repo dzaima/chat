@@ -38,21 +38,25 @@ public class PowerLevelManager {
   public int eventReq(String name) {
     Integer g = eventReq.get(name);
     if (g!=null) return g;
-    return actionReq.get("events_default");
+    return actionReq("events_default");
+  }
+  public int actionReq(String name) {
+    assert actionReq.containsKey(name) : "unknown action "+name;
+    return actionReq.get(name);
   }
   public int userLevel(String uid) {
     Integer g = userLevels.get(uid);
     if (g!=null) return g;
-    return actionReq.get("users_default");
+    return actionReq("users_default");
   }
   
   public boolean can(String uid, Action a) {
-    return userLevel(uid) >= eventReq(a.name);
+    return userLevel(uid) >= actionReq(a.name);
   }
   
   public enum Action {
     INVITE("invite"),
-    KICK("lick"),
+    KICK("kick"),
     REDACT("redact"),
     BAN("ban"),
     ;
