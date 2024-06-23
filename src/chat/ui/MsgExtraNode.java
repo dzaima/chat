@@ -116,7 +116,7 @@ public class MsgExtraNode extends InlineNode {
   public void tickExtra() {
     if (r.m.hoverPopup!=null) return;
     if (receiptPara!=null && receiptPara.hover) {
-      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, false), () -> ViewProfile.viewProfile(c, r))));
+      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, false, true), () -> ViewProfile.viewProfile(c, r))));
     }
   }
   private void hoverPopup(ParaNode source, Vec<Pair<String, Runnable>> lines) {

@@ -19,7 +19,7 @@ public class MxChatNotice extends MxChatEvent {
     super(r, false, e, e.id, null);
     this.e = e;
     this.euid = e.uid;
-    eName = r.getUsername(euid, false);
+    eName = r.getUsername(euid, false, false);
     if (!live) loadReactions();
   }
   
@@ -48,7 +48,7 @@ public class MxChatNotice extends MxChatEvent {
           String tuid = e.o.str("state_key", ""); // target user ID
           String tDName = e.ct.str("displayname", null); // target chosen name
           String tName; // some name for target
-          tName = tDName == null? r.getUsername(tuid, false) : tDName;
+          tName = tDName == null? r.getUsername(tuid, false, false) : tDName;
           
           Vec<Node> nds = new Vec<>();
           Obj prev = Obj.path(e.o, Obj.E, "unsigned", "prev_content").obj();

@@ -39,7 +39,7 @@ public abstract class Chatroom {
   public abstract void cfgUpdated();
   
   public void tick() { muteState.tick(); }
-  public abstract String getUsername(String uid, boolean nullIfUnknown);
+  public abstract String getUsername(String uid, boolean nullIfUnknown, boolean requestForFuture);
   
   
   

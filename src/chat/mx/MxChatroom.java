@@ -294,7 +294,7 @@ public class MxChatroom extends Chatroom {
       switch (ev.str("type", "")) {
         case "m.typing":
           StringBuilder typing = new StringBuilder();
-          Vec<String> ids = Vec.ofIterable(ct.arr("user_ids").strs()).map(c -> getUsername(c, true)).filter(Objects::nonNull);
+          Vec<String> ids = Vec.ofIterable(ct.arr("user_ids").strs()).map(c -> getUsername(c, true, true)).filter(Objects::nonNull);
           int l = ids.size();
           for (int i = 0; i < l; i++) {
             if (i>0) typing.append(i==l-1? " and " : ", ");
@@ -639,10 +639,10 @@ public class MxChatroom extends Chatroom {
   }
   
   private final HashSet<String> inProgressUserLoads = new HashSet<>();
-  public String getUsername(String uid, boolean nullIfUnknown) {
+  public String getUsername(String uid, boolean nullIfUnknown, boolean requestForFuture) {
     assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
-    if (d==null && inProgressUserLoads.add(uid)) {
+    if (d==null && requestForFuture && inProgressUserLoads.add(uid)) {
       Log.fine("mx users", "retrieving full member state for "+uid+" in "+prettyID());
       u.queueRequest(() -> r.getMemberState(uid), e -> {
         inProgressUserLoads.remove(uid);
