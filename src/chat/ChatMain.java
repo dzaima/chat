@@ -3,6 +3,7 @@ package chat;
 import chat.mx.*;
 import chat.networkLog.*;
 import chat.ui.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.eval.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
@@ -57,8 +58,7 @@ public class ChatMain extends NodeWindow {
   public MsgExtraNode msgExtra;
   public MsgExtraNode.HoverPopup hoverPopup;
   public final MuteState defaultMuteState = new MuteState(this) {
-    protected int ownedUnreads() { return 0; }
-    protected boolean ownedPings() { return false; }
+    protected UnreadInfo ownedInfo() { return UnreadInfo.NONE; }
     protected void updated() { }
   };
   {
@@ -386,8 +386,8 @@ public class ChatMain extends NodeWindow {
       }
     }
     msgs.insert(atEnd? msgs.ch.sz : 0, prep);
-    if (!atEnd) msgsScroll.ignoreYS();
-    if ( atEnd) msgsScroll.ignoreYE();
+    if (atEnd) msgsScroll.ignoreYE();
+    else msgsScroll.ignoreYS();
   }
   
   public void addMessage(ChatEvent cm, boolean live) {
@@ -422,14 +422,16 @@ public class ChatMain extends NodeWindow {
     Chatroom room = room();
     
     int otherNew = 0;
-    int currentNew = room==null? 0 : room.muteState.unreads();
-    boolean currentPing = room!=null && room.muteState.anyPing();
     boolean otherPing = false;
+    UnreadInfo m = room==null? UnreadInfo.NONE : room.muteState.info();
+    int currentNew = m.unread;
+    boolean currentPing = m.ping;
     for (ChatUser u : users) {
       for (Chatroom r : u.rooms()) {
         if (r != room) {
-          otherNew+= r.muteState.unreads();
-          otherPing|= r.muteState.anyPing();
+          UnreadInfo state = r.muteState.info();
+          otherNew+= state.unread;
+          otherPing|= state.ping;
         }
       }
     }

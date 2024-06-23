@@ -1,6 +1,7 @@
 package chat;
 
 import chat.ui.ChatTextFieldNode;
+import chat.utils.UnreadInfo;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.types.*;
@@ -11,8 +12,7 @@ import java.time.*;
 
 public abstract class MuteState {
   public static final MuteState UNMUTED = new MuteState(null){
-    protected int ownedUnreads() { throw new IllegalStateException(); }
-    protected boolean ownedPings() { throw new IllegalStateException(); }
+    protected UnreadInfo ownedInfo() { throw new IllegalStateException(); }
     protected void updated() { throw new IllegalStateException(); }
   };
   public boolean muted;
@@ -41,8 +41,7 @@ public abstract class MuteState {
     unmuteTime = s.unmuteTime;
     updated();
   }
-  protected abstract int ownedUnreads();
-  protected abstract boolean ownedPings();
+  protected abstract UnreadInfo ownedInfo();
   protected abstract void updated();
   
   public void tick() {
@@ -61,16 +60,18 @@ public abstract class MuteState {
   }
   
   // TODO merge, returning a pair
-  public int unreads() {
-    return countUnreads()? ownedUnreads() : 0;
-  }
-  public boolean anyPing() {
-    return countPings() && ownedPings();
+  public UnreadInfo info() {
+    boolean p = countPings();
+    boolean u = countUnreads();
+    if (p && u) return ownedInfo();
+    if (!p && !u) return UnreadInfo.NONE;
+    UnreadInfo i = ownedInfo();
+    return new UnreadInfo(u? i.unread : 0, p? i.ping : false);
   }
   
-  public boolean hidden(boolean ping, int unread) {
-    if (ping && countPings()) return false;
-    if (unread!=0 && countUnreads()) return false;
+  public boolean hidden(UnreadInfo u) {
+    if (u.ping && countPings()) return false;
+    if (u.unread!=0 && countUnreads()) return false;
     return muted;
   }
   

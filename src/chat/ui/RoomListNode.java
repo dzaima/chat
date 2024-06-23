@@ -386,7 +386,7 @@ public class RoomListNode extends ReorderableNode {
   public static void setUnread(ChatMain m, Node node, MuteState muteState, UnreadInfo u) {
     Node un = node.ctx.id("unread");
     un.clearCh();
-    if (muteState.hidden(u.ping, u.unread)) {
+    if (muteState.hidden(u)) {
       un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
     } else if (u.any()) {
       un.add(makeUnread(m, u));

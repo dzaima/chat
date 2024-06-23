@@ -21,8 +21,7 @@ public abstract class Chatroom {
   protected Chatroom(ChatUser u) {
     this.m = u.m;
     muteState = new MuteState(m) {
-      protected int ownedUnreads() { return unreadInfo().unread; }
-      protected boolean ownedPings() { return unreadInfo().ping; }
+      protected UnreadInfo ownedInfo() { return unreadInfo(); }
       protected void updated() { unreadChanged(); muteStateChanged(); }
     };
     

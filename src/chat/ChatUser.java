@@ -1,6 +1,7 @@
 package chat;
 
 import chat.ui.*;
+import chat.utils.UnreadInfo;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.utils.JSON.Obj;
@@ -59,8 +60,9 @@ public abstract class ChatUser {
         boolean ping = false;
         int count = 0;
         for (Chatroom r : rs) {
-          count+= r.muteState.unreads();
-          ping|= r.muteState.anyPing();
+          UnreadInfo s = r.muteState.info();
+          count+= s.unread;
+          ping|= s.ping;
         }
         d.unread = count;
         d.ping = ping;
