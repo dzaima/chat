@@ -257,7 +257,8 @@ public class MxChatroom extends Chatroom {
           continue;
         }
       }
-      MxEvent mxEv = new MxEvent(r, ev);
+      int counterID = monotonicCounter++;
+      MxEvent mxEv = new MxEvent(r, ev, "auto_id_"+counterID); // manual ID for invite state which doesn't have event_id
       MxChatEvent newObj = pushMsg(mxEv);
       if (newObj!=null) {
         lastVisible = mxEv.id;
@@ -267,7 +268,7 @@ public class MxChatroom extends Chatroom {
       }
       EventInfo ei = new EventInfo();
       ei.closestVisible = lastVisible;
-      ei.monotonicID = monotonicCounter++;
+      ei.monotonicID = counterID;
       if (newObj!=null) newObj.monotonicID = ei.monotonicID;
       eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) for (MxLog l : allLogsOf(mxEv)) setReceipt(l, ev.str("sender"), mxEv.id);
