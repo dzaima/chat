@@ -29,15 +29,15 @@ public abstract class LiveView extends View {
     if (u.none()) firstUnreadTime = m.gc.lastMs;
   }
   
-  public long atEndStart;
+  public long lastNotEnd;
   public long firstUnreadTime;
   public void openViewTick() {
     long nowMs = m.gc.lastMs;
     if (m.focused && m.atEnd() && !muteState().muted) {
-      long viewedMs = nowMs - atEndStart;
+      long viewedMs = nowMs - lastNotEnd;
       if (viewedMs > m.readMinViewMs  ||  viewedMs > (nowMs-firstUnreadTime)*m.altViewMult) markAsRead();
     } else {
-      atEndStart = nowMs;
+      lastNotEnd = nowMs;
     }
     
     if (m.toLast!=0) {
@@ -50,8 +50,8 @@ public abstract class LiveView extends View {
   }
   
   public boolean open;
-  public /*open*/ void show() { open=true; room().node.updBG(); room().unreadChanged(); m.setCurrentViewTitle(title()); input.roomShown(); }
-  public /*open*/ void hide() { open=false;room().node.updBG(); input.roomHidden(); }
+  public /*open*/ void show() { open=true; room().node.updBG(); lastNotEnd = m.gc.lastMs; input.roomShown(); room().unreadChanged(); m.setCurrentViewTitle(title()); }
+  public /*open*/ void hide() { open=false;room().node.updBG(); lastNotEnd = m.gc.lastMs; input.roomHidden(); }
   
   
   public abstract ChatEvent prevMsg(ChatEvent msg, boolean mine);
