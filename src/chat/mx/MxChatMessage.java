@@ -28,7 +28,7 @@ public class MxChatMessage extends MxChatEvent {
   
   public void edit(MxEvent ne, boolean live) {
     MxMessage nm = ne.m;
-    Log.fine("mx", id+" has been edited to type "+nm.type);
+    Log.fine("mx edit", id+" has been edited to type "+nm.type);
     lastEvent = ne;
     edited = true;
     setBody(nm, live);

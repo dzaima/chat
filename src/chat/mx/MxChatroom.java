@@ -129,11 +129,11 @@ public class MxChatroom extends Chatroom {
       }
       return null;
     }));
-    commands.add(new MxCommand("room-nick", true, left -> {
+    commands.add(new MxCommand("set-nick-room", true, left -> {
       u.queueNetwork(() -> u.u.setRoomNick(r, left));
       return null;
     }));
-    commands.add(new MxCommand("global-nick", true, left -> {
+    commands.add(new MxCommand("set-nick-global", true, left -> {
       u.queueNetwork(() -> u.u.setGlobalNick(left));
       return null;
     }));
@@ -257,8 +257,14 @@ public class MxChatroom extends Chatroom {
           continue;
         }
       }
+      
       int counterID = monotonicCounter++;
       MxEvent mxEv = new MxEvent(r, ev, "auto_id_"+counterID); // manual ID for invite state which doesn't have event_id
+      
+      // for new joins we want to pick up the displayname on them, while for re-joins we want to keep the previous one for renames to work
+      boolean earlyAdd = mxEv.type.equals("m.room.member") && !userData.containsKey(mxEv.uid);
+      if (earlyAdd) anyEvent(ev, live);
+      
       MxChatEvent newObj = pushMsg(mxEv);
       if (newObj!=null) {
         lastVisible = mxEv.id;
@@ -272,7 +278,7 @@ public class MxChatroom extends Chatroom {
       if (newObj!=null) newObj.monotonicID = ei.monotonicID;
       eventInfo.put(mxEv.id, ei);
       if (ev.hasStr("sender")) for (MxLog l : allLogsOf(mxEv)) setReceipt(l, ev.str("sender"), mxEv.id);
-      anyEvent(ev, live);
+      if (!earlyAdd) anyEvent(ev, live);
       switch (ev.str("type")) {
         case "m.room.redaction":
           String e = ev.str("redacts", "");
@@ -637,6 +643,7 @@ public class MxChatroom extends Chatroom {
     assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
     if (d==null && inProgressUserLoads.add(uid)) {
+      Log.fine("mx users", "retrieving full member state for "+uid+" in "+prettyID());
       u.queueRequest(() -> r.getMemberState(uid), e -> {
         inProgressUserLoads.remove(uid);
         if (e == null) {
