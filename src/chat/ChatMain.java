@@ -87,7 +87,8 @@ public class ChatMain extends NodeWindow {
     dumpAll = makeDumpConsumer(o.optList("--dump-all-sync"));
     String delay = o.optOne("--network-delay");
     artificialNetworkDelay = delay==null? 0 : Integer.parseInt(delay);
-    networkLogTick = NetworkLog.start(this, o.takeBool("--detailed-network-log"));
+    boolean detailed = o.takeBool("--detailed-network-log");
+    networkLogTick = NetworkLog.start(this, detailed, o.optOneInt("--network-log-minutes", detailed? 0 : 10));
     doRunModtools = !o.takeBool("--dry-run-modtools");
     
     msgs = base.ctx.id("msgs");
@@ -640,6 +641,7 @@ public class ChatMain extends NodeWindow {
     o.argString("--network-delay", "Introduce artificial network delay, in milliseconds");
     o.argBoolRun("--disable-threads", "Disable structuring messages by threads", () -> MxMessage.supportThreads = false);
     o.argBool("--detailed-network-log", "Preserve all info about network requests");
+    o.argString("--network-log-minutes", "Time to preserve network log for (0 for forever). Default: forever in detailed mode, 10 minutes otherwise");
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
     o.argBool("--dry-run-modtools", "Disable mod tools doing any actions (except unbanning)");
     o.autoDebug(Log.Level.WARN);

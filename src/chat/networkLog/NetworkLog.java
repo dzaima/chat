@@ -68,7 +68,7 @@ public class NetworkLog extends BasicNetworkView {
     m.toViewDirect(new NetworkLog(m));
   }
   
-  public static Runnable start(ChatMain m, boolean detailed0) {
+  public static Runnable start(ChatMain m, boolean detailed0, int logMinutes) {
     NetworkLog.detailed = detailed0;
     
     ConcurrentLinkedQueue<TodoEntry> todo = new ConcurrentLinkedQueue<>();
@@ -121,10 +121,10 @@ public class NetworkLog extends BasicNetworkView {
         }
       }
       
-      if (!detailed && !(m.view instanceof BasicNetworkView)) {
+      if (!(m.view instanceof BasicNetworkView) && logMinutes!=0) {
         Instant now = Instant.now();
         while (!list.isEmpty()) {
-          if (list.getFirst().start.until(now, ChronoUnit.MINUTES) <= 10) break;
+          if (list.getFirst().start.until(now, ChronoUnit.MINUTES) <= logMinutes) break;
           map.remove(list.removeFirst().rq);
         }
       }
