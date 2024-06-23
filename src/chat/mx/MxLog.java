@@ -5,7 +5,7 @@ import chat.utils.UnreadInfo;
 import dzaima.utils.*;
 import libMx.MxEvent;
 
-import java.util.HashMap;
+import java.util.*;
 
 public class MxLog {
   public final MxChatroom r;

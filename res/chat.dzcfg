@@ -326,21 +326,23 @@ chat {
     
     $generalConfirmUI = pad { bg=bg.middle all=1.2em
       v { h=min w=50em pad=1em
-        text { $content }
+        $content
         h { id=reasonPlace }
         chat.profile.$btns { run={} }
       }
     }
-    confirmUI = chat.profile.$generalConfirmUI { content = {
+    confirmUI = chat.profile.$generalConfirmUI { content = text {
       text { id=msg } " \"" text { id=username } "\" from the room \"" text { id=room } "\"?"
     }}
-    autobanConfirmUI = chat.profile.$generalConfirmUI { content = {
-      "Autoban " text { id=username } " (" text { id=userID } ")" "?\n"
-      "This will not affect anything immediately, instead only taking effect on future events.\n"
-      "While this client is open, for any rooms where you have the necessary permissions, future messages from this user will be deleted, and they will be immediately banned upon taking any action (incl. being immediately banned upon joining another room).\n"
-      "(autobanned users are stored in the profile, thus preserved across client restarts)"
+    autobanConfirmUI = chat.profile.$generalConfirmUI { content = vl {
+      text { "Autoban " text { id=username } " (" text { id=userID } ")" "?" }
+      label { h { checkbox { id=banNow } text{" Ban in current rooms"} } for=banNow }
+      label { h { checkbox { id=delNow } text{" Delete visible messages in current rooms"} } for=delNow }
+      text { "Immediately, this will: " text { id=currAction "" } "." }
+      text { "In the future, while this client is open, for any rooms where you have the necessary permissions, future messages from this user will be deleted, and they will be immediately banned upon taking any action (incl. being immediately banned upon joining another room)." }
+      text { "(autobanned users are stored in your local profile file, thus preserved across client restarts)" }
     }}
-    unautobanConfirmUI = chat.profile.$generalConfirmUI { content = {
+    unautobanConfirmUI = chat.profile.$generalConfirmUI { content = text {
       "Remove autoban of " text { id=username } " (" text { id=userID } ")" "?"
     }}
     

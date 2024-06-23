@@ -15,12 +15,15 @@ public class MxEvent {
   public final Instant time;
   
   public final MxMessage m;
-  public MxEvent(MxRoom r, Obj o) {
+  
+  public MxEvent(MxRoom r, Obj o) { this(r, o, ""); }
+  
+  public MxEvent(MxRoom r, Obj o, String defaultID) {
     this.r = r;
     this.o = o;
     this.type = o.str("type", "");
     this.uid = o.str("sender", "");
-    this.id = o.str("event_id", "");
+    this.id = o.str("event_id", defaultID);
     this.ct = o.obj("content", Obj.E);
     this.time = Instant.ofEpochMilli(o.get("origin_server_ts", JSON.NULL).asLong(0));
     this.m = type.equals("m.room.message")? new MxMessage(r, o) : null;

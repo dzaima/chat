@@ -22,7 +22,7 @@ public abstract class ChatUser {
     roomListNode.u = this;
   }
   
-  public abstract Vec<Chatroom> rooms();
+  public abstract Vec<? extends Chatroom> rooms();
   public abstract void saveRooms();
   
   public abstract void tick();

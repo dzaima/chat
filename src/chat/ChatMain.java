@@ -38,6 +38,7 @@ public class ChatMain extends NodeWindow {
   public final BiConsumer<String, Obj> dumpAll;
   public final Runnable networkLogTick;
   public final int artificialNetworkDelay; // in milliseconds
+  public final boolean doRunModtools;
   
   public void insertNetworkDelay() {
     if (artificialNetworkDelay > 0) Tools.sleep(artificialNetworkDelay);
@@ -87,6 +88,7 @@ public class ChatMain extends NodeWindow {
     String delay = o.optOne("--network-delay");
     artificialNetworkDelay = delay==null? 0 : Integer.parseInt(delay);
     networkLogTick = NetworkLog.start(this, o.takeBool("--detailed-network-log"));
+    doRunModtools = !o.takeBool("--dry-run-modtools");
     
     msgs = base.ctx.id("msgs");
     accountNode = base.ctx.id("accounts");
@@ -639,7 +641,7 @@ public class ChatMain extends NodeWindow {
     o.argBoolRun("--disable-threads", "Disable structuring messages by threads", () -> MxMessage.supportThreads = false);
     o.argBool("--detailed-network-log", "Preserve all info about network requests");
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
-    o.argBool("--dry-run-autoban", "Disable autoban taking any actions");
+    o.argBool("--dry-run-modtools", "Disable mod tools doing any actions (except unbanning)");
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);
     o.autoHelp();

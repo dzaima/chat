@@ -34,7 +34,7 @@ public class NetworkLog extends BasicNetworkView {
     super(m);
     this.m = m;
     user = new ChatUser(m) {
-      public Vec<Chatroom> rooms() { return Vec.of(room); }
+      public Vec<? extends Chatroom> rooms() { return Vec.of(room); }
       public void saveRooms() { }
       public void tick() { }
       public void close() { }

@@ -652,6 +652,10 @@ public class MxChatroom extends Chatroom {
     UserData d = userData.get(uid);
     return d==null? null : d.username;
   }
+  public boolean lazyHasMember(String uid) {
+    UserData d = userData.get(uid);
+    return d!=null && d.s==UserStatus.JOINED;
+  }
   
   public URLRes parseURL(String src) {
     int safety = m.imageSafety();

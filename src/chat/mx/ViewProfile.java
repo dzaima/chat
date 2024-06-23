@@ -13,21 +13,23 @@ import dzaima.utils.*;
 import java.util.function.*;
 
 public class ViewProfile {
-  final MxChatroom r;
+  final MxChatroom viewedRoom;
   final ChatMain m;
   final Node base, more;
+  final String me;
   final String username, uid;
   final MxChatroom.UserData data;
   boolean banned;
   
-  ViewProfile(MxChatroom r, String uid) {
-    this.r = r;
-    this.m = r.m;
+  ViewProfile(MxChatroom viewedRoom, String uid) {
+    this.viewedRoom = viewedRoom;
+    this.m = viewedRoom.m;
     this.base = m.ctx.make(m.gc.getProp("chat.profile.ui").gr());
     this.more = base.ctx.id("more");
-    this.data = r.userData.get(uid);
-    this.username = r.getUsername(uid, false);
+    this.data = viewedRoom.userData.get(uid);
+    this.username = viewedRoom.getUsername(uid, false);
     this.uid = uid;
+    this.me = viewedRoom.u.id();
   }
   
   public static void viewProfile(String uid, Chatroom r) {
@@ -55,7 +57,7 @@ public class ViewProfile {
       protected void preSetup() {
         node.ctx.id("username").add(new StringNode(m.ctx, username));
         Node r = node.ctx.idNullable("room");
-        if (r!=null) r.add(new StringNode(m.ctx, ViewProfile.this.r.title()));
+        if (r!=null) r.add(new StringNode(m.ctx, ViewProfile.this.viewedRoom.title()));
         ((BtnNode) node.ctx.id("cancel")).setFn(b -> close());
         setup.accept(this);
       }
@@ -76,38 +78,38 @@ public class ViewProfile {
       
       ((BtnNode) n.ctx.id("run")).setFn(b -> {
         String got = getReason.get();
-        r.u.queueRequest(() -> { f.accept(got==null || got.isEmpty()? null : got); return null; }, v -> onDone.run());
+        viewedRoom.u.queueRequest(() -> { f.accept(got==null || got.isEmpty()? null : got); return null; }, v -> onDone.run());
         p.close();
       });
     });
   }
   
   boolean isAutobanned() {
-    return r.u.autoban.contains(uid);
+    return viewedRoom.u.autoban.contains(uid);
   }
   
   Node banRow, autobanRow;
   public void run() {
-    m.rightPanel.make("users", r::viewUsers).add(base);
+    m.rightPanel.make("users", viewedRoom::viewUsers).add(base);
     base.ctx.id("name").add(new StringNode(m.ctx, username));
     base.ctx.id("server").add(new StringNode(m.ctx, uid));
     
     if (data!=null && data.avatar!=null) {
-      Chatroom.URLRes url = r.parseURL(data.avatar);
-      if (url.safe) r.user().loadImg(url.url, n -> {
+      Chatroom.URLRes url = viewedRoom.parseURL(data.avatar);
+      if (url.safe) viewedRoom.user().loadImg(url.url, n -> {
         if (n!=null) base.ctx.id("image").add(n);
       }, ImageNode.ProfilePictureNode::new, () -> true);
     }
     
     ((Extras.ClickableTextNode) base.ctx.id("toReadReceipt")).fn = () -> {
-      MxLog log = r.visibleLog();
-      if (log==null) log = r.globalLog();
+      MxLog log = viewedRoom.visibleLog();
+      if (log==null) log = viewedRoom.globalLog();
       String id = log.latestReceipts.get(uid);
-      if (id!=null) r.highlightMessage(id, null, false);
+      if (id!=null) viewedRoom.highlightMessage(id, null, false);
       else Log.warn("mx", "Unknown read receipt for "+uid);
     };
     ((Extras.ClickableTextNode) base.ctx.id("mention")).fn = () -> {
-      LiveView view = r.m.view.baseLiveView();
+      LiveView view = viewedRoom.m.view.baseLiveView();
       if (view != null) view.mentionUser(uid);
     };
     
@@ -118,46 +120,27 @@ public class ViewProfile {
       return n;
     };
     
-    String me = r.u.id();
+    if (viewedRoom.powerLevels.can(me, Action.KICK)) link.apply("chat.profile.kickUI", () -> confirmNetwork("kick", reason -> viewedRoom.r.kick(uid, reason), true, ()->{}));
     
-    if (r.powerLevels.can(me, Action.KICK)) link.apply("chat.profile.kickUI", () -> confirmNetwork("kick", reason -> r.r.kick(uid, reason), true, ()->{}));
-    
-    if (r.powerLevels.can(me, Action.REDACT)) link.apply("chat.profile.removeRecentUI", () -> confirm("chat.profile.removeRecentConfirmUI", p -> {
-      Vec<MxChatEvent> es = new Vec<>();
-      for (MxChatEvent e : r.allKnownEvents.values()) {
-        if (!e.e0.uid.equals(uid)) continue; // only the offender's messages
-        if (e.isDeleted()) continue; // only non-deleted
-        String type = e.e0.type;
-        if (type.equals("m.room.member") && e.e0.ct.str("membership", "").equals("join")) continue; // join events are useful to have logged; maybe add option?
-        if (type.equals("m.room.create") || type.equals("m.room.server_acl") || type.equals("m.room.encryption")) continue; // copying https://github.com/matrix-org/matrix-react-sdk/blob/32478db57e7cf39be2e1e79f03d4e3ef0f59e925/src/components/views/dialogs/BulkRedactDialog.tsx#L50-L55
-        es.add(e);
-      }
+    if (viewedRoom.powerLevels.can(me, Action.REDACT)) link.apply("chat.profile.removeRecentUI", () -> confirm("chat.profile.removeRecentConfirmUI", p -> {
+      Vec<MxChatEvent> es = getDeletableMessages(viewedRoom);
       p.node.ctx.id("num").replace(0, new StringNode(m.ctx, Integer.toString(es.sz)));
       
       ((BtnNode) p.node.ctx.id("run")).setFn(b -> {
         p.close();
-        Runnable[] next = new Runnable[1];
-        next[0] = () -> r.u.queueRequest(() -> {
-          MxChatEvent e = es.pop();
-          Log.info("mod", "Deleting message "+e.id);
-          r.delete(e);
-          return es.sz>0;
-        }, v -> {
-          if (v) next[0].run();
-        });
-        next[0].run();
+        doDeleteMessages(viewedRoom, es);
       });
     }));
     
-    if (r.powerLevels.can(me, Action.BAN)) {
+    if (viewedRoom.powerLevels.can(me, Action.BAN)) {
       banned = data!=null && data.s==MxChatroom.UserStatus.BANNED;
       
       Runnable banStateUpdated = () -> banRow.ctx.id("text").replace(0,
         new StringNode(m.ctx, m.gc.getProp(banned? "chat.profile.unbanMsg" : "chat.profile.banMsg").str())
       );
       banRow = link.apply("chat.profile.banUI", () -> confirmNetwork(banned? "unban" : "ban", reason -> {
-        if (banned) r.r.unban(uid);
-        else r.r.ban(uid, reason);
+        if (banned) doUnban(viewedRoom);
+        else doBan(viewedRoom, reason);
       }, !banned, () -> {
         banned^= true;
         banStateUpdated.run();
@@ -168,20 +151,101 @@ public class ViewProfile {
         new StringNode(m.ctx, m.gc.getProp(isAutobanned()? "chat.profile.unautobanOption" : "chat.profile.autobanOption").str())
       );
       autobanRow = link.apply("chat.profile.banUI", () -> confirm(isAutobanned()? "chat.profile.unautobanConfirmUI" : "chat.profile.autobanConfirmUI", p -> {
+        boolean unban = isAutobanned();
+        Box<Vec<MxChatroom>> banNow = new Box<>(null);
+        Box<Vec<Pair<MxChatroom, Vec<MxChatEvent>>>> delNow = new Box<>(null);
+        if (!unban) {
+          Runnable refresh = () -> {
+            String s = "";
+            if (banNow.get()==null && delNow.get()==null) s = "do nothing";
+            if (banNow.get()!=null) s+= "ban the user in "+banNow.get().sz+" rooms";
+            if (delNow.get()!=null) {
+              if (!s.isEmpty()) s+= "; ";
+              int sum = 0;
+              for (Pair<MxChatroom, Vec<MxChatEvent>> v : delNow.get()) sum+= v.b.sz;
+              s+= "delete "+sum+" messages from across "+delNow.get().sz+" rooms";
+            }
+            p.node.ctx.id("currAction").replace(0, new StringNode(p.node.ctx, s));
+          };
+          refresh.run();
+          
+          ((CheckboxNode) p.node.ctx.id("banNow")).setFn(b -> {
+            banNow.set(b? getRoomsWithPerm(Action.BAN).filter(c -> c.lazyHasMember(uid)) : null);
+            refresh.run();
+          });
+          ((CheckboxNode) p.node.ctx.id("delNow")).setFn(b -> {
+            delNow.set(b? getRoomsWithPerm(Action.REDACT).map(c -> new Pair<>(c, getDeletableMessages(c))).filter(c -> c.b.sz>0) : null);
+            refresh.run();
+          });
+        }
+        
         p.node.ctx.id("userID").add(new StringNode(p.node.ctx, uid));
         BtnNode run = (BtnNode) p.node.ctx.id("run");
-        boolean unban = isAutobanned();
         run.add(new StringNode(run.ctx, unban? "unautoban" : "autoban"));
         run.setFn(b -> {
           p.close();
-          if (unban) r.u.autoban.remove(uid);
-          else r.u.autoban.add(uid);
-          r.u.autobanUpdated();
-          r.m.requestSave();
+          if (unban) {
+            viewedRoom.u.autoban.remove(uid);
+          } else {
+            viewedRoom.u.autoban.add(uid);
+            if (banNow.get()!=null) {
+              for (MxChatroom r : banNow.get()) doBan(r, null);
+            }
+            if (delNow.get()!=null) {
+              for (Pair<MxChatroom, Vec<MxChatEvent>> evs : delNow.get()) {
+                doDeleteMessages(evs.a, evs.b);
+              }
+            }
+          }
+          viewedRoom.u.autobanUpdated();
+          viewedRoom.m.requestSave();
           autobanStateUpdated.run();
         });
       }));
       autobanStateUpdated.run();
     }
+  }
+  
+  private void doBan(MxChatroom r, String reason) {
+    if (me.equals(uid)) throw new RuntimeException("don't ban yourself!");
+    Log.info("mod", "Banning user "+uid+" from "+r.prettyID());
+    if (r.m.doRunModtools) r.u.queueNetwork(() -> r.r.ban(uid, reason));
+  }
+  
+  private void doUnban(MxChatroom r) {
+    Log.info("mod", "Unbanning user "+uid+" from "+r.prettyID());
+    if (r.m.doRunModtools) r.u.queueNetwork(() -> r.r.unban(uid));
+  }
+  
+  private Vec<MxChatroom> getRoomsWithPerm(Action action) {
+    return viewedRoom.u.rooms().filter(c -> c.powerLevels.can(me, action));
+  }
+  
+  private Vec<MxChatEvent> getDeletableMessages(MxChatroom room) {
+    Vec<MxChatEvent> es = new Vec<>();
+    for (MxChatEvent e : room.allKnownEvents.values()) {
+      if (!e.e0.uid.equals(uid)) continue; // only the offender's messages
+      if (e.isDeleted()) continue; // only non-deleted
+      String type = e.e0.type;
+      if (type.equals("m.room.member") && e.e0.ct.str("membership", "").equals("join")) continue; // join events are useful to have logged; maybe add option?
+      if (type.equals("m.room.create") || type.equals("m.room.server_acl") || type.equals("m.room.encryption")) continue; // copying https://github.com/matrix-org/matrix-react-sdk/blob/32478db57e7cf39be2e1e79f03d4e3ef0f59e925/src/components/views/dialogs/BulkRedactDialog.tsx#L50-L55
+      es.add(e);
+    }
+    return es;
+  }
+  
+  private void doDeleteMessages(MxChatroom r, Vec<MxChatEvent> es) {
+    if (me.equals(uid)) throw new RuntimeException("don't delete your own messages!");
+    Runnable[] next = new Runnable[1];
+    next[0] = () -> r.u.queueRequest(() -> {
+      MxChatEvent e = es.pop();
+      Log.info("mod", "Deleting message "+e.id);
+      assert e.senderID().equals(uid);
+      if (r.m.doRunModtools) r.delete(e);
+      return es.sz>0;
+    }, v -> {
+      if (v) next[0].run();
+    });
+    next[0].run();
   }
 }
