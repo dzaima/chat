@@ -7,14 +7,12 @@ import static dzaima.utils.JSON.*;
 public class MxLogin {
   public final MxServer s;
   public final String uid;
-  public final String uidURI;
   public final String token;
   
   public MxLogin(MxServer s, String id, String mxToken) {
     this.s = s;
     this.uid = id;
     this.token = mxToken;
-    uidURI = Utils.toURI(uid);
   }
   
   public boolean valid() {
@@ -47,7 +45,7 @@ public class MxLogin {
   }
   
   public String sendUserState(MxRoom r, String type, String data) {
-    Obj j = r.request("state", type, uidURI).token(token).put(data).runJ();
+    Obj j = r.request("state", type, uid).token(token).put(data).runJ();
     if (s.handleError(j, "send "+type)) return null;
     return j.str("event_id");
   }
@@ -70,7 +68,7 @@ public class MxLogin {
   }
   
   public void setGlobalNick(String nick) {
-    Obj j = s.requestV3("profile",uidURI,"displayname").token(token).put(Obj.fromKV("displayname", nick)).runJ();
+    Obj j = s.requestV3("profile",uid,"displayname").token(token).put(Obj.fromKV("displayname", nick)).runJ();
     s.handleError(j, "set nick");
   }
   
