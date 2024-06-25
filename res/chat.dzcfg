@@ -52,6 +52,7 @@ chat {
     folder = { "f" }
     delete = { "delete" }
     rename = { "r" }
+    info = { "i" }
   }
   autocomplete.keys {
     prev = { "up" }
@@ -460,18 +461,14 @@ chat {
     }
   }
   roomMenu {
-    makeFolder = {
-      mi { id=wrap "Add to new folder" key=chat.menuKeys.folder }
-    }
-    mute = {
-      mi { id=mute "Mute..." }
-    }
+    makeFolder = { mi { id=wrap "Add to new folder" key=chat.menuKeys.folder } }
+    renameLocally = { mi { id=localRename "Rename locally" key=chat.menuKeys.rename } }
+    info = { mi { id=info "Room info" key=chat.menuKeys.info } }
+    
+    mute = { mi { id=mute "Mute..." } }
     unmute = {
       mi { id=unmute "Unmute" }
       mi { id=muteEdit "Mute settings" }
-    }
-    renameLocally = {
-      mi { id=localRename "Rename locally" key=chat.menuKeys.rename }
     }
     
     muteUI = pad { bg=bg.middle all=1em
@@ -506,11 +503,9 @@ chat {
     leave = { mi { id=leave "Leave room" } }
     forget = { mi { id=forget "Leave & forget room" } }
     room = {
-      vsep{}
       chat.mx.roomMenu.$links{}
     }
     space = {
-      vsep{}
       chat.mx.roomMenu.$links{}
       mi { id=viewInternal "View internal Matrix room" }
     }
