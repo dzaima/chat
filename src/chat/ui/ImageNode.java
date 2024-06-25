@@ -9,17 +9,17 @@ import dzaima.utils.Tools;
 import io.github.humbleui.skija.Image;
 
 public abstract class ImageNode extends Node {
+  final Image f0;
   byte[] data;
-  Image f0;
   
   public ImageNode(Ctx ctx, byte[] data) {
     super(ctx, Props.none());
     this.data = data;
+    Image f0 = null;
     try {
       if (data!=null) f0 = Image.makeDeferredFromEncodedBytes(data);
-    } catch (Throwable e) {
-      f0 = null;
-    }
+    } catch (Throwable ignored) { }
+    this.f0 = f0;
   }
   
   public boolean loadableImage() { return f0!=null; }
