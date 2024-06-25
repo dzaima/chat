@@ -108,17 +108,16 @@ public class MxLiveView extends LiveView {
     mxBaseOlder();
   }
   
-  public void post(String raw, String replyTo) {
+  public boolean post(String raw, String replyTo) {
     MxFmt f;
     String[] cmd = r.command(raw);
     getF: {
       if (cmd.length == 2) {
         MxChatroom.MxCommand fn = r.commands.linearFind(c -> c.name.equals(cmd[0]));
-        if (fn != null) {
-          f = fn.process.apply(cmd[1]);
-          if (f == null) return;
-          break getF;
-        }
+        if (fn == null) return false;
+        f = fn.process.apply(cmd[1]);
+        if (f == null) return true;
+        break getF;
       }
       f = r.parse(raw);
     }
@@ -132,11 +131,13 @@ public class MxLiveView extends LiveView {
     if (log.isThread()) f.inThread(log.threadID);
     
     r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f));
+    return true;
   }
   
-  public void edit(ChatEvent m, String raw) {
+  public boolean edit(ChatEvent m, String raw) {
     MxFmt f = r.parse(raw);
     r.u.queueNetwork(() -> r.r.s.primaryLogin.editMessage(r.r, m.id, f));
+    return true;
   }
   
   public void upload() {

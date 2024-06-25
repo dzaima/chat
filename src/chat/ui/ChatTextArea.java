@@ -183,9 +183,9 @@ public class ChatTextArea extends CodeAreaNode {
     
     if (editing!=null) {
       if (getAll().equals(editing.getSrc())) return;
-      v.edit(editing, s);
+      if (!v.edit(editing, s)) return;
     } else {
-      v.post(s, replying==null? null : replying.id);
+      if (!v.post(s, replying==null? null : replying.id)) return;
     }
     
     markEdit(null);
