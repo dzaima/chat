@@ -81,7 +81,11 @@ public class MxChatUser extends ChatUser {
     queueNetwork(() -> {
       T r;
       try { r = onNetwork.get(); }
-      catch (Throwable e) { Log.stacktrace("mx queueRequest", e); r = null; }
+      catch (Throwable e) {
+        if (Tools.isAnyInterrupted(e)) return;
+        Log.stacktrace("mx queueRequest", e);
+        r = null;
+      }
       T finalR = r;
       primary.add(() -> onPrimary.accept(finalR));
     });
@@ -91,9 +95,8 @@ public class MxChatUser extends ChatUser {
     while (true) {
       try {
         network.take().run();
-      } catch (InterruptedException e) {
-        return;
       } catch (Throwable e) {
+        if (Tools.isAnyInterrupted(e)) return;
         Log.stacktrace("mx networkThread", e);
       }
     }
