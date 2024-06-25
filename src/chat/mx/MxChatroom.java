@@ -734,7 +734,7 @@ public class MxChatroom extends Chatroom {
     
     Runnable done = m.doAction("loading message context...");
     int action = roomChangeCounter.next();
-    u.queueRequest(() -> r.msgContext(MxRoom.roomEventFilter(!hasFullUserList()), msgId, 100), c -> {
+    u.queueRequest(() -> r.msgContext(currMemberFilter(), msgId, 100), c -> {
       loadQuestionableMemberState(c);
       done.run();
       if (roomChangeCounter.superseded(action)) return;
@@ -742,6 +742,11 @@ public class MxChatroom extends Chatroom {
       found.accept(c!=null);
     });
   }
+  
+  public Obj currMemberFilter() {
+    return MxRoom.roomEventFilter(!hasFullUserList());
+  }
+  
   private void toTranscript(String highlightID, MxRoom.Chunk c) {
     MxTranscriptView v = new MxTranscriptView(this, c);
     m.toTranscript(v, v.log.get(highlightID));

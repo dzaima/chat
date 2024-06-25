@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.*;
-import dzaima.utils.Log;
+import dzaima.utils.*;
 import libMx.MxRoom;
 
 public class MxTranscriptView extends TranscriptView {
@@ -53,10 +53,12 @@ public class MxTranscriptView extends TranscriptView {
     String tok = tokB;
     tokB = null;
     Log.fine("mx", "Loading older messages in transcript");
-    r.u.queueRequest(() -> r.r.beforeTok(null, tok, 50), r -> {
-      if (r.events.isEmpty()) return;
-      log.addEvents(r.events, false);
-      tokB = r.eTok;
+    JSON.Obj filter = r.currMemberFilter();
+    r.u.queueRequest(() -> r.r.beforeTok(filter, tok, 50), c -> {
+      r.loadQuestionableMemberState(c);
+      if (c.events.isEmpty()) return;
+      log.addEvents(c.events, false);
+      tokB = c.eTok;
     });
   }
   public void newer() {
@@ -64,10 +66,12 @@ public class MxTranscriptView extends TranscriptView {
     String tok = tokF;
     tokF = null;
     Log.fine("mx", "Loading newer messages in transcript");
-    r.u.queueRequest(() -> r.r.afterTok(null, tok, 50), r -> {
-      if (r.events.isEmpty()) return;
-      log.addEvents(r.events, true);
-      tokF = r.eTok;
+    JSON.Obj filter = r.currMemberFilter();
+    r.u.queueRequest(() -> r.r.afterTok(filter, tok, 50), c -> {
+      r.loadQuestionableMemberState(c);
+      if (c.events.isEmpty()) return;
+      log.addEvents(c.events, true);
+      tokF = c.eTok;
     });
   }
   

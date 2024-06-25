@@ -220,7 +220,7 @@ public class MxLiveView extends LiveView {
     if (System.currentTimeMillis()<nextOlder) return;
     nextOlder = Long.MAX_VALUE;
     Log.fine("mx", "Loading older messages in "+r.prettyID()+"+"+log.prettyID());
-    JSON.Obj filter = MxRoom.roomEventFilter(!r.hasFullUserList());
+    JSON.Obj filter = r.currMemberFilter();
     r.u.queueRequest(() -> {
       int n = r.globalLog().size() < 50? 50 : 100;
       if (log.isMain()) return r.r.beforeTok(filter, prevBatch, n);
