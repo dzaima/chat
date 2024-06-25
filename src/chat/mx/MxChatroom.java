@@ -317,22 +317,21 @@ public class MxChatroom extends Chatroom {
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
-  private void renderTyping(Vec<Username> names) {
+  private void renderTyping(Vec<Username> allNames) {
+    Vec<Username> known = allNames.filter(c -> c.full.isResolved());
     StringBuilder typing = new StringBuilder();
-    int l = names.size();
+    int l = known.size();
     for (int i = 0; i < l; i++) {
       if (i>0) typing.append(i==l-1? " and " : ", ");
-      Username c = names.get(i);
+      Username c = known.get(i);
       typing.append(c.best());
     }
     if (l>0) typing.append(l>1? " are typing …" : " is typing …");
     this.typing = typing.toString();
     m.updActions();
     
-    Vec<Username> unresolved = names.filter(c -> !c.full.isResolved());
-    if (unresolved.sz!=0) Promise.all(ignored -> {
-      renderTyping(names);
-    }, unresolved.map(c -> c.full));
+    Vec<Username> unknown = allNames.filter(c -> !c.full.isResolved());
+    if (unknown.sz!=0) Promise.all(ignored -> renderTyping(allNames), unknown.map(c -> c.full));
   }
   
   public void setReceipt(MxLog l, String uid, String mid) {
