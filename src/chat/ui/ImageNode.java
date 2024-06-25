@@ -5,6 +5,7 @@ import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
+import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Tools;
 import io.github.humbleui.skija.Image;
 
@@ -20,6 +21,20 @@ public abstract class ImageNode extends Node {
       if (data!=null) f0 = Image.makeDeferredFromEncodedBytes(data);
     } catch (Throwable ignored) { }
     this.f0 = f0;
+    if (f0!=null) {
+      iw = f0.getWidth();
+      ih = f0.getHeight();
+    } else {
+      iw=ih=0;
+    }
+  }
+  
+  public ImageNode(Ctx ctx, int w, int h, Node placeholder) {
+    super(ctx, Props.none());
+    f0 = null;
+    iw = w;
+    ih = h;
+    add(placeholder);
   }
   
   public boolean loadableImage() { return f0!=null; }
@@ -38,11 +53,6 @@ public abstract class ImageNode extends Node {
   float scale, aspect;
   int iw, ih, wMin, hMin, wMax, hMax;
   public void propsUpd() {
-    if (f0!=null) {
-      iw = f0.getWidth();
-      ih = f0.getHeight();
-    } else iw=ih=0;
-    
     wMax = maxTotW();
     hMax = maxTotH();
     wMin = Math.min(minTotW(), wMax);
@@ -58,15 +68,24 @@ public abstract class ImageNode extends Node {
     }
   }
   
-  public int minW() { return wMin; }
-  public int maxW() { return wMax; }
+  public int minW() { return ch.sz==0? wMin : Math.max(wMin, ch.get(0).minW()); }
+  public int maxW() { return ch.sz==0? wMax : Math.max(wMax, ch.get(0).maxW()); }
   
-  public int minH(int w) {
+  public int minH(int w) { return ch.sz==0? imgH(w) : Math.max(imgH(w), ch.get(0).minH(w)); }
+  public int maxH(int w) { return ch.sz==0? imgH(w) : Math.max(imgH(w), ch.get(0).maxH(w)); }
+  
+  private int imgH(int w) {
     w = Math.min(w, wMax);
     return Tools.constrain((int) (w/aspect), hMin, hMax);
   }
-  public int maxH(int w) {
-    return minH(w);
+  
+  protected void resized() {
+    if (ch.sz==1) {
+      Node c = ch.get(0);
+      int cw = Math.min(w, c.maxW());
+      int ch = Math.min(h, c.maxH(cw));
+      c.resize(cw, ch, 0, 0);
+    } else super.resized();
   }
   
   boolean animInitiated;
@@ -113,6 +132,7 @@ public abstract class ImageNode extends Node {
   }
   public static class InlineImageNode extends ImageNode {
     public InlineImageNode(Ctx ctx, byte[] data) { super(ctx, data); }
+    public InlineImageNode(Ctx ctx, int w, int h, Node node) { super(ctx, w, h, node); }
     public int minTotW() { return gc.len(this, "minW", "chat.image.minW"); }
     public int minTotH() { return gc.len(this, "minH", "chat.image.minH"); }
     public int maxTotW() { return gc.len(this, "maxW", "chat.image.maxW"); }

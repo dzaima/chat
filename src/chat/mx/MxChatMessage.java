@@ -8,6 +8,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
 import dzaima.utils.*;
+import dzaima.utils.JSON.Obj;
 import libMx.*;
 
 import java.util.function.Consumer;
@@ -67,7 +68,7 @@ public class MxChatMessage extends MxChatEvent {
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
         Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
-        JSON.Obj filter = MxRoom.roomEventFilter(true);
+        Obj filter = MxRoom.roomEventFilter(true);
         filter.put("types", JSON.Arr.of("m.room.message", "m.room.member"));
         r.u.queueRequest(() -> r.r.msgContext(filter, m0.replyId, 0), ctx -> {
           ok: if (ctx!=null) {
@@ -110,11 +111,14 @@ public class MxChatMessage extends MxChatEvent {
   
         String linkURL = getURL(false);
         if (s>0 && safeURL!=null) {
-          TextNode tmpLink = HTMLParser.link(r, linkURL, LinkType.IMG);
-          tmpLink.add(n.ctx.makeHere(n.gc.getProp("chat.msg.imageLoadingP").gr()));
-          r.m.updMessage(this, tmpLink, live);
-  
+          int tw = Obj.path(m0.ct, JSON.Num.ZERO, "info", "w").asInt();
+          int th = Obj.path(m0.ct, JSON.Num.ZERO, "info", "h").asInt();
+          
           String rawURL = getRawURL();
+          boolean isMxc = MxServer.isMxc(rawURL);
+          ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, tw, th, n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
+          r.m.updMessage(this, HTMLParser.inlineImagePlaceholder(r.u, isMxc? r.u.s.mxcToURL(rawURL) : rawURL, placeholder), live);
+          
           int expect = bodyUpdateCtr;
           Consumer<Node> got = n -> {
             if (!visible) return;
@@ -124,8 +128,8 @@ public class MxChatMessage extends MxChatEvent {
               r.m.updMessage(this, n, false);
             }
           };
-  
-          if (MxServer.isMxc(rawURL) && !JSON.Obj.path(e0.ct, JSON.Str.E, "info", "mimetype").str().equals("image/gif")) { // TODO checking for gif specifically is stupid
+          
+          if (isMxc && !Obj.path(e0.ct, JSON.Str.E, "info", "mimetype").str().equals("image/gif")) { // TODO checking for gif specifically is stupid
             r.u.loadMxcImg(rawURL, got, ImageNode.InlineImageNode::new, r.m.gc.getProp("chat.image.maxW").len(), r.m.gc.getProp("chat.image.maxH").len(), MxServer.ThumbnailMode.SCALE, () -> true);
           } else {
             r.u.loadImg(safeURL, got, ImageNode.InlineImageNode::new, () -> true);
@@ -147,7 +151,7 @@ public class MxChatMessage extends MxChatEvent {
         if (url==null) {
           r.m.updMessage(this, new StringNode(n.ctx, "(no URL for file provided)"), live);
         } else {
-          String mime = m0.ct.obj("info", JSON.Obj.E).str("mimetype", "");
+          String mime = m0.ct.obj("info", Obj.E).str("mimetype", "");
           LinkType t = LinkType.UNK;
           if (type.equals("m.file") && mime.startsWith("text/")) t = LinkType.TEXT;
           
