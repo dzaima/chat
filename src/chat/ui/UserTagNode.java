@@ -6,6 +6,7 @@ import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
+import dzaima.utils.Log;
 
 public class UserTagNode extends TextNode {
   private final ChatMain m;

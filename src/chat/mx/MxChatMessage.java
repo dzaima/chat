@@ -1,6 +1,6 @@
 package chat.mx;
 
-import chat.ChatEvent;
+import chat.*;
 import chat.ui.Extras.LinkType;
 import chat.ui.*;
 import chat.utils.HTMLParser;

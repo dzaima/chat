@@ -294,7 +294,8 @@ public class MxChatroom extends Chatroom {
       switch (ev.str("type", "")) {
         case "m.typing":
           Vec<String> uids = Vec.ofIterable(ct.arr("user_ids").strs());
-          renderTyping(uids);
+          Vec<Username> names = uids.map(c -> getUsername(c, true));
+          renderTyping(names);
           break;
         case "m.receipt":
           for (Entry msg : ct.entries()) {
@@ -316,17 +317,22 @@ public class MxChatroom extends Chatroom {
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
-  private void renderTyping(Vec<String> uids) {
+  private void renderTyping(Vec<Username> names) {
     StringBuilder typing = new StringBuilder();
-    Vec<Username> names = uids.map(c -> getUsername(c, true));
     int l = names.size();
     for (int i = 0; i < l; i++) {
       if (i>0) typing.append(i==l-1? " and " : ", ");
-      typing.append(names.get(i).best());
+      Username c = names.get(i);
+      typing.append(c.best());
     }
     if (l>0) typing.append(l>1? " are typing …" : " is typing …");
     this.typing = typing.toString();
     m.updActions();
+    
+    Vec<Username> unresolved = names.filter(c -> !c.full.isResolved());
+    if (unresolved.sz!=0) Promise.all(ignored -> {
+      renderTyping(names);
+    }, unresolved.map(c -> c.full));
   }
   
   public void setReceipt(MxLog l, String uid, String mid) {
@@ -646,7 +652,7 @@ public class MxChatroom extends Chatroom {
   public Username getUsername(String uid, boolean requestForFuture) {
     assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
-    Promise<String> full = d==null? null : Promise.resolved(d.username);
+    Promise<String> full = d==null? null : Promise.resolved(calcBestUsername(uid, d));
     if (full==null && requestForFuture) full = inProgressUserLoads.computeIfAbsent(uid, uid1 -> Promise.create(res -> {
       Log.fine("mx users", "retrieving full member state for "+uid+" in " + prettyID());
       u.queueRequest(() -> r.getMemberState(uid), e -> {
@@ -657,12 +663,17 @@ public class MxChatroom extends Chatroom {
         } else {
           loadQuestionableMemberState(e);
         }
-        res.set(userData.get(uid).username);
+        res.set(calcBestUsername(uid, userData.get(uid)));
       });
     }));
     
-    return new Username(d==null || d.username==null? uid.split(":")[0].substring(1) : d.username, full);
+    return new Username(calcBestUsername(uid, d), full);
   }
+  
+  private static String calcBestUsername(String uid, UserData d) {
+    return d==null || d.username==null? uid.split(":")[0].substring(1) : d.username;
+  }
+  
   public String onlyDisplayname(String uid) {
     UserData d = userData.get(uid);
     return d==null? null : d.username;
