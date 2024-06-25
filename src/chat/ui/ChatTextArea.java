@@ -110,10 +110,10 @@ public class ChatTextArea extends CodeAreaNode {
       
       if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && v instanceof MxLiveView) {
         String curr = get(1, 0, c.sx, 0);
-        Vec<MxChatroom.MxCommand> cmds = ((MxLiveView) v).r.commands.filter(cmd -> cmd.name.contains(curr));
+        Vec<Command> cmds = ((MxLiveView) v).r.commands.filter(cmd -> cmd.name.contains(curr));
         cmds.sort(Comparator.comparing(cmd -> cmd.name));
         if (cmds.sz==1 && cmds.get(0).name.equals(curr)) cmds.clear();
-        for (MxChatroom.MxCommand cmd : cmds) entries.add(new Pair<>("/"+cmd.name, "/"+cmd.name+(cmd.hasArgs? " " : "")));
+        for (Command cmd : cmds) entries.add(new Pair<>("/"+cmd.name, "/"+cmd.name+(cmd.hasArgs? " " : "")));
         if (entries.sz > 0) {
           tag = "cmd;"+curr;
           selY = 0;
@@ -182,12 +182,15 @@ public class ChatTextArea extends CodeAreaNode {
     if (s.isEmpty()) return;
     
     if (editing!=null) {
-      if (getAll().equals(editing.getSrc())) return;
-      if (!v.edit(editing, s)) return;
+      if (!getAll().equals(editing.getSrc())) {
+        if (v.edit(editing, s)) clearFromSend();
+      }
     } else {
-      if (!v.post(s, replying==null? null : replying.id)) return;
+      if (v.post(s, replying==null? null : replying.id)) clearFromSend();
     }
-    
+  }
+  
+  public void clearFromSend() {
     markEdit(null);
     markReply(null);
     removeAll();

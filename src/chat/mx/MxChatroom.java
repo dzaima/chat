@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.Command.*;
 import chat.networkLog.NetworkLog;
 import chat.ui.*;
 import chat.utils.*;
@@ -88,59 +89,49 @@ public class MxChatroom extends Chatroom {
       unreadChanged();
     }
     
-    commands.add(new MxCommand("md", true, left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname))));
     
-    Function<String,MxFmt> text = left -> new MxFmt(left, Utils.toHTML(left, true));
-    commands.add(new MxCommand("text", true, text));
-    commands.add(new MxCommand("plain", true, text));
     
-    commands.add(new MxCommand("html", true, left -> new MxFmt(left, left)));
-    commands.add(new MxCommand("me", true, left -> {
-      MxFmt f = parse(left);
-      f.type = MxFmt.Type.EMOTE;
-      return f;
+    commands.add(new SimpleTestCommand("theme", left -> {
+      switch (left) {
+        case "light": m.setTheme(ChatMain.Theme.light); return true;
+        case "dark": m.setTheme(ChatMain.Theme.dark); return true;
+        default: return false;
+      }
     }));
-    commands.add(new MxCommand("goto", true, left -> {
-      u.openLink(left, Extras.LinkType.UNK, null);
-      return null;
-    }));
-    commands.add(new MxCommand("set-room-name", true, left -> {
-      u.queueNetwork(() -> r.setRoomName(left));
-      return null;
-    }));
-    commands.add(new MxIdArgCommand("join",   id -> u.queueNetwork(() -> u.u.join(u.u.s.room(id)))));
-    commands.add(new MxIdArgCommand("kick",   id -> u.queueNetwork(() -> r.kick  (id, null))));
-    commands.add(new MxIdArgCommand("ban",    id -> u.queueNetwork(() -> r.ban   (id, null))));
-    commands.add(new MxIdArgCommand("unban",  id -> u.queueNetwork(() -> r.unban (id      ))));
-    commands.add(new MxIdArgCommand("invite", id -> u.queueNetwork(() -> r.invite(id, null))));
-    commands.add(new MxIdArgCommand("view-user", id -> ViewProfile.viewProfile(id, this)));
-    commands.add(new MxCommand("sort", false, left -> {
+    commands.add(new SimplePlainCommand("network-log", () -> NetworkLog.open(m)));
+    
+    
+    
+    commands.add(new SimpleArgCommand("goto", left -> u.openLink(left, Extras.LinkType.UNK, null)));
+    commands.add(new SimplePlainCommand("sort", () -> {
       MxLog l = visibleLog();
       if (l!=null) {
         l.list.sort(Comparator.comparing(k -> k.time));
         m.toView(m.view);
       }
-      return null;
     }));
-    commands.add(new MxCommand("theme", true, left -> {
-      switch (left) {
-        case "light": m.setTheme(ChatMain.Theme.light); break;
-        case "dark": m.setTheme(ChatMain.Theme.dark); break;
-      }
-      return null;
+    
+    Function<String,MxFmt> text = left -> new MxFmt(left, Utils.toHTML(left, true));
+    commands.add(new MxFmtCommand("text", true, text));
+    commands.add(new MxFmtCommand("plain", true, text));
+    commands.add(new MxFmtCommand("md", true, left -> new MxFmt(left, MDParser.toHTML(left, this::onlyDisplayname))));
+    commands.add(new MxFmtCommand("html", true, left -> new MxFmt(left, left)));
+    commands.add(new MxFmtCommand("me", true, left -> {
+      MxFmt f = parse(left);
+      f.type = MxFmt.Type.EMOTE;
+      return f;
     }));
-    commands.add(new MxCommand("set-nick-room", true, left -> {
-      u.queueNetwork(() -> u.u.setRoomNick(r, left));
-      return null;
-    }));
-    commands.add(new MxCommand("set-nick-global", true, left -> {
-      u.queueNetwork(() -> u.u.setGlobalNick(left));
-      return null;
-    }));
-    commands.add(new MxCommand("network-log", false, left -> {
-      NetworkLog.open(m);
-      return null;
-    }));
+    
+    commands.add(new SimpleArgCommand("set-nick-room", left -> u.queueNetwork(() -> u.u.setRoomNick(r, left))));
+    commands.add(new SimpleArgCommand("set-nick-global", left -> u.queueNetwork(() -> u.u.setGlobalNick(left))));
+    
+    commands.add(new SimpleArgCommand("set-room-name", left -> u.queueNetwork(() -> r.setRoomName(left))));
+    commands.add(new IdArgCommand("join",   id -> u.queueNetwork(() -> u.u.join(u.u.s.room(id)))));
+    commands.add(new IdArgCommand("kick",   id -> u.queueNetwork(() -> r.kick  (id, null))));
+    commands.add(new IdArgCommand("ban",    id -> u.queueNetwork(() -> r.ban   (id, null))));
+    commands.add(new IdArgCommand("unban",  id -> u.queueNetwork(() -> r.unban (id      ))));
+    commands.add(new IdArgCommand("invite", id -> u.queueNetwork(() -> r.invite(id, null))));
+    commands.add(new IdArgCommand("view-user", id -> ViewProfile.viewProfile(id, this)));
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
@@ -380,23 +371,22 @@ public class MxChatroom extends Chatroom {
     return new Pair<>(md, commands.linearFind(c -> Objects.equals(c.name, c0))!=null? c0.length()+1 : 0);
   }
   
-  public static class MxCommand {
-    public final String name;
-    public final boolean hasArgs;
+  public static class MxFmtCommand extends Command {
     public final Function<String, MxFmt> process;
-    
-    public MxCommand(String name, boolean hasArgs, Function<String, MxFmt> process) {
-      this.name = name;
-      this.hasArgs = hasArgs;
+    public MxFmtCommand(String name, boolean hasArgs, Function<String, MxFmt> process) {
+      super(name, hasArgs);
       this.process = process;
     }
+    public Object run(String s) { return process.apply(s); }
   }
-  public static class MxIdArgCommand extends MxCommand {
-    public MxIdArgCommand(String name, Consumer<String> id) {
-      super(name, true, left -> { id.accept(left.replace(" ", "")); return null; });
+  
+  
+  public static class IdArgCommand extends SimpleTestCommand {
+    public IdArgCommand(String name, Consumer<String> id) {
+      super(name, left -> { id.accept(left.replace(" ", "")); return true; });
     }
   }
-  public final Vec<MxCommand> commands = new Vec<>();
+  public final Vec<Command> commands = new Vec<>();
   public void delete(ChatEvent m) {
     u.queueNetwork(() -> r.s.primaryLogin.deleteMessage(r, m.id));
   }

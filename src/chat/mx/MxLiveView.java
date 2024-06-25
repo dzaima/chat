@@ -113,10 +113,11 @@ public class MxLiveView extends LiveView {
     String[] cmd = r.command(raw);
     getF: {
       if (cmd.length == 2) {
-        MxChatroom.MxCommand fn = r.commands.linearFind(c -> c.name.equals(cmd[0]));
+        Command fn = r.commands.linearFind(c -> c.name.equals(cmd[0]));
         if (fn == null) return false;
-        f = fn.process.apply(cmd[1]);
-        if (f == null) return true;
+        Object res = fn.run(cmd[1]);
+        if (res instanceof Boolean) return (boolean) res;
+        f = (MxFmt) res;
         break getF;
       }
       f = r.parse(raw);
