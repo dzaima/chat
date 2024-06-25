@@ -8,9 +8,7 @@ import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.VlNode;
 
 public abstract class BasicNetworkView extends LiveView {
-  protected BasicNetworkView(ChatMain m) {
-    super(m);
-  }
+  protected BasicNetworkView(ChatMain m) { super(m); }
   
   public final boolean typed(int codepoint) { return false; }
   public final boolean contains(ChatEvent ev) { return false; }

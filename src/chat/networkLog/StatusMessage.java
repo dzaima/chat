@@ -27,7 +27,7 @@ public class StatusMessage extends BasicChatEvent {
     Matcher m = MATRIX.matcher(p);
     if (m.find()) p = m.group(1) + " " + p.substring(m.group().length());
     
-    body = ri.rq.t.toString()+" "+p;
+    body = (l.m.users.sz==1? "" : ri.s.primaryLogin.uid+": ")+ri.rq.t.toString()+" "+p;
   }
   
   public static String fmtTime(Instant time) {
