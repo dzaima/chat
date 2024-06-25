@@ -27,7 +27,7 @@ public class StatusMessage extends BasicChatEvent {
     Matcher m = MATRIX.matcher(p);
     if (m.find()) p = m.group(1) + " " + p.substring(m.group().length());
     
-    body = (l.m.users.sz==1? "" : ri.s.primaryLogin.uid+": ")+ri.rq.t.toString()+" "+p;
+    body = (l.m.users.sz==1 || ri.uid==null? "" : ri.uid+": ")+ri.rq.t.toString()+" "+p;
   }
   
   public static String fmtTime(Instant time) {
@@ -65,8 +65,7 @@ public class StatusMessage extends BasicChatEvent {
   
   private static final HashMap<String, String> uniqueStrings = new HashMap<>();
   public String senderID() {
-    MxLogin l = ri.s==null? null : ri.s.primaryLogin;
-    return uniqueStrings.computeIfAbsent(ri.rq.t.toString()+" "+(l==null? "" : l.uid), s -> String.valueOf(uniqueStrings.size()));
+    return uniqueStrings.computeIfAbsent(ri.rq.t.toString()+" "+(ri.uid==null? "" : ri.uid), s -> String.valueOf(uniqueStrings.size()));
   }
   
   public class EventView extends BasicNetworkView {

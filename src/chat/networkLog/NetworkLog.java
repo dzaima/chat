@@ -152,6 +152,7 @@ public class NetworkLog extends BasicNetworkView {
     public final long id = idCtr.incrementAndGet();
     public final Instant start;
     public final MxServer s;
+    public final String uid;
     public final Utils.LoggableRequest rq;
     public enum Status { RUNNING, RETRYING, CANCELED, DONE, ERROR }
     public Status status = Status.RUNNING;
@@ -161,6 +162,11 @@ public class NetworkLog extends BasicNetworkView {
       this.s = s;
       this.rq = rq;
       this.start = start;
+      if (s==null) uid = null;
+      else {
+        MxLogin l = s.primaryLogin;
+        uid = l==null? null : l.uid;
+      }
     }
   }
   public static class Event {
