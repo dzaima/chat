@@ -102,7 +102,16 @@ public class MxChatroom extends Chatroom {
     
     
     
-    commands.add(new SimpleArgCommand("goto", left -> u.openLink(left, Extras.LinkType.UNK, null)));
+    commands.add(new SimpleArgCommand("goto", left -> {
+      if (left.startsWith("!") || left.startsWith("#")) {
+        MxChatroom r = u.findRoom(left);
+        if (r!=null) {
+          m.toRoom(r.mainView());
+          return;
+        }
+      }
+      u.openLink(left, Extras.LinkType.UNK, null);
+    }));
     commands.add(new SimplePlainCommand("sort", () -> {
       MxLog l = visibleLog();
       if (l!=null) {
