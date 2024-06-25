@@ -115,21 +115,25 @@ public class MsgExtraNode extends InlineNode {
   public void tickExtra() {
     if (r.m.hoverPopup!=null) return;
     if (receiptPara!=null && receiptPara.hover) {
-      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, true).best(), () -> ViewProfile.viewProfile(c, r)))); // TODO refresh on full username
+      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, true), () -> ViewProfile.viewProfile(c, r))));
     }
   }
-  private void hoverPopup(ParaNode source, Vec<Pair<String, Runnable>> lines) {
+  private void hoverPopup(ParaNode source, Vec<Pair<Chatroom.Username, Runnable>> lines) {
     Box<NodeVW> vw1 = new Box<>();
     PartialMenu pm = new PartialMenu(gc);
-    lines.sort(Comparator.comparing(c -> c.a));
-    for (Pair<String, Runnable> l : lines) pm.add(l.a, l.b);
-    r.m.hoverPopup = pm.openCustom(null, () -> r.m.hoverPopup = null, (gr, c) -> {
+    lines.sort(Comparator.comparing(c -> c.a.best()));
+    Vec<Pair<Chatroom.Username, String>> us = lines.map(l -> new Pair<>(l.a, pm.add(l.a.best(), l.b)));
+    Popup.RightClickMenu m = r.m.hoverPopup = pm.openCustom(null, () -> r.m.hoverPopup = null, (gr, c) -> {
       HoverPopup p = new HoverPopup(ctx, c) {
         public boolean shouldClose() { return !source.hover && !vw1.get().mIn; }
       };
       vw1.set(p.openVW(gc, ctx, gr, true));
       return p;
     });
+    
+    for (Pair<Chatroom.Username, String> u : us) {
+      if (!u.a.full.isResolved()) u.a.full.then(full -> PartialMenu.updateText(m, u.b, full));
+    }
   }
   
   public static abstract class HoverPopup extends Popup.RightClickMenu {
