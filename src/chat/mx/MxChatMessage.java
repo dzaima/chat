@@ -77,6 +77,7 @@ public class MxChatMessage extends MxChatEvent {
             MxEvent member = new Vec<>(ctx.states).linearFind(c -> c.type.equals("m.room.member") && c.o.str("state_key","").equals(c.uid));
             String displayname = member==null? null : member.ct.str("displayname", null);
             if (displayname==null) displayname = r.getUsername(msg.uid, true).best();
+            r.loadQuestionableMemberState(ctx);
             
             bodyPrefix = r.pill(msg, msg.uid, displayname) + " ";
             updateBody(false);
