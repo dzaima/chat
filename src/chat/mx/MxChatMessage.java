@@ -110,13 +110,12 @@ public class MxChatMessage extends MxChatEvent {
         };
   
         String linkURL = getURL(false);
+        Obj info = Obj.path(e0.ct, Obj.E, "info").obj(Obj.E);
         if (s>0 && safeURL!=null) {
-          int tw = Obj.path(m0.ct, JSON.Num.ZERO, "info", "w").asInt();
-          int th = Obj.path(m0.ct, JSON.Num.ZERO, "info", "h").asInt();
           
           String rawURL = getRawURL();
           boolean isMxc = MxServer.isMxc(rawURL);
-          ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, tw, th, n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
+          ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, info.getInt("w", 0), info.getInt("h", 0), n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           r.m.updMessage(this, HTMLParser.inlineImagePlaceholder(r.u, isMxc? r.u.s.mxcToURL(rawURL) : rawURL, placeholder), live);
           
           int expect = bodyUpdateCtr;
@@ -129,7 +128,7 @@ public class MxChatMessage extends MxChatEvent {
             }
           };
           
-          if (isMxc && !Obj.path(e0.ct, JSON.Str.E, "info", "mimetype").str().equals("image/gif")) { // TODO checking for gif specifically is stupid
+          if (isMxc && !info.str("mimetype", "").equals("image/gif")) { // TODO checking for gif specifically is stupid
             r.u.loadMxcImg(rawURL, got, ImageNode.InlineImageNode::new, r.m.gc.getProp("chat.image.maxW").len(), r.m.gc.getProp("chat.image.maxH").len(), MxServer.ThumbnailMode.SCALE, () -> true);
           } else {
             r.u.loadImg(safeURL, got, ImageNode.InlineImageNode::new, () -> true);
