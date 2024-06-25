@@ -48,7 +48,7 @@ public class NetworkLog extends BasicNetworkView {
       public LiveView mainView() { throw new RuntimeException("NetworkLog mainVew"); }
       public ChatEvent find(String id) { return null; } // TODO?
       public UnreadInfo unreadInfo() { return UnreadInfo.NONE; }
-      public String getUsername(String uid, boolean nullIfUnknown) { return uid; }
+      public Username getUsername(String uid, boolean nullIfUnknown) { return new Username(uid, Promise.resolved(uid)); }
       public void cfgUpdated() { }
       public String asCodeblock(String s) { return null; }
       public URLRes parseURL(String src) { return new URLRes(src, true); }

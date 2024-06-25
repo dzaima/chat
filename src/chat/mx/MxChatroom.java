@@ -293,16 +293,8 @@ public class MxChatroom extends Chatroom {
       Obj ct = ev.obj("content", Obj.E);
       switch (ev.str("type", "")) {
         case "m.typing":
-          StringBuilder typing = new StringBuilder();
-          Vec<String> ids = Vec.ofIterable(ct.arr("user_ids").strs()).map(c -> getUsername(c, true, true)).filter(Objects::nonNull);
-          int l = ids.size();
-          for (int i = 0; i < l; i++) {
-            if (i>0) typing.append(i==l-1? " and " : ", ");
-            typing.append(ids.get(i));
-          }
-          if (l>0) typing.append(l>1? " are typing …" : " is typing …");
-          this.typing = typing.toString();
-          m.updActions();
+          Vec<String> uids = Vec.ofIterable(ct.arr("user_ids").strs());
+          renderTyping(uids);
           break;
         case "m.receipt":
           for (Entry msg : ct.entries()) {
@@ -322,6 +314,19 @@ public class MxChatroom extends Chatroom {
       unreadChanged();
     }
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
+  }
+  
+  private void renderTyping(Vec<String> uids) {
+    StringBuilder typing = new StringBuilder();
+    Vec<Username> names = uids.map(c -> getUsername(c, true));
+    int l = names.size();
+    for (int i = 0; i < l; i++) {
+      if (i>0) typing.append(i==l-1? " and " : ", ");
+      typing.append(names.get(i).best());
+    }
+    if (l>0) typing.append(l>1? " are typing …" : " is typing …");
+    this.typing = typing.toString();
+    m.updActions();
   }
   
   public void setReceipt(MxLog l, String uid, String mid) {
@@ -637,22 +642,26 @@ public class MxChatroom extends Chatroom {
     return mainLiveView;
   }
   
-  private final HashSet<String> inProgressUserLoads = new HashSet<>();
-  public String getUsername(String uid, boolean nullIfUnknown, boolean requestForFuture) {
+  private final HashMap<String, Promise<String>> inProgressUserLoads = new HashMap<>();
+  public Username getUsername(String uid, boolean requestForFuture) {
     assert uid.startsWith("@") : uid;
     UserData d = userData.get(uid);
-    if (d==null && requestForFuture && inProgressUserLoads.add(uid)) {
-      Log.fine("mx users", "retrieving full member state for "+uid+" in "+prettyID());
+    Promise<String> full = d==null? null : Promise.resolved(d.username);
+    if (full==null && requestForFuture) full = inProgressUserLoads.computeIfAbsent(uid, uid1 -> Promise.create(res -> {
+      Log.fine("mx users", "retrieving full member state for "+uid+" in " + prettyID());
       u.queueRequest(() -> r.getMemberState(uid), e -> {
         inProgressUserLoads.remove(uid);
         if (e == null) {
           Log.warn("mx users", "Couldn't get member state of "+uid);
           userData.computeIfAbsent(uid, s -> new UserData());
-        } else loadQuestionableMemberState(e);
+        } else {
+          loadQuestionableMemberState(e);
+        }
+        res.set(userData.get(uid).username);
       });
-    }
-    if (d==null || d.username==null) return uid.split(":")[0].substring(1);
-    return d.username;
+    }));
+    
+    return new Username(d==null || d.username==null? uid.split(":")[0].substring(1) : d.username, full);
   }
   public String onlyDisplayname(String uid) {
     UserData d = userData.get(uid);

@@ -2,7 +2,6 @@ package chat.ui;
 
 import chat.*;
 import chat.mx.*;
-import dzaima.ui.eval.PNodeGroup;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.gui.io.Click;
@@ -116,7 +115,7 @@ public class MsgExtraNode extends InlineNode {
   public void tickExtra() {
     if (r.m.hoverPopup!=null) return;
     if (receiptPara!=null && receiptPara.hover) {
-      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, false, true), () -> ViewProfile.viewProfile(c, r))));
+      hoverPopup(receiptPara, Vec.ofCollection(receipts).map(c -> new Pair<>(r.getUsername(c, true).best(), () -> ViewProfile.viewProfile(c, r)))); // TODO refresh on full username
     }
   }
   private void hoverPopup(ParaNode source, Vec<Pair<String, Runnable>> lines) {

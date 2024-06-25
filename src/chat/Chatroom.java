@@ -39,7 +39,13 @@ public abstract class Chatroom {
   public abstract void cfgUpdated();
   
   public void tick() { muteState.tick(); }
-  public abstract String getUsername(String uid, boolean nullIfUnknown, boolean requestForFuture);
+  public static class Username {
+    public final String fast; // never null
+    public final Promise<String> full; // if requestForFuture, always non-null; else, null or resolved
+    public Username(String fast, Promise<String> full) { this.fast = fast; this.full=full; }
+    public String best() { return full!=null && full.isResolved()? full.get() : fast; }
+  }
+  public abstract Username getUsername(String uid, boolean requestForFuture);
   
   
   
