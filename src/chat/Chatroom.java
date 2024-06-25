@@ -8,6 +8,8 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.*;
 
+import java.util.function.BiConsumer;
+
 public abstract class Chatroom {
   public final ChatMain m;
   public final RoomListNode.RoomNode node;
@@ -44,6 +46,11 @@ public abstract class Chatroom {
     public final Promise<String> full; // if requestForFuture, always non-null; else, null or resolved
     public Username(String fast, Promise<String> full) { this.fast = fast; this.full=full; }
     public String best() { return full!=null && full.isResolved()? full.get() : fast; }
+    
+    public void doubleName(BiConsumer<String, Boolean> name) {
+      if (!full.isResolved()) name.accept(fast, true);
+      full.then(s -> name.accept(s, false));
+    }
   }
   public abstract Username getUsername(String uid, boolean requestForFuture);
   

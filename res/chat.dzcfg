@@ -300,7 +300,7 @@ chat {
     }
     ui = pad { x=0.5em
       v { pad=.5em
-        h { h=min alX=center copymenu { text="Copy name" stext { ibeam=true tsz=1.05em id=name } } }
+        h { h=min alX=center copymenu { text="Copy name" stext { ibeam=true tsz=1.05em id=name "" } } }
         h { h=min alX=center copymenu { text="Copy ID"   stext { ibeam=true tsz=1.05em id=server color=chat.info.colID family=chat.code.familyUI } } }
         h { h=min alX=center id=image }
         chat.rightPanel.$sep { }

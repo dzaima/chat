@@ -17,7 +17,8 @@ public class ViewProfile {
   final ChatMain m;
   final Node base, more;
   final String me;
-  final String username, uid;
+  final String uid;
+  final Chatroom.Username username;
   final MxChatroom.UserData data;
   boolean banned;
   
@@ -27,7 +28,7 @@ public class ViewProfile {
     this.base = m.ctx.make(m.gc.getProp("chat.profile.ui").gr());
     this.more = base.ctx.id("more");
     this.data = viewedRoom.userData.get(uid);
-    this.username = viewedRoom.getUsername(uid, true).best();
+    this.username = viewedRoom.getUsername(uid, true);
     this.uid = uid;
     this.me = viewedRoom.u.id();
   }
@@ -55,7 +56,7 @@ public class ViewProfile {
       protected void unfocused() { close(); }
       protected void setup() { }
       protected void preSetup() {
-        node.ctx.id("username").add(new StringNode(m.ctx, username));
+        node.ctx.id("username").add(new StringNode(m.ctx, username.best()));
         Node r = node.ctx.idNullable("room");
         if (r!=null) r.add(new StringNode(m.ctx, ViewProfile.this.viewedRoom.title()));
         ((BtnNode) node.ctx.id("cancel")).setFn(b -> close());
@@ -91,7 +92,8 @@ public class ViewProfile {
   Node banRow, autobanRow;
   public void run() {
     m.rightPanel.make("users", viewedRoom::viewUsers).add(base);
-    base.ctx.id("name").add(new StringNode(m.ctx, username));
+    username.doubleName((name, lazy) -> base.ctx.id("name").replace(0, new StringNode(m.ctx, name)));
+    
     base.ctx.id("server").add(new StringNode(m.ctx, uid));
     
     if (data!=null && data.avatar!=null) {
