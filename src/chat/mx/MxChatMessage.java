@@ -58,11 +58,12 @@ public class MxChatMessage extends MxChatEvent {
   public void updateBody(boolean live) {
     bodyUpdateCtr++;
     
-    if (visible && m0.replyId!=null && !replyRequested) {
+    if ((visible || live) && m0.replyId!=null && !replyRequested) { // `|| live` to get pings
       replyRequested = true;
       MxChatEvent tg = r.editRootEvent(m0.replyId);
       if (tg!=null) {
         String uid = tg.e0.uid;
+        if (live && r.u.u.uid.equals(uid)) addPingFromThis();
         String name = tg.senderDisplay();
         if (name==null || name.isEmpty()) name = r.getUsername(uid, true).best();
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
@@ -80,6 +81,7 @@ public class MxChatMessage extends MxChatEvent {
             if (displayname==null) displayname = r.getUsername(msg.uid, true).best();
             r.loadQuestionableMemberState(ctx);
             
+            if (live && r.u.u.uid.equals(msg.uid)) addPingFromThis();
             bodyPrefix = r.pill(msg, msg.uid, displayname) + " ";
             updateBody(false);
             return;
@@ -167,11 +169,7 @@ public class MxChatMessage extends MxChatEvent {
           n.add(disp);
           disp = n;
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
-        if (live && containsMyPill(disp)) {
-          Vec<MxLog> ls = r.allLogsOf(e0);
-          for (MxLog l : ls) r.addPing(l, this);
-          r.unreadChanged();
-        }
+        if (live && containsMyPill(disp)) addPingFromThis();
         
         if (!visible) return;
         r.m.updMessage(this, disp, live);
@@ -179,6 +177,10 @@ public class MxChatMessage extends MxChatEvent {
     }
   }
   
+  private void addPingFromThis() {
+    for (MxLog l : r.allLogsOf(e0)) r.addPing(l, this);
+    r.unreadChanged();
+  }
   
   private String getRawURL() {
     return m0.ct.str("url", null);
