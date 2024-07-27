@@ -451,17 +451,21 @@ public class MxChatroom extends Chatroom {
       Log.info("mx users", "Getting full user list of "+prettyID());
       assert memberEventsToProcess==null;
       String tk = u.currentSyncToken;
+      Runnable processIntermediate = () -> {
+        for (Obj c : memberEventsToProcess) processMemberEvent(c, true, false);
+        Log.info("mx users", "Got full user list of "+prettyID());
+        memberEventsToProcess = null;
+      };
       memberEventsToProcess = new Vec<>();
       u.queueRequest(() -> r.getFullMemberState(tk), us -> {
         if (us==null) {
           Log.warn("mx users", "Couldn't get full user list");
+          processIntermediate.run();
           fullUserList = null;
           return;
         }
         for (Obj c : us.objs()) processMemberEvent(c, false, false);
-        for (Obj c : memberEventsToProcess) processMemberEvent(c, true, false);
-        Log.info("mx users", "Got full user list of "+prettyID());
-        memberEventsToProcess = null;
+        processIntermediate.run();
         res.set(userData);
         joinedCount = Vec.ofCollection(userData.values()).filter(c -> c.s==MxChatroom.UserStatus.JOINED).sz;
       });
