@@ -444,7 +444,7 @@ public class MxChatUser extends ChatUser {
     pasteMap.put("Java", "Java");
     pasteMap.put("singeli", "Singeli");
     // pasteMap.put("JS", "");
-    // pasteMap.put("asm", "");
+    pasteMap.put("asm", "x86 assembly");
     // pasteMap.put("k", "");
     // pasteMap.put("py", "");
     // pasteMap.put("svg", "");
