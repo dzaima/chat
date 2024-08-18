@@ -46,10 +46,10 @@ public abstract class ChatEvent {
   
   public boolean visible; // TODO remove in favor of n!=null
   public MsgNode n;
-  public MsgNode show(boolean live, boolean asContext) {
+  public MsgNode show(boolean newAtEnd, boolean asContext) {
     assert !visible; visible = true;
     n = MsgNode.create(this, asContext);
-    updateBody(live);
+    updateBody(newAtEnd, false);
     return n;
   }
   public void hide() {
@@ -75,7 +75,7 @@ public abstract class ChatEvent {
   public abstract boolean isDeleted();
   
   public abstract String getSrc();
-  public abstract void updateBody(boolean live); // should call m.updMessage(this, bodyNode, live) (and potentially later again with live=false)
+  public abstract void updateBody(boolean newAtEnd, boolean ping); // should call r.m.updMessage(this, newBodyNode, newAtEnd);
   
   public abstract void markRel(boolean on);
   public abstract void rightClick(Click c, int x, int y);

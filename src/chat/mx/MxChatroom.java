@@ -83,11 +83,6 @@ public class MxChatroom extends Chatroom {
         setOfficialName(n.toString());
       }
     }
-    if (status0!=MyStatus.INVITED) {
-      unreads.clear();
-      pings.clear();
-      unreadChanged();
-    }
     
     
     
@@ -265,7 +260,7 @@ public class MxChatroom extends Chatroom {
       boolean earlyAdd = mxEv.type.equals("m.room.member") && !userData.containsKey(mxEv.uid);
       if (earlyAdd) anyEvent(ev, live);
       
-      MxChatEvent newObj = pushMsg(mxEv);
+      MxChatEvent newObj = pushMsg(mxEv, live);
       if (newObj!=null) {
         lastVisible = mxEv.id;
         if (live && mxEv.m!=null && u.autoban.contains(mxEv.m.uid)) {
@@ -535,27 +530,27 @@ public class MxChatroom extends Chatroom {
     unreads.add(l, e);
   }
   
-  public MxChatEvent pushMsg(MxEvent e) { // returns the event object if it's visible on the timeline
-    MxChatEvent cm = primaryLogOf(e).pushEventAtEnd(e);
+  public MxChatEvent pushMsg(MxEvent e, boolean ping) { // returns the event object if it's visible on the timeline
+    MxChatEvent cm = primaryLogOf(e).pushEventAtEnd(e, ping);
     maybeThreadRoot(cm);
-    
-    if (cm!=null) {
-      if (cm.increasesUnread()) for (MxLog c : allLogsOf(e)) addUnread(c, cm);
-    } else if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
-      MxChatEvent root = editRootEvent(e.m.editsId);
-      if (root!=null) for (MxLog c : allLogsOf(root.e0)) addUnread(c, root);
+    if (ping) {
+      if (cm!=null) {
+        if (cm.increasesUnread()) for (MxLog c : allLogsOf(e)) addUnread(c, cm);
+      } else if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
+        MxChatEvent root = editRootEvent(e.m.editsId);
+        if (root!=null) for (MxLog c : allLogsOf(root.e0)) addUnread(c, root);
+      }
+      unreadChanged();
     }
-    unreadChanged();
-    
     return cm;
   }
   
-  MxChatEvent processEvent(MxEvent e, boolean live) { // returns message that would be shown, or null if it's not to be displayed
+  MxChatEvent processEvent(MxEvent e, boolean newAtEnd, boolean ping) { // returns message that would be shown, or null if it's not to be displayed
     MxChatEvent known = allKnownEvents.get(e.id); // for when thread-specific pagination loads the event before the main pagination does; TODO impact on transcript?
     if (known!=null) return known;
     if (e.type.equals("m.reaction")) {
       Obj o = Obj.objPath(e.ct, Obj.E, "m.relates_to");
-      if (live) {
+      if (newAtEnd) {
         if (o.str("rel_type","").equals("m.annotation")) {
           String key = o.str("key", "");
           String r_id = o.str("event_id", "");
@@ -573,7 +568,7 @@ public class MxChatroom extends Chatroom {
           Log.warn("mx reaction", "Unknown content[\"m.relates_to\"].rel_type value");
         }
       }
-      return makeDebugNotice(e, live);
+      return makeDebugNotice(e, newAtEnd);
     } else if (e.type.equals("m.room.redaction")) {
       MxLog.Reaction re = reactions.get(e.o.str("redacts", ""));
       if (re!=null) {
@@ -581,27 +576,27 @@ public class MxChatroom extends Chatroom {
         reactions.remove(e.id);
         re.to.addReaction(re.key, -1);
       }
-      return makeDebugNotice(e, live);
+      return makeDebugNotice(e, newAtEnd);
     }
     
     if (e.m==null) {
-      return new MxChatNotice(this, e, live);
+      return new MxChatNotice(this, e, newAtEnd);
     } else {
       if (e.m.isEditEvent()) {
         String edits = editRootOf(e.m.editsId);
         editRoot.put(e.id, edits);
         MxChatEvent prev = editRootEvent(e.m.editsId);
-        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, live);
+        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, ping);
         else Log.fine("mx", e.id+" attempted to edit "+edits+", which is unknown; assuming out of log");
-        return makeDebugNotice(e, live);
+        return makeDebugNotice(e, newAtEnd);
       } else {
-        return new MxChatMessage(e.m, e, this, live);
+        return new MxChatMessage(e.m, e, this, newAtEnd, ping);
       }
     }
   }
   
-  public MxChatNotice makeDebugNotice(MxEvent e, boolean live) {
-    if (DEBUG_EVENTS) return new MxChatNotice(this, e, live);
+  public MxChatNotice makeDebugNotice(MxEvent e, boolean newAtEnd) {
+    if (DEBUG_EVENTS) return new MxChatNotice(this, e, newAtEnd);
     return null;
   }
   

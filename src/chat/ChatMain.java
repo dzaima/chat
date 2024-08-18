@@ -411,11 +411,11 @@ public class ChatMain extends NodeWindow {
     if (atEnd) msgsScroll.ignoreYE();
   }
   
-  public void updMessage(ChatEvent ce, Node body, boolean live) {
+  public void updMessage(ChatEvent ce, Node body, boolean newAtEnd) {
     boolean end = atEnd();
     newHover = true;
     ce.updBody(body);
-    if (end && toLast!=1) toLast = Math.max(toLast, live? 1 : 2);
+    if (end && toLast!=1) toLast = Math.max(toLast, newAtEnd? 1 : 2);
   }
   
   public void unreadChanged() {

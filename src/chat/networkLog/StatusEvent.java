@@ -20,7 +20,7 @@ public class StatusEvent extends BasicChatEvent {
     this.obj = ev.obj;
   }
   
-  public void updateBody(boolean live) {
+  public void updateBody(boolean newAtEnd, boolean ping) {
     String msg = ev.type;
     try {
       if (obj!=null) {
@@ -28,7 +28,7 @@ public class StatusEvent extends BasicChatEvent {
         msg+= ": "+(s.length()> MAX_PREVIEW? s.substring(0, MAX_PREVIEW)+"…" : s);
       }
     } catch (Throwable ignored) { msg+= "; error while formatting"; }
-    l.m.updMessage(this, new StringNode(l.m.ctx, msg), live);
+    l.m.updMessage(this, new StringNode(l.m.ctx, msg), ping);
   }
   
   public String senderID() { return ev.type; }

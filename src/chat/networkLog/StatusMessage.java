@@ -35,7 +35,7 @@ public class StatusMessage extends BasicChatEvent {
     return t.withNano(t.getNano()/1000000*1000000).toString();
   }
   
-  public void updateBody(boolean live) {
+  public void updateBody(boolean newAtEnd, boolean ping) {
     Ctx.WindowCtx ctx = l.m.ctx;
     TextNode n = new TextNode(ctx, Props.none());
     
@@ -46,7 +46,7 @@ public class StatusMessage extends BasicChatEvent {
     n.add(status);
     
     n.add(new StringNode(ctx, " "+body));
-    l.m.updMessage(this, n, live);
+    l.m.updMessage(this, n, ping);
   }
   
   

@@ -56,7 +56,7 @@ public class MxLog {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
       if (atEnd) lastEvent = e;
-      MxChatEvent ev = r.processEvent(e, false);
+      MxChatEvent ev = r.processEvent(e, false, false);
       if (ev==null) continue;
       evs.add(ev);
     }
@@ -70,14 +70,14 @@ public class MxLog {
     if (open) r.m.insertMessages(atEnd, evs);
   }
   
-  public MxChatEvent pushEventAtEnd(MxEvent e) {
+  public MxChatEvent pushEventAtEnd(MxEvent e, boolean ping) {
     lastEvent = e;
     int pos = size();
-    MxChatEvent ev = r.processEvent(e, true);
+    MxChatEvent ev = r.processEvent(e, true, ping);
     if (ev!=null) {
       list.insert(pos, ev);
       putCompleteMessage(ev);
-      if (open) r.m.addMessage(ev, true);
+      if (open) r.m.addMessage(ev, ping);
     }
     return ev;
   }

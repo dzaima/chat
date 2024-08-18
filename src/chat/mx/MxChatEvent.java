@@ -160,7 +160,7 @@ public abstract class MxChatEvent extends ChatEvent {
     edited = false;
     target = null;
     lastEvent = new MxEvent(r.r, ev);
-    updateBody(true);
+    updateBody(true, false);
   }
   
   HashMap<String, Integer> reactions;

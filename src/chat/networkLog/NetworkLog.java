@@ -116,7 +116,7 @@ public class NetworkLog extends BasicNetworkView {
           
           if (lv!=null) {
             StatusMessage msg = lv.statusMessages.get(ri);
-            if (msg!=null) msg.updateBody(true);
+            if (msg!=null) msg.updateBody(true, true);
           }
         }
       }

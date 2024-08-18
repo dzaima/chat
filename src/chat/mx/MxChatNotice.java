@@ -15,12 +15,12 @@ public class MxChatNotice extends MxChatEvent {
   public final MxEvent e;
   public final String euid, eName; // executer user ID & name
   
-  public MxChatNotice(MxChatroom r, MxEvent e, boolean live) {
+  public MxChatNotice(MxChatroom r, MxEvent e, boolean newAtEnd) {
     super(r, false, e, e.id, null);
     this.e = e;
     this.euid = e.uid;
     eName = r.getUsername(euid, false).best();
-    if (!live) loadReactions();
+    if (!newAtEnd) loadReactions();
   }
   
   public MsgNode.MsgType type() { return MsgNode.MsgType.NOTICE; }
@@ -35,12 +35,12 @@ public class MxChatNotice extends MxChatEvent {
   public String getSrc() { return "?"; }
   public void toTarget() { }
   
-  public void updateBody(boolean live) {
+  public void updateBody(boolean newAtEnd, boolean ping) {
     if (visible) {
       Node disp = n.ctx.make(n.gc.getProp("chat.msg.noticeP").gr());
       Node ch = disp.ctx.id("ch");
       if ("deleted".equals(type)) {
-        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
+        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), ping);
         return;
       }
       switch (e.type) {
@@ -106,7 +106,7 @@ public class MxChatNotice extends MxChatEvent {
         case "m.room.guest_access":       ch.add(mk("chat.notice.$guestAccess",    "executer", mkp(euid, eName), "val",  mks(e.ct.str("guest_access", "undefined")))); break;
         default: ch.add(mk("chat.notice.$defaultEvent", "executer", mkp(euid, eName), "type", mks(e.type))); break;
       }
-      r.m.updMessage(this, disp, live);
+      r.m.updMessage(this, disp, ping);
     }
   }
   

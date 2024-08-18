@@ -18,29 +18,29 @@ public class MxChatMessage extends MxChatEvent {
   private String bodyPrefix = ""; // from reply
   private boolean replyRequested;
   
-  public MxChatMessage(MxMessage m0, MxEvent e0, MxChatroom r, boolean isNew) {
+  public MxChatMessage(MxMessage m0, MxEvent e0, MxChatroom r, boolean newAtEnd, boolean ping) {
     super(r, m0.uid.equals(r.u.u.uid), e0, m0.id, m0.replyId);
     assert !m0.isEditEvent();
     this.m0 = m0;
     edited = m0.latestFmt!=null;
-    setBody(m0, isNew);
-    if (!isNew) loadReactions();
+    setBody(m0, newAtEnd, ping);
+    if (!newAtEnd) loadReactions();
   }
   
-  public void edit(MxEvent ne, boolean live) {
+  public void edit(MxEvent ne, boolean ping) {
     MxMessage nm = ne.m;
     Log.fine("mx edit", id+" has been edited to type "+nm.type);
     lastEvent = ne;
     edited = true;
-    setBody(nm, live);
+    setBody(nm, false, ping);
   }
   
-  public void setBody(MxMessage nm, boolean isNew) {
+  public void setBody(MxMessage nm, boolean newAtEnd, boolean ping) {
     type = nm.type;
     MxFmted f = nm.latestFmt!=null? nm.latestFmt : nm.fmt;
     body = f.html;
     src = f.body;
-    updateBody(isNew);
+    updateBody(newAtEnd, ping);
   }
   
   public String senderDisplay() {
@@ -55,15 +55,15 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   private int bodyUpdateCtr = 0;
-  public void updateBody(boolean live) {
+  public void updateBody(boolean newAtEnd, boolean ping) {
     bodyUpdateCtr++;
     
-    if ((visible || live) && m0.replyId!=null && !replyRequested) { // `|| live` to get pings
+    if ((visible || ping) && m0.replyId!=null && !replyRequested) {
       replyRequested = true;
       MxChatEvent tg = r.editRootEvent(m0.replyId);
       if (tg!=null) {
         String uid = tg.e0.uid;
-        if (live && r.u.u.uid.equals(uid)) addPingFromThis();
+        if (ping && r.u.u.uid.equals(uid)) addPingFromThis();
         String name = tg.senderDisplay();
         if (name==null || name.isEmpty()) name = r.getUsername(uid, true).best();
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
@@ -81,14 +81,14 @@ public class MxChatMessage extends MxChatEvent {
             if (displayname==null) displayname = r.getUsername(msg.uid, true).best();
             r.loadQuestionableMemberState(ctx);
             
-            if (live && r.u.u.uid.equals(msg.uid)) addPingFromThis();
             bodyPrefix = r.pill(msg, msg.uid, displayname) + " ";
-            updateBody(false);
+            if (ping && r.u.u.uid.equals(msg.uid)) addPingFromThis();
+            updateBody(newAtEnd, false);
             return;
           }
           bodyPrefix = "[unknown reply] ";
           Log.warn("mx", "Unknown reply ID "+m0.replyId);
-          updateBody(false);
+          updateBody(newAtEnd, false);
         });
       }
     }
@@ -97,7 +97,7 @@ public class MxChatMessage extends MxChatEvent {
       case "deleted":
         if (!visible) return;
         
-        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), live);
+        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), newAtEnd);
         break;
       case "m.image":
         if (!visible) return;
@@ -108,9 +108,9 @@ public class MxChatMessage extends MxChatEvent {
         Consumer<String> toLink = url -> {
           TextNode link = HTMLParser.link(r, url, LinkType.IMG);
           link.add(new StringNode(n.ctx, url));
-          r.m.updMessage(this, link, live);
+          r.m.updMessage(this, link, newAtEnd);
         };
-  
+        
         String linkURL = getURL(false);
         Obj info = Obj.path(e0.ct, Obj.E, "info").obj(Obj.E);
         if (s>0 && safeURL!=null) {
@@ -118,7 +118,7 @@ public class MxChatMessage extends MxChatEvent {
           String rawURL = getRawURL();
           boolean isMxc = MxServer.isMxc(rawURL);
           ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, info.getInt("w", 0), info.getInt("h", 0), n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
-          r.m.updMessage(this, HTMLParser.inlineImagePlaceholder(r.u, isMxc? r.u.s.mxcToURL(rawURL) : rawURL, placeholder), live);
+          r.m.updMessage(this, HTMLParser.inlineImagePlaceholder(r.u, isMxc? r.u.s.mxcToURL(rawURL) : rawURL, placeholder), newAtEnd);
           
           int expect = bodyUpdateCtr;
           Consumer<Node> got = n -> {
@@ -137,7 +137,7 @@ public class MxChatMessage extends MxChatEvent {
           }
         } else {
           if (linkURL==null) {
-            r.m.updMessage(this, new StringNode(n.ctx, "(no URL for image provided)"), live);
+            r.m.updMessage(this, new StringNode(n.ctx, "(no URL for image provided)"), newAtEnd);
           } else {
             toLink.accept(linkURL);
           }
@@ -150,7 +150,7 @@ public class MxChatMessage extends MxChatEvent {
         
         String url = getURL(false);
         if (url==null) {
-          r.m.updMessage(this, new StringNode(n.ctx, "(no URL for file provided)"), live);
+          r.m.updMessage(this, new StringNode(n.ctx, "(no URL for file provided)"), newAtEnd);
         } else {
           String mime = m0.ct.obj("info", Obj.E).str("mimetype", "");
           LinkType t = LinkType.UNK;
@@ -158,7 +158,7 @@ public class MxChatMessage extends MxChatEvent {
           
           TextNode link = HTMLParser.link(r, url, t);
           link.add(new StringNode(n.ctx, url));
-          r.m.updMessage(this, link, live);
+          r.m.updMessage(this, link, newAtEnd);
         }
         break;
       default:
@@ -169,10 +169,10 @@ public class MxChatMessage extends MxChatEvent {
           n.add(disp);
           disp = n;
         } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
-        if (live && containsMyPill(disp)) addPingFromThis();
+        if (ping && containsMyPill(disp)) addPingFromThis();
         
         if (!visible) return;
-        r.m.updMessage(this, disp, live);
+        r.m.updMessage(this, disp, newAtEnd);
         break;
     }
   }
