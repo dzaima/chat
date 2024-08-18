@@ -53,6 +53,7 @@ public abstract class ImageNode extends Node {
   float scale, aspect;
   int iw, ih, wMin, hMin, wMax, hMax;
   public void propsUpd() {
+    super.propsUpd();
     wMax = maxTotW();
     hMax = maxTotH();
     wMin = Math.min(minTotW(), wMax);
