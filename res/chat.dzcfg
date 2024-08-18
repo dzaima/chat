@@ -121,7 +121,7 @@ chat {
   pill.bgMine = #A3692F
   pill.round = 0.2em
   
-  code.family = "BQN386 Unicode" // font used in chat messages
+  code.family = "DejaVu Sans Mono" // font used in chat messages
   code.familyUI = "DejaVu Sans Mono" // font used in UI for monospace
   code.bgInline = #222
   code.bgBlock = #222
