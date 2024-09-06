@@ -34,6 +34,17 @@ public abstract class MxSendMsg {
   
   public abstract String msgJSON();
   
+  public static MxSendMsg file(String url, String body, String mime, int size) {
+    return new MxJSONMsg(Obj.fromKV(
+      "msgtype", "m.file",
+      "body", body,
+      "url", url,
+      "info", Obj.fromKV(
+        "mimetype", mime,
+        "size", size
+      )
+    ));
+  }
   public static MxSendMsg image(String url, String body, String mime, int size, int w, int h) {
     Obj info = new Obj(new HashMap<>());
     if (size!=-1) info.put("size", new JSON.Num(size));

@@ -40,17 +40,19 @@ public class CacheObj {
     return new CacheObj(cachePath.resolve(Tools.sha256(id)));
   }
   
-  public static byte[] compute(String id, Supplier<byte[]> compute) {
-    return compute(id.getBytes(StandardCharsets.UTF_8), compute);
+  public static byte[] compute(String id, Supplier<byte[]> compute, Runnable onCached) {
+    return compute(id.getBytes(StandardCharsets.UTF_8), compute, onCached);
   }
-  public static byte[] compute(byte[] id, Supplier<byte[]> compute) {
+  public static byte[] compute(byte[] id, Supplier<byte[]> compute, Runnable onCached) {
     CacheObj v = forID(id);
     
     byte[] p = v.find();
-    if (p!=null) return p;
-    
-    p = compute.get();
-    if (p!=null) v.store(p);
+    if (p!=null) {
+      onCached.run();
+    } else {
+      p = compute.get();
+      if (p!=null) v.store(p);
+    }
     return p;
   }
   

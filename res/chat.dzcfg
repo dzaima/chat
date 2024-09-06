@@ -538,20 +538,29 @@ chat {
     }
   }
   sourceUI = chat.textUI
-  mxUpload = pad { bg=bg.middle all=1em
-    v { pad=.4em w=30em h=7em
-      h { pad=.4em btn { "Choose File" style=rect id=choose }
-                                chat.$sField { bg=chat.ly.bgUploadField id=path } }
-      h { pad=.4em "File name:" chat.$sField { bg=chat.ly.bgUploadField id=name } }
-      h { pad=.4em "MIME type:" chat.$sField { bg=chat.ly.bgUploadField id=mime } }
-      pad { u=1em
-        h { alX=right pad=0.4em
-          btn { "Get link" style=rect id=getLink }
-          btn { "Send as image" style=rect id=sendMessage }
+  mxUpload {
+    ui = pad { bg=bg.middle all=1em
+      v { pad=.4em w=30em h=7em
+        h { pad=.4em btn { "Choose File" style=rect id=choose }
+                                  chat.$sField { bg=chat.ly.bgUploadField id=path } }
+        h { pad=.4em "File name:" chat.$sField { bg=chat.ly.bgUploadField id=name } }
+        h { pad=.4em "MIME type:" chat.$sField { bg=chat.ly.bgUploadField id=mime } }
+        pad { u=1em
+          h { alX=right pad=0.4em
+            // btn { "Get link" style=rect id=getLink }
+            btn { "Send as file" style=rect id=sendAsFile }
+            h { id=specialSendPlace w=min }
+          }
         }
       }
     }
+    sendSpecial {
+      image = btn { "Send as image" style=rect id=send }
+      video = btn { "Send as video" style=rect id=send }
+      audio = btn { "Send as audio" style=rect id=send }
+    }
   }
+  
   userAutocompleteUI = menu { }
   
   info.mainP = pad { u=.3em infoType="idk"

@@ -13,6 +13,7 @@ import libMx.*;
 
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.function.Consumer;
 
 public class MxLiveView extends LiveView {
   public final MxChatroom r;
@@ -151,6 +152,56 @@ public class MxLiveView extends LiveView {
         name = (EditNode) node.ctx.id("name");
         mime = (EditNode) node.ctx.id("mime");
         path = (EditNode) node.ctx.id("path");
+        Box<String> mode = new Box<>("file");
+        
+        Consumer<Boolean> send = (special) -> {
+          String l = getUpload();
+          if (l==null) return;
+          
+          int size = data.length;
+          MxSendMsg f;
+          
+          if (special && mode.get().equals("image")) {
+            int w = -1, h = -1;
+            try {
+              Image img = Image.makeDeferredFromEncodedBytes(data);
+              w = img.getWidth();
+              h = img.getHeight();
+              img.close();
+            } catch (Throwable e) {
+              Log.stacktrace("mx get image info", e);
+            }
+            f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
+          } else {
+            f = MxSendMsg.file(l, name.getAll(), mime.getAll(), size);
+          }
+          
+          if (log.isThread()) f.inThread(log.threadID);
+          if (input.replying instanceof MxChatEvent) {
+            f.replyTo(r.r, input.replying.id);
+            input.markReply(null);
+          }
+          r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f));
+          close();
+        };
+        
+        ((BtnNode) node.ctx.id("sendAsFile")).setFn(c -> send.accept(false));
+        
+        Runnable mimeUpdated = () -> {
+          if (mime.getAll().startsWith("image/")) mode.set("image");
+          // else if (mimeType.startsWith("video/")) mode.set("video");
+          // else if (mimeType.startsWith("audio/")) mode.set("audio");
+          else mode.set("file");
+          
+          Node place = node.ctx.id("specialSendPlace");
+          place.clearCh();
+          if (!mode.get().equals("file")) {
+            Node sendSpecial = node.ctx.make(node.gc.getProp("chat.mxUpload.sendSpecial." + mode.get()).gr());
+            ((BtnNode) sendSpecial.ctx.id("send")).setFn(c2 -> send.accept(true));
+            place.add(sendSpecial);
+          }
+        };
+        
         ((BtnNode) node.ctx.id("choose")).setFn(c -> m.openFile(null, null, p -> {
           if (p==null) return;
           path.removeAll(); path.append(p.toString());
@@ -161,54 +212,31 @@ public class MxLiveView extends LiveView {
           } catch (IOException e) {
             Log.stacktrace("mx mime-type", e);
           }
+          if (mimeType==null) mimeType = "application/octet-stream";
           mime.removeAll();
-          mime.append(mimeType!=null? mimeType : "application/octet-stream");
+          mime.append(mimeType);
+          mimeUpdated.run();
         }));
-        ((BtnNode) node.ctx.id("getLink")).setFn(c -> {
-          String l = getUpload();
-          if (l==null) return;
-          input.um.pushL("insert link");
-          input.pasteText(r.u.s.mxcToURL(l));
-          input.um.pop();
-          close();
-        });
-        ((BtnNode) node.ctx.id("sendMessage")).setFn(c -> {
-          String l = getUpload();
-          if (l==null) return;
-          int size = data.length;
-          int w = -1, h = -1;
-          try {
-            Image img = Image.makeDeferredFromEncodedBytes(data);
-            w = img.getWidth();
-            h = img.getHeight();
-            img.close();
-          } catch (Throwable e) {
-            Log.stacktrace("mx get image info", e);
-          }
-          
-          MxSendMsg f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
-          if (log.isThread()) f.inThread(log.threadID);
-          if (input.replying instanceof MxChatEvent) {
-            f.replyTo(r.r, input.replying.id);
-            input.markReply(null);
-          }
-          r.u.queueNetwork(() -> r.r.s.primaryLogin.sendMessage(r.r, f));
-          close();
-        });
+        // ((BtnNode) node.ctx.id("getLink")).setFn(c -> {
+        //   String l = getUpload();
+        //   if (l==null) return;
+        //   input.um.pushL("insert link");
+        //   input.pasteText(r.u.s.mxcToDeprecatedURL(l));
+        //   input.um.pop();
+        //   close();
+        // });
       }
       byte[] data;
       String getUpload() {
         try {
           data = Files.readAllBytes(Paths.get(path.getAll()));
-          String name1 = name.getAll();
-          String mime1 = mime.getAll();
-          return r.u.upload(data, name1, mime1);
+          return r.u.upload(data, name.getAll(), mime.getAll());
         } catch (IOException e) {
           Log.stacktrace("mx upload", e);
           return null;
         }
       }
-    }.open(m.gc, m.ctx, m.gc.getProp("chat.mxUpload").gr());
+    }.open(m.gc, m.ctx, m.gc.getProp("chat.mxUpload.ui").gr());
   }
   
   

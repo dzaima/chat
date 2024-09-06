@@ -174,12 +174,12 @@ public class HTMLParser {
             break;
           case "img":
             if (c.hasAttr("src")) {
-              Chatroom.URLRes src = r.parseURL(c.attr("src"));
-              TextNode l = link(r, src.url, LinkType.IMG);
+              ChatUser.URIInfo src = r.user().parseURI(c.attr("src"), null);
+              TextNode l = link(r, src.uri, LinkType.IMG);
               l.add(new StringNode(p.ctx, c.hasAttr("alt")? c.attr("alt")
                                         : c.hasAttr("title")? c.attr("title")
                                         : src.safe? "(image loading)" : "image"));
-              if (src.safe) r.user().loadImg(src.url, img -> {
+              if (src.safe) r.user().loadImg(src, true, img -> {
                 if (img==null) return; // TODO link fallback
                 l.clearCh();
                 l.add(img);

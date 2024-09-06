@@ -41,16 +41,26 @@ public class Utils {
     }
   }
   
-  public static String post(String path, byte[] data) {
-    return postPut("POST", path, data);
+  public static class RequestParams {
+    public final String authorization;
+    public RequestParams(String authorization) { this.authorization = authorization; }
   }
-  public static String put(String path, byte[] data) {
-    return postPut("PUT", path, data);
+  public static class RequestRes {
+    public final byte[] bytes;
+    public final int code;
+    public RequestRes(byte[] bytes, int code) { this.bytes=bytes; this.code=code; }
+    public boolean ok() { return code < 400; }
   }
-  public static String postPut(String method, String path, byte[] data) {
-    return postPut(method, path, data, "application/x-www-form-urlencoded");
+  public static RequestRes post(RequestParams p, String path, byte[] data) {
+    return postPut("POST", p, path, data);
   }
-  public static String postPut(String method, String path, byte[] data, String contentType) {
+  public static RequestRes put(RequestParams p, String path, byte[] data) {
+    return postPut("PUT", p, path, data);
+  }
+  public static RequestRes postPut(String method, RequestParams p, String path, byte[] data) {
+    return postPut(method, p, path, data, "application/x-www-form-urlencoded");
+  }
+  public static RequestRes postPut(String method, RequestParams p, String path, byte[] data, String contentType) {
     try {
       URL u = new URL(path);
       HttpURLConnection c = (HttpURLConnection) u.openConnection();
@@ -61,47 +71,36 @@ public class Utils {
       c.setRequestProperty("Content-Type", contentType);
       c.setRequestProperty("Content-Length", Integer.toString(data.length));
       c.setRequestProperty("Content-Language", "en-US");
+      if (p.authorization!=null) c.setRequestProperty("Authorization", p.authorization);
       
       c.setDoOutput(true);
       OutputStream os = c.getOutputStream();
       os.write(data);
       os.close();
       
-      try (InputStream is = c.getResponseCode()>=400? c.getErrorStream() : c.getInputStream()) {
+      int code = c.getResponseCode();
+      try (InputStream is = code>=400? c.getErrorStream() : c.getInputStream()) {
         if (is==null) throw new RuntimeException("Failed to get result stream");
-        return new String(readAll(is), StandardCharsets.UTF_8);
+        return new RequestRes(readAll(is), code);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
   }
   
-  public static String get(String path) {
+  public static RequestRes get(RequestParams p, String path) {
     try {
       URL u = new URL(path);
       HttpURLConnection c = (HttpURLConnection) u.openConnection();
       c.setConnectTimeout(globalTimeout);
       c.setReadTimeout(globalTimeout);
       c.setRequestMethod("GET");
+      if (p.authorization!=null) c.setRequestProperty("Authorization", p.authorization);
       c.setUseCaches(false);
       
-      try (InputStream is = c.getResponseCode()>=400? c.getErrorStream() : c.getInputStream()) {
-        return new String(readAll(is), StandardCharsets.UTF_8);
-      }
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-  public static byte[] getB(String path) {
-    try {
-      URL u = new URL(path);
-      HttpURLConnection c = (HttpURLConnection) u.openConnection();
-      c.setConnectTimeout(globalTimeout);
-      c.setRequestMethod("GET");
-      c.setUseCaches(false);
-      
-      try (InputStream is = c.getResponseCode()>=400? c.getErrorStream() : c.getInputStream()) {
-        return readAll(is);
+      int code = c.getResponseCode();
+      try (InputStream is = code>=400? c.getErrorStream() : c.getInputStream()) {
+        return new RequestRes(readAll(is), code);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
@@ -185,6 +184,6 @@ public class Utils {
       this.t = t;
       this.ct = ct;
     }
-    public abstract String calcURL();
+    public abstract String calcPath();
   }
 }

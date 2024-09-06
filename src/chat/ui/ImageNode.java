@@ -133,7 +133,7 @@ public abstract class ImageNode extends Node {
   }
   public static class InlineImageNode extends ImageNode {
     public InlineImageNode(Ctx ctx, byte[] data) { super(ctx, data); }
-    public InlineImageNode(Ctx ctx, int w, int h, Node node) { super(ctx, w, h, node); }
+    public InlineImageNode(Ctx ctx, int w, int h, Node node) { super(ctx, w, h, node); } // for placeholder
     public int minTotW() { return gc.len(this, "minW", "chat.image.minW"); }
     public int minTotH() { return gc.len(this, "minH", "chat.image.minH"); }
     public int maxTotW() { return gc.len(this, "maxW", "chat.image.maxW"); }

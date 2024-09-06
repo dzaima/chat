@@ -1,7 +1,8 @@
 package chat;
 
+import chat.mx.MediaThread;
 import chat.ui.*;
-import chat.utils.UnreadInfo;
+import chat.utils.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.utils.JSON.Obj;
@@ -30,8 +31,18 @@ public abstract class ChatUser {
   public abstract String id();
   public abstract Obj data(); // must return a proper save&restore-ready result at any point of time after constructor has finished
   
+  public static abstract class URIInfo {
+    public final String uri;
+    public final boolean safe, hasThumbnail;
+    public abstract MediaThread.MediaRequest requestFull();
+    public abstract MediaThread.MediaRequest requestThumbnail();
+    public URIInfo(String uri, boolean safe, boolean hasThumbnail) { this.uri = uri; this.safe = safe; this.hasThumbnail = hasThumbnail; }
+  }
+  
+  public abstract URIInfo parseURI(String src, Obj info); // result.uri == src
+  public abstract void loadImg(URIInfo info, boolean acceptThumbnail,
+                               Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded);
   public abstract void openLink(String url, Extras.LinkType type, byte[] data);
-  public abstract void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded);
   
   public int userCol(String name, boolean mine, boolean pill) {
     if (mine) return pill? m.colMyPill : m.colMyNick;

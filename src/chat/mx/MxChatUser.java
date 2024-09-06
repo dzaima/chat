@@ -1,6 +1,7 @@
 package chat.mx;
 
 import chat.*;
+import chat.mx.MediaThread.MediaRequest;
 import chat.mx.MxChatroom.MyStatus;
 import chat.networkLog.NetworkLog;
 import chat.ui.*;
@@ -56,20 +57,21 @@ public class MxChatUser extends ChatUser {
         m.insertNetworkDelay();
         return null;
       }
-    });
+    }, () -> Utils.requestLogger.got(rq, "received result from cache", null));
     Utils.requestLogger.got(rq, "result", res);
     return res;
   }
   
   public String upload(byte[] data, String name, String mime) {
+    // TODO replace with s.request
     String location = "/_matrix/media/r0/upload?filename="+Utils.toURI(name)+"&access_token="+s.gToken;
     String req = s.url + location;
     NetworkLog.CustomRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.POST, location);
     Utils.requestLogger.got(rq, "new", s);
-    String res = Utils.postPut("POST", req, data, mime);
-    Utils.requestLogger.got(rq, "result", res);
-    Obj o = JSON.parseObj(res);
-    return o.str("content_uri");
+    Utils.RequestRes r = Utils.postPut("POST", new Utils.RequestParams(null), req, data, mime);
+    String res = new String(r.bytes, StandardCharsets.UTF_8);
+    Utils.requestLogger.got(rq, "result", r.code+": "+res);
+    return JSON.parseObj(res).str("content_uri", "");
   }
   
   public void queueNetwork(Runnable r) { network.add(r); }
@@ -254,17 +256,39 @@ public class MxChatUser extends ChatUser {
   }
   
   
-  public Promise<byte[]> queueGet(String msg, String url) {
-    return Promise.create(res -> queueRequest(() -> MxChatUser.rawCachedGet(m, msg, url), res::set));
+  
+  public Promise<byte[]> queueGet(String uri) {
+    return Promise.create(set -> media.request(parseURI(uri, null).requestFull(), r -> primary.add(() -> set.set(r)), ()->true));
   }
-  public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) {
-    loadImg(url, url, loaded, ctor, stillNeeded);
+  
+  public URIInfo parseURI(String uri, Obj info) {
+    int safety = m.imageSafety();
+    if (MxServer.isMxc(uri)) {
+      boolean hasThumbnail = info==null || !info.str("mimetype", "").equals("image/gif");
+      return new URIInfo(uri, safety>0, hasThumbnail) {
+        public MediaRequest requestFull() {
+          return new MediaRequest.FromMxRequest(s.mxcDownloadRequest(uri));
+        }
+        public MediaRequest requestThumbnail() {
+          if (!hasThumbnail) throw new IllegalStateException();
+          return new MediaRequest.FromMxRequest(s.mxcThumbnailRequest(uri, m.gc.getProp("chat.image.maxW").len(), m.gc.getProp("chat.image.maxH").len(), MxServer.ThumbnailMode.SCALE));
+        }
+      };
+    }
+    return new URIInfo(uri, safety>1, false) {
+      public MediaRequest requestFull() { return new MediaRequest.FromURL(uri); }
+      public MediaRequest requestThumbnail() { throw new IllegalStateException(); }
+    };
   }
-  public void loadImg(String url, String link, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) { // TODO pass actually useful stillNeeded
-    media.request(url, d -> primary.add(() -> loaded.accept(HTMLParser.inlineImage(this, link, url.equals(link), d, ctor))), stillNeeded);
-  }
-  public void loadMxcImg(String mxc, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, int w, int h, MxServer.ThumbnailMode mode, Supplier<Boolean> stillNeeded) {
-    loadImg(s.mxcToThumbnailURL(mxc, w, h, mode), s.mxcToURL(mxc), loaded, ctor, stillNeeded);
+  
+  public void loadImg(URIInfo info, boolean acceptThumbnail,
+                      Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) {
+    boolean doThumbnail = acceptThumbnail && info.hasThumbnail;
+    media.request(
+      doThumbnail? info.requestThumbnail() : info.requestFull(), 
+      d -> primary.add(() -> loaded.accept(HTMLParser.inlineImage(this, info.uri, !doThumbnail, d, ctor))),
+      stillNeeded
+    );
   }
   
   public MxChatroom findRoom(String name) {
@@ -282,16 +306,16 @@ public class MxChatUser extends ChatUser {
     m.gc.openLink(url);
   }
   public static final Counter popupCounter = new Counter();
-  public void openLink(String url, LinkType type, byte[] data) {
+  public void openLink(String uri, LinkType type, byte[] data) {
     if (type==LinkType.EXT) {
-      openLinkGeneric(url);
+      openLinkGeneric(uri);
       return;
     }
     
     // known event/room
-    if (url.startsWith("https://matrix.to/#/")) {
+    if (uri.startsWith("https://matrix.to/#/")) {
       try {
-        URI u = new URI(url);
+        URI u = new URI(uri);
         String fr = u.getFragment().substring(1);
         int pos = fr.indexOf('?');
         if (pos!=-1) fr = fr.substring(0, pos);
@@ -310,7 +334,7 @@ public class MxChatUser extends ChatUser {
           String msgId = parts[1];
           if (r!=null) {
             r.highlightMessage(msgId, b -> {
-              if (!b) openLinkGeneric(url);
+              if (!b) openLinkGeneric(uri);
             }, false);
             return;
           }
@@ -319,7 +343,7 @@ public class MxChatUser extends ChatUser {
     }
     
     // displayable image/animation
-    if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || url.contains("/_matrix/media/"))) {
+    if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || uri.contains("/_matrix/media/"))) {
       int action = popupCounter.next();
       Consumer<byte[]> showImg = d -> {
         if (popupCounter.superseded(action)) return;
@@ -330,7 +354,7 @@ public class MxChatUser extends ChatUser {
             return;
           }
         }
-        openLinkGeneric(url);
+        openLinkGeneric(uri);
       };
       
       if (data!=null) {
@@ -339,10 +363,23 @@ public class MxChatUser extends ChatUser {
       }
       
       Runnable done = m.doAction("loading image...");
-      queueRequest(() -> CacheObj.compute("head_isImage\0"+url, () -> {
+      Consumer<byte[]> onIsImg = isImg -> {
+        if (isImg!=null && isImg[0]==1) {
+          queueGet(uri).then(d -> {
+            done.run();
+            showImg.accept(d);
+          });
+        } else {
+          done.run();
+          openLinkGeneric(uri);
+        }
+      };
+      
+      if (MxServer.isMxc(uri)) onIsImg.accept(new byte[]{(byte) (type==LinkType.IMG? 1 : 0)});
+      else queueRequest(() -> CacheObj.compute("head_isImage\0"+uri, () -> {
         try {
-          Utils.log("head", url);
-          HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+          Utils.log("head", uri);
+          HttpURLConnection c = (HttpURLConnection) new URL(uri).openConnection();
           c.setRequestMethod("HEAD");
           String[] ct = new String[1];
           c.getHeaderFields().forEach((k, v) -> {
@@ -356,23 +393,13 @@ public class MxChatUser extends ChatUser {
           Log.stacktrace("mx image type", e);
           return null;
         }
-      }), isImg -> {
-        if (isImg!=null && isImg[0]==1) {
-          queueGet("image", url).then(d -> {
-            done.run();
-            showImg.accept(d);
-          });
-        } else {
-          done.run();
-          openLinkGeneric(url);
-        }
-      });
+      }, () -> {}), onIsImg);
       
       return;
     }
     
     // https://dzaima.github.io/paste
-    Pair<String, String> parts = HTMLParser.urlFrag(HTMLParser.fixURL(url));
+    Pair<String, String> parts = HTMLParser.urlFrag(HTMLParser.fixURL(uri));
     paste: if (m.gc.getProp("chat.internalPasteViewer").b() && parts.a.equals("https://dzaima.github.io/paste")) {
       if (parts.b==null) break paste;
       String[] ps = Tools.split(parts.b, '#');
@@ -405,15 +432,15 @@ public class MxChatUser extends ChatUser {
     if (type==LinkType.TEXT) {
       int action = popupCounter.next();
       Runnable done = m.doAction("loading text file...");
-      queueGet("Load text", url).then(bs -> {
+      queueGet(uri).then(bs -> {
         done.run();
         if (popupCounter.superseded(action)) return;
-        if (bs == null) m.gc.openLink(url);
+        if (bs == null) m.gc.openLink(uri);
         else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
       });
     }
     
-    openLinkGeneric(url);
+    openLinkGeneric(uri);
   }
   private void openText(String text, Lang lang) {
     new Popup(m.ctx.win()) {

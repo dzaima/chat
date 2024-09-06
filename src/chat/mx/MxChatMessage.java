@@ -3,7 +3,7 @@ package chat.mx;
 import chat.*;
 import chat.ui.Extras.LinkType;
 import chat.ui.*;
-import chat.utils.HTMLParser;
+import chat.utils.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.*;
@@ -100,65 +100,44 @@ public class MxChatMessage extends MxChatEvent {
         r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), newAtEnd);
         break;
       case "m.image":
-        if (!visible) return;
-        
-        int s = r.m.imageSafety();
-        String safeURL = getURL(s<=1);
-        
-        Consumer<String> toLink = url -> {
-          TextNode link = HTMLParser.link(r, url, LinkType.IMG);
-          link.add(new StringNode(n.ctx, url));
-          r.m.updMessage(this, link, newAtEnd);
-        };
-        
-        String linkURL = getURL(false);
-        Obj info = Obj.path(e0.ct, Obj.E, "info").obj(Obj.E);
-        if (s>0 && safeURL!=null) {
-          
-          String rawURL = getRawURL();
-          boolean isMxc = MxServer.isMxc(rawURL);
-          ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, info.getInt("w", 0), info.getInt("h", 0), n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
-          r.m.updMessage(this, HTMLParser.inlineImagePlaceholder(r.u, isMxc? r.u.s.mxcToURL(rawURL) : rawURL, placeholder), newAtEnd);
-          
-          int expect = bodyUpdateCtr;
-          Consumer<Node> got = n -> {
-            if (!visible) return;
-            if (n==null) {
-              toLink.accept(linkURL);
-            } else if (expect==bodyUpdateCtr) {
-              r.m.updMessage(this, n, false);
-            }
-          };
-          
-          if (isMxc && !info.str("mimetype", "").equals("image/gif")) { // TODO checking for gif specifically is stupid
-            r.u.loadMxcImg(rawURL, got, ImageNode.InlineImageNode::new, r.m.gc.getProp("chat.image.maxW").len(), r.m.gc.getProp("chat.image.maxH").len(), MxServer.ThumbnailMode.SCALE, () -> true);
-          } else {
-            r.u.loadImg(safeURL, got, ImageNode.InlineImageNode::new, () -> true);
-          }
-        } else {
-          if (linkURL==null) {
-            r.m.updMessage(this, new StringNode(n.ctx, "(no URL for image provided)"), newAtEnd);
-          } else {
-            toLink.accept(linkURL);
-          }
-        }
-        break;
       case "m.file":
       case "m.audio":
       case "m.video":
         if (!visible) return;
         
-        String url = getURL(false);
-        if (url==null) {
-          r.m.updMessage(this, new StringNode(n.ctx, "(no URL for file provided)"), newAtEnd);
-        } else {
-          String mime = m0.ct.obj("info", Obj.E).str("mimetype", "");
-          LinkType t = LinkType.UNK;
-          if (type.equals("m.file") && mime.startsWith("text/")) t = LinkType.TEXT;
+        Obj info = Obj.path(e0.ct, Obj.E, "info").obj(Obj.E);
+        ChatUser.URIInfo uri = r.u.parseURI(getRawURI(), info);
+        
+        int s = r.m.imageSafety();
+        
+        Consumer<String> replaceWithPlainLink = str -> {
+          LinkType lt;
+          if (type.equals("m.image")) lt = LinkType.IMG;
+          else if (type.equals("m.file") && info.str("mimetype", "").startsWith("text/")) lt = LinkType.TEXT;
+          else lt = LinkType.UNK;
           
-          TextNode link = HTMLParser.link(r, url, t);
-          link.add(new StringNode(n.ctx, url));
+          TextNode link = HTMLParser.link(r, str, lt);
+          link.add(new StringNode(n.ctx, str));
           r.m.updMessage(this, link, newAtEnd);
+        };
+        
+        if (type.equals("m.image") && s > (uri.safe? 0 : 1)) {
+          ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, info.getInt("w", 0), info.getInt("h", 0), n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
+          Node nd = HTMLParser.inlineImagePlaceholder(r.u, uri.uri, placeholder);
+          r.m.updMessage(this, nd, newAtEnd);
+          
+          int expect = bodyUpdateCtr;
+          Consumer<Node> got = n -> {
+            if (!visible) return;
+            if (n==null) {
+              replaceWithPlainLink.accept(uri.uri);
+            } else if (expect==bodyUpdateCtr) {
+              r.m.updMessage(this, n, false);
+            }
+          };
+          r.u.loadImg(uri, true, got, ImageNode.InlineImageNode::new, () -> true);
+        } else {
+          replaceWithPlainLink.accept(uri.uri);
         }
         break;
       default:
@@ -182,15 +161,8 @@ public class MxChatMessage extends MxChatEvent {
     r.unreadChanged();
   }
   
-  private String getRawURL() {
-    return m0.ct.str("url", null);
-  }
-  private String getURL(boolean safe) { // returns null if unknown or unsafe
-    String body = getRawURL();
-    if (body==null) return null;
-    if (body.startsWith("mxc://")) return r.u.s.mxcToURL(body);
-    if (safe) return null;
-    return body;
+  private String getRawURI() {
+    return m0.ct.str("url", "");
   }
   
   private static boolean containsMyPill(Node n) {

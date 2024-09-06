@@ -40,8 +40,9 @@ public class NetworkLog extends BasicNetworkView {
       public void close() { }
       public String id() { return "network-log"; }
       public JSON.Obj data() { return new JSON.Obj(); }
+      public URIInfo parseURI(String src, JSON.Obj info) { return null; }
+      public void loadImg(URIInfo info, boolean acceptThumbnail, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) { }
       public void openLink(String url, Extras.LinkType type, byte[] data) { }
-      public void loadImg(String url, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) { }
     };
     room = new Chatroom(user) {
       public void muteStateChanged() { }
@@ -51,7 +52,6 @@ public class NetworkLog extends BasicNetworkView {
       public Username getUsername(String uid, boolean nullIfUnknown) { return new Username(uid, Promise.resolved(uid)); }
       public void cfgUpdated() { }
       public String asCodeblock(String s) { return null; }
-      public URLRes parseURL(String src) { return new URLRes(src, true); }
       public void retryOnFullUserList(Runnable then) { }
       public Vec<UserRes> autocompleteUsers(String prefix) { return new Vec<>(); }
       public void viewProfile(String uid) { }
@@ -180,6 +180,10 @@ public class NetworkLog extends BasicNetworkView {
       this.type = type;
       if (obj!=null && obj.getClass().isArray()) obj = "(" + Array.getLength(obj) + "-element " + obj.getClass().toGenericString() + ")";
       else if (obj instanceof JSON.Val) obj = new CompactJSON((JSON.Val) obj);
+      else if (obj instanceof Utils.RequestRes) {
+        Utils.RequestRes v = (Utils.RequestRes) obj;
+        obj = (v.bytes==null? "null" : v.bytes.length+"-element byte array");
+      }
       this.obj = obj;
     }
   }
@@ -200,6 +204,6 @@ public class NetworkLog extends BasicNetworkView {
       super(type, null);
       this.url = url;
     }
-    public String calcURL() { return url; }
+    public String calcPath() { return url; }
   }
 }

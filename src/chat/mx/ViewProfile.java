@@ -97,8 +97,8 @@ public class ViewProfile {
     base.ctx.id("server").add(new StringNode(m.ctx, uid));
     
     if (data!=null && data.avatar!=null) {
-      Chatroom.URLRes url = viewedRoom.parseURL(data.avatar);
-      if (url.safe) viewedRoom.user().loadImg(url.url, n -> {
+      ChatUser.URIInfo url = viewedRoom.u.parseURI(data.avatar, null);
+      if (url.safe) viewedRoom.user().loadImg(url, true, n -> {
         if (n!=null) base.ctx.id("image").add(n);
       }, ImageNode.ProfilePictureNode::new, () -> true);
     }

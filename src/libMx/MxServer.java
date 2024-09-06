@@ -3,11 +3,9 @@ package libMx;
 import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.*;
 
 import static libMx.Utils.requestLogger;
 
@@ -17,6 +15,9 @@ public class MxServer {
   public final String url;
   public String gToken;
   public MxLogin primaryLogin;
+  
+  public HashSet<String> supportedVersions = new HashSet<>();
+  public HashSet<String> supportedExperimentalFeatures = new HashSet<>();
   
   public MxServer(String url, String id, String gToken) {
     this.url = url;
@@ -32,12 +33,23 @@ public class MxServer {
     primaryLogin = l;
   }
   
+  public void loadVersionInfo() {
+    Obj o = requestClient("versions").get().runJ();
+    if (o==null) return;
+    for (String c : o.arr("versions").strs()) supportedVersions.add(c);
+    for (JSON.Entry c : o.obj("unstable_features").entries()) if (c.v.equals(JSON.TRUE)) supportedExperimentalFeatures.add(c.k);
+  }
+  public boolean supportsVersion(String s) {
+    return supportedVersions.contains(s);
+  }
+  
   public static MxServer of(MxLoginMgr mgr) {
-      MxServer s = new MxServer(mgr.getServer());
-      MxLogin l = s.login(mgr);
-      if (l==null) return null;
-      s.setG(l);
-      return s;
+    MxServer s = new MxServer(mgr.getServer());
+    s.loadVersionInfo();
+    MxLogin l = s.login(mgr);
+    if (l==null) return null;
+    s.setG(l);
+    return s;
   }
   
   public MxLogin login(MxLoginMgr mgr) {
@@ -68,11 +80,19 @@ public class MxServer {
   }
   
   
+  
   public class Request {
     private final String[] pathParts;
     private final ArrayList<String> props = new ArrayList<>();
+    private final boolean isDirectUrl;
+    private String authorization;
     public Request(String[] pathParts) {
       this.pathParts = pathParts;
+      isDirectUrl = false;
+    }
+    public Request(String directUrl) {
+      pathParts = new String[]{directUrl};
+      isDirectUrl = true;
     }
     
     public Request prop(String key, String value) {
@@ -88,7 +108,7 @@ public class MxServer {
       return this;
     }
     public Request token(String token) {
-      prop("access_token", token);
+      authorization = "Bearer "+token;
       return this;
     }
     public Request gToken() {
@@ -104,6 +124,18 @@ public class MxServer {
     public RunnableRequest  put(Obj o) { return put(o.toString()); }
     public RunnableRequest post(Obj o) { return post(o.toString()); }
     
+    public String calcCurrentPath() {
+      StringBuilder p = new StringBuilder();
+      for (int i = 0; i < pathParts.length; i++) {
+        if (i!=0) p.append('/');
+        p.append(Utils.toURI(pathParts[i]));
+      }
+      for (int i = 0; i < props.size(); i++) {
+        p.append(i==0? '?' : '&');
+        p.append(props.get(i));
+      }
+      return p.toString();
+    }
   }
   
   public class RunnableRequest extends Utils.LoggableRequest {
@@ -114,24 +146,15 @@ public class MxServer {
       this.r = r;
     }
     
-    public String calcURL() {
-      StringBuilder p = new StringBuilder();
-      for (int i = 0; i < r.pathParts.length; i++) {
-        if (i!=0) p.append('/');
-        p.append(Utils.toURI(r.pathParts[i]));
-      }
-      for (int i = 0; i < r.props.size(); i++) {
-        p.append(i==0? '?' : '&');
-        p.append(r.props.get(i));
-      }
-      return p.toString();
+    public String calcPath() {
+      return r.calcCurrentPath();
     }
     
-    public <T> T tryRun(Function<String, Pair<T, Integer>> get) {
+    public <T> T tryRun(boolean justBytes, Function<Utils.RequestRes, Pair<T, Integer>> get) {
       requestLogger.got(this, "new", MxServer.this);
       
       if (t==null) throw new IllegalStateException("Request type not set");
-      String path = calcURL();
+      String path = calcPath();
       
       int expTime = 1000;
       while (true) {
@@ -139,13 +162,16 @@ public class MxServer {
         try {
           log(t.name(), path, ct);
           requestLogger.got(this, "start", null);
-          String res;
+          Utils.RequestRes res;
+          String finalUrl = r.isDirectUrl? path : url+"/"+path;
+          Utils.RequestParams p = new Utils.RequestParams(r.authorization);
           switch (t) { default: throw new IllegalStateException();
-            case GET:  res = Utils.get (url+"/"+path); break;
-            case PUT:  res = Utils.put (url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
-            case POST: res = Utils.post(url+"/"+path, ct.getBytes(StandardCharsets.UTF_8)); break;
+            case GET:  res = Utils.get (p, finalUrl); break;
+            case PUT:  res = Utils.put (p, finalUrl, ct.getBytes(StandardCharsets.UTF_8)); break;
+            case POST: res = Utils.post(p, finalUrl, ct.getBytes(StandardCharsets.UTF_8)); break;
           }
-          requestLogger.got(this, "raw result", res);
+          requestLogger.got(this, "status code", res.code);
+          if (!justBytes) requestLogger.got(this, "raw result", new String(res.bytes, StandardCharsets.UTF_8));
           // if (Math.random()>0.5) throw new RuntimeException("random error");
           // Tools.sleep((int) (Math.random()*1000));
           
@@ -169,14 +195,17 @@ public class MxServer {
       }
     }
     
+    public Utils.RequestRes runBytesOpt() {
+      return tryRun(true, b -> new Pair<>(b, null));
+    }
     public String runStr() {
-      return tryRun(s -> new Pair<>(s, null));
+      return tryRun(false, b -> new Pair<>(new String(b.bytes, StandardCharsets.UTF_8), null));
     }
     public Obj runJ() {
-      Obj res = tryRun(s -> {
+      Obj res = tryRun(false, b -> {
         Obj r;
         try {
-          r = JSON.parseObj(s);
+          r = JSON.parseObj(new String(b.bytes, StandardCharsets.UTF_8));
         } catch (Throwable e) {
           Utils.warn("Failed to parse JSON");
           Utils.warnStacktrace(e);
@@ -198,26 +227,19 @@ public class MxServer {
     System.arraycopy(b, 0, res, a.length, b.length);
     return res;
   }
-  public Request requestV3(String... path) {
-    return requestV(3, path);
+  
+  public Request requestRaw(String... path) {
+    return new Request(concat(new String[]{"_matrix"}, path));
+  }
+  public Request requestClient(String... path) {
+    return new Request(concat(new String[]{"_matrix","client"}, path));
   }
   public Request requestV(int v, String... path) {
     for (String s : path) if (s.indexOf('/')!=-1) throw new IllegalStateException("'/' in URL path segment");
     return new Request(concat(new String[]{"_matrix","client","v"+v}, path));
   }
-  
-  public byte[] getB(String path) {
-    log("GET bytes", path, null);
-    return Utils.getB(url+"/"+path);
-  }
-  private HashMap<String, byte[]> getBCache;
-  public byte[] getBCached(String path) {
-    if (getBCache==null) getBCache = new HashMap<>();
-    byte[] prev = getBCache.get(path);
-    if (prev!=null) return prev;
-    byte[] curr = getB(path);
-    getBCache.put(path, curr);
-    return curr;
+  public Request requestV3(String... path) {
+    return requestV(3, path);
   }
   
   private final HashMap<String, MxRoom> rooms = new HashMap<>();
@@ -301,16 +323,39 @@ public class MxServer {
   public static boolean isMxc(String uri) {
     return uri.startsWith("mxc://");
   }
-  public String mxcPath(String mxc) {
-    if (!mxc.startsWith("mxc://")) throw new RuntimeException("not an mxc URL: "+mxc);
-    return mxc.substring(6);
+  public Mxc readMxc(String mxc) { // mxc components are guaranteed to be [a-zA-Z0-9_-]
+    if (!isMxc(mxc)) return null;
+    String[] ps = Tools.split(mxc.substring(6), '/');
+    if (ps.length!=2) return null;
+    return new Mxc(ps[0], ps[1]);
   }
-  public String mxcToURL(String mxc) {
-    return url+"/_matrix/media/r0/download/"+mxcPath(mxc);
+  
+  public boolean directMediaUrlsNotSupported() {
+    return supportedVersions.contains("v1.11");
+  }
+  public Request mxcDownloadRequest(String mxc) {
+    Mxc p = readMxc(mxc);
+    if (p==null) return null;
+    return directMediaUrlsNotSupported()? requestV(1, "media", "download", p.server, p.media).gToken() : requestRaw("media", "r0", "download", p.server, p.media);
   }
   
   public enum ThumbnailMode { CROP("crop"), SCALE("scale"); final String s; ThumbnailMode(String s) { this.s = s; } }
-  public String mxcToThumbnailURL(String mxc, int w, int h, ThumbnailMode mode) {
-    return url+"/_matrix/media/v3/thumbnail/"+mxcPath(mxc)+"?width="+w+"&height="+h+"&mode="+mode.s;
+  public Request mxcThumbnailRequest(String mxc, int w, int h, ThumbnailMode mode) {
+    Mxc p = readMxc(mxc);
+    if (p==null) return null;
+    Request rq = directMediaUrlsNotSupported()? requestV(1, "media", "thumbnail", p.server, p.media).gToken() : requestRaw("media", "v3", "thumbnail", p.server, p.media);
+    return rq.prop("width", w).prop("height", h).prop("mode", mode.s);
+  }
+  
+  public static class Mxc {
+    public final String server, media;
+    public Mxc(String server, String media) {
+      this.server = server;
+      this.media = media;
+    }
+    
+    public String link() {
+      return "mxc://"+server+"/"+media;
+    }
   }
 }

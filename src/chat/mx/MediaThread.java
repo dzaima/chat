@@ -1,10 +1,11 @@
 package chat.mx;
 
 import chat.networkLog.NetworkLog;
-import chat.utils.CacheObj;
+import chat.utils.*;
 import dzaima.utils.*;
-import libMx.Utils;
+import libMx.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.*;
@@ -17,10 +18,12 @@ public class MediaThread {
   private final ConcurrentHashMap<String, Request> map = new ConcurrentHashMap<>(); // inserted into from main, deleted from by launched
   
   // invoke from main thread
-  public void request(String url, Consumer<byte[]> onDone, Supplier<Boolean> stillNeeded) {
-    Request r = map.computeIfAbsent(url, url1 -> todo.add(new Request(url1))); // add is fine before r.users.add because it's only on main thread
+  public void request(MediaRequest rq, Consumer<byte[]> onDone, Supplier<Boolean> stillNeeded) { // onDone called on spawned thread
+    Request r = map.computeIfAbsent(rq.key(), u -> todo.add(new Request(rq))); // add is fine before r.users.add because it's only on main thread
     r.users.add(new Pair<>(onDone, stillNeeded));
   }
+  
+  
   
   // invoke from main thread
   public void tick() {
@@ -34,21 +37,25 @@ public class MediaThread {
       if (needed) {
         active.incrementAndGet();
         Tools.thread(() -> {
-          Utils.LoggableRequest rq = new NetworkLog.CustomRequest(Utils.RequestType.GET, r.url);
+          String logLink = r.rq.logLink();
+          Utils.LoggableRequest rq = new NetworkLog.CustomRequest(null, "cache-get "+logLink);
           Utils.requestLogger.got(rq, "new", null);
           byte[] res;
           try {
-            res = CacheObj.compute(r.url, () -> {
-              MxChatUser.logGet("Load image", r.url);
+            res = CacheObj.compute(r.rq.key(), () -> {
+              MxChatUser.logGet("Load media", logLink);
               Utils.requestLogger.got(rq, "not in cache, requesting", null);
-              return Tools.get(r.url, true);
-            });
+              Pair<byte[], Boolean> got = r.rq.requestHere();
+              if (!got.b) Utils.requestLogger.got(rq, "error", new String(got.a, StandardCharsets.UTF_8));
+              return got.b? got.a : null;
+            }, () -> Utils.requestLogger.got(rq, "received result from cache", null));
           } catch (Throwable t) {
             res = null;
-            Log.warn("media", "Failed to load "+r.url);
+            Log.warn("media", "Failed to load "+logLink);
+            Utils.requestLogger.got(rq, "error", t.getMessage());
           }
-          Utils.requestLogger.got(rq, "result", res);
-          map.remove(r.url); // result is already in cache, so it's fine; we need r.users to stop being modified
+          if (res!=null) Utils.requestLogger.got(rq, "result", res);
+          map.remove(r.rq.key()); // result is already in cache, so it's fine; we need r.users to stop being modified
           for (Pair<Consumer<byte[]>, Supplier<Boolean>> u : r.users) u.a.accept(res);
           
           active.decrementAndGet();
@@ -58,11 +65,45 @@ public class MediaThread {
   }
   
   private static class Request {
-    final String url;
+    final MediaRequest rq;
     final ConcurrentLinkedQueue<Pair<Consumer<byte[]>, Supplier<Boolean>>> users; // modified on main, read by launched
-    private Request(String url) {
-      this.url = url;
+    private Request(MediaRequest rq) {
+      this.rq = rq;
       this.users = new ConcurrentLinkedQueue<>();
+    }
+  }
+  
+  public abstract static class MediaRequest {
+    public abstract String key();
+    public abstract String logLink();
+    public abstract Pair<byte[], Boolean> requestHere(); // bool is whether result is good
+    
+    public static class FromMxRequest extends MediaRequest {
+      public final MxServer.Request rq;
+      
+      public FromMxRequest(MxServer.Request rq) {
+        this.rq = rq;
+      }
+      
+      public String logLink() { return rq.calcCurrentPath(); }
+      public String key() { return "mx;"+rq.calcCurrentPath(); }
+      
+      public Pair<byte[], Boolean> requestHere() {
+        Utils.RequestRes r = rq.get().runBytesOpt();
+        return new Pair<>(r.bytes, r.ok());
+      }
+    }
+    public static class FromURL extends MediaRequest {
+      public final String url;
+      public FromURL(String url) { this.url = url; }
+      
+      public String logLink() { return url; }
+      public String key() { return "raw;"+url; }
+      
+      public Pair<byte[], Boolean> requestHere() {
+        Utils.RequestRes r = Utils.get(new Utils.RequestParams(null), url);
+        return new Pair<>(r.bytes, r.ok());
+      }
     }
   }
 }

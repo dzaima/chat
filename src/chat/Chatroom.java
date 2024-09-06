@@ -103,12 +103,6 @@ public abstract class Chatroom {
   public abstract void delete(ChatEvent m);
   public abstract ChatEvent find(String id);
   public abstract String asCodeblock(String s);
-  public static class URLRes {
-    public final String url;
-    public final boolean safe;
-    public URLRes(String url, boolean safe) { this.url = url; this.safe = safe; }
-  }
-  public abstract URLRes parseURL(String src);
   
   
   

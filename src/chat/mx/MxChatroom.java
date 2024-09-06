@@ -680,14 +680,6 @@ public class MxChatroom extends Chatroom {
     return d!=null && d.s==UserStatus.JOINED;
   }
   
-  public URLRes parseURL(String src) {
-    int safety = m.imageSafety();
-    if (MxServer.isMxc(src)) {
-      return new URLRes(r.s.mxcToURL(src), safety>0);
-    }
-    return new URLRes(src, safety>1);
-  }
-  
   public String toString() { return officialName; }
   
   
