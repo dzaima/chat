@@ -644,6 +644,7 @@ public class ChatMain extends NodeWindow {
     o.argString("--network-log-minutes", "Time to preserve network log for (0 for forever). Default: forever in detailed mode, 10 minutes otherwise");
     o.argBool("--no-lazy-load-members", "Disable lazy member list loading");
     o.argBool("--dry-run-modtools", "Disable mod tools doing any actions (except unbanning)");
+    o.argBool("--no-initial-messages", "Don't load any messages on startup");
     o.autoDebug(Log.Level.WARN);
     o.acceptLeft(1);
     o.autoHelp();

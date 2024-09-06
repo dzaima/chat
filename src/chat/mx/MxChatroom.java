@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.function.*;
 
 public class MxChatroom extends Chatroom {
-  public static final int DEFAULT_MSGS = 50;
   public static final boolean DEBUG_EVENTS = false;
   
   public final MxChatUser u;

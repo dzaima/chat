@@ -24,8 +24,6 @@ import java.util.concurrent.*;
 import java.util.function.*;
 import java.util.zip.*;
 
-import static chat.mx.MxChatroom.DEFAULT_MSGS;
-
 public class MxChatUser extends ChatUser {
   public final Obj data;
   public MxServer s = null;
@@ -118,6 +116,7 @@ public class MxChatUser extends ChatUser {
     };
     for (String c : data.arr("autoban", Arr.E).strs()) autoban.add(c);
     lazyLoadUsers = !m.options.takeBool("--no-lazy-load-members");
+    int msgsToPreload = m.options.takeBool("--no-initial-messages")? 0 : 50;
     node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
     queueNetwork(() -> {
       MxServer s0 = MxServer.of(login);
@@ -134,7 +133,7 @@ public class MxChatUser extends ChatUser {
         node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
       });
       
-      Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(DEFAULT_MSGS, lazyLoadUsers, true).toString()).token(u0.token).get().runJ();
+      Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(msgsToPreload, lazyLoadUsers, true).toString()).token(u0.token).get().runJ();
       Log.info("mx stats", () -> "Initial sync of "+u0.uid+": "+j.toString().length()+" characters");
       primary.add(() -> {
         try {
