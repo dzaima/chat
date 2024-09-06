@@ -288,10 +288,14 @@ public class MxChatUser extends ChatUser {
   public void loadImg(URIInfo info, boolean acceptThumbnail,
                       Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) {
     boolean doThumbnail = acceptThumbnail && info.hasThumbnail;
+    loadImg(info, doThumbnail? info.requestThumbnail() : info.requestFull(), doThumbnail, loaded, ctor, stillNeeded);
+  }
+  public void loadImg(URIInfo info, MediaRequest rq, boolean isThumbnail,
+                      Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) {
     media.request(
-      doThumbnail? info.requestThumbnail() : info.requestFull(), 
+      rq,
       data -> primary.add(() -> {
-        Extras.LinkInfo linkInfo = new Extras.LinkInfo(LinkType.IMG, doThumbnail? null : data, info.obj);
+        Extras.LinkInfo linkInfo = new Extras.LinkInfo(LinkType.IMG, isThumbnail? null : data, info.obj);
         loaded.accept(HTMLParser.inlineImage(this, info.uri, linkInfo, ctor, data));
       }),
       stillNeeded

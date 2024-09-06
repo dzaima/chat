@@ -70,9 +70,9 @@ public class ViewUsers {
     public void drawC(Graphics g) {
       if (!loaded) {
         loaded = true;
-        r.u.loadMxcImg(mxc, n -> {
+        r.u.loadImg(r.u.parseURI(mxc, null), new MediaThread.MediaRequest.FromMxRequest(r.u.s.mxcThumbnailRequest(mxc, w, h, MxServer.ThumbnailMode.CROP)), true, n -> {
           if (n!=null) add(n);
-        }, ImageNode.UserListAvatarNode::new, w, h, MxServer.ThumbnailMode.CROP, () -> true);
+        }, ImageNode.UserListAvatarNode::new, () -> true);
       }
     }
     

@@ -42,7 +42,7 @@ public class NetworkLog extends BasicNetworkView {
       public JSON.Obj data() { return new JSON.Obj(); }
       public URIInfo parseURI(String src, JSON.Obj info) { return null; }
       public void loadImg(URIInfo info, boolean acceptThumbnail, Consumer<Node> loaded, BiFunction<Ctx, byte[], ImageNode> ctor, Supplier<Boolean> stillNeeded) { }
-      public void openLink(String url, Extras.LinkType type, byte[] data) { }
+      public void openLink(String url, Extras.LinkInfo info) { }
     };
     room = new Chatroom(user) {
       public void muteStateChanged() { }
