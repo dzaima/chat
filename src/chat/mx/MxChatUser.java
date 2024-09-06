@@ -313,13 +313,22 @@ public class MxChatUser extends ChatUser {
     return null;
   }
   
-  private void openLinkGeneric(String url) {
-    m.gc.openLink(url);
+  private void openURIGeneric(String uri, Extras.LinkInfo info) {
+    if (MxServer.isMxc(uri)) {
+      String mime = info.mime();
+      if (mime.startsWith("video/") || mime.startsWith("audio/") || mime.startsWith("image/")) {
+        downloadTmpAndOpen(uri, info, () -> {});
+      } else {
+        downloadToSelect(uri, info, () -> {});
+      }
+    } else {
+      m.gc.openLink(uri);
+    }
   }
   public static final Counter popupCounter = new Counter();
   public void openLink(String uri, Extras.LinkInfo info) {
     if (info.type==LinkType.EXT) {
-      openLinkGeneric(uri);
+      openURIGeneric(uri, info);
       return;
     }
     
@@ -345,7 +354,7 @@ public class MxChatUser extends ChatUser {
           String msgId = parts[1];
           if (r!=null) {
             r.highlightMessage(msgId, b -> {
-              if (!b) openLinkGeneric(uri);
+              if (!b) openURIGeneric(uri, info);
             }, false);
             return;
           }
@@ -365,7 +374,7 @@ public class MxChatUser extends ChatUser {
             return;
           }
         }
-        openLinkGeneric(uri);
+        openURIGeneric(uri, info);
       };
       
       if (info.linkedData!=null) {
@@ -382,7 +391,7 @@ public class MxChatUser extends ChatUser {
           });
         } else {
           done.run();
-          openLinkGeneric(uri);
+          openURIGeneric(uri, info);
         }
       };
       
@@ -452,16 +461,7 @@ public class MxChatUser extends ChatUser {
       return;
     }
     
-    if (MxServer.isMxc(uri)) {
-      String mime = info.mime();
-      if (mime.startsWith("video/") || mime.startsWith("audio/") || mime.startsWith("image/")) {
-        downloadTmpAndOpen(uri, info, () -> {});
-      } else {
-        downloadToSelect(uri, info, () -> {});
-      }
-    } else {
-      openLinkGeneric(uri);
-    }
+    openURIGeneric(uri, info);
   }
   private void openText(String text, Lang lang) {
     new Popup(m.ctx.win()) {
