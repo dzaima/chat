@@ -43,6 +43,8 @@ chat {
     copyLink = { "l" }
     copyText = { "c" }
     openExternal = { "o" }
+    download = { "d" }
+    downloadTmpOpen = { "o" }
     editHistory = { "h" }
     reply = { "r" }
     edit = { "e" }
@@ -527,6 +529,11 @@ chat {
   linkMenu = menu {
     mi { id=copy "Copy link address" key=chat.menuKeys.copyLink }
     mi { id=openExt "Open externally" key=chat.menuKeys.openExternal }
+  }
+  mxcMenu = menu {
+    mi { id=copy "Copy address" key=chat.menuKeys.copyLink }
+    mi { id=download "Download" key=chat.menuKeys.download }
+    mi { id=downloadTmpOpen "Download temporary & open" key=chat.menuKeys.downloadTmpOpen }
   }
   textUI = h { bg=bg.middle // used for paste & text files
     scroll {

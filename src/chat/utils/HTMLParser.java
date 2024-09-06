@@ -36,18 +36,18 @@ public class HTMLParser {
   
   private static final Props WIDTH_MAX = Props.of("width", EnumProp.cache("max"));
   
-  public static Node inlineImagePlaceholder(ChatUser u, String link, ImageNode img) {
-    return inlineImage(u, link, null, img);
+  public static Node inlineImagePlaceholder(ChatUser u, String link, Extras.LinkInfo info, ImageNode img) {
+    return inlineImage(u, link, info, img);
   }
-  public static Node inlineImage(ChatUser u, String link, boolean dataIsFull, byte[] data, BiFunction<Ctx, byte[], ImageNode> ctor) {
+  public static Node inlineImage(ChatUser u, String link, Extras.LinkInfo info, BiFunction<Ctx, byte[], ImageNode> ctor, byte[] data) {
     Ctx ctx = u.m.base.ctx;
     ImageNode img = ctor.apply(ctx, data);
     if (!img.loadableImage()) return null;
-    return inlineImage(u, link, dataIsFull? data : null, img);
+    return inlineImage(u, link, info, img);
   }
   
-  private static TextNode inlineImage(ChatUser u, String link, byte[] data, ImageNode img) {
-    TextNode l = Extras.textLink(u, link, LinkType.IMG, data);
+  private static TextNode inlineImage(ChatUser u, String link, Extras.LinkInfo info, ImageNode img) {
+    TextNode l = Extras.textLink(u, link, info);
     InlineNode.TANode v = new InlineNode.TANode(img.ctx, WIDTH_MAX);
     v.add(img);
     l.add(v);

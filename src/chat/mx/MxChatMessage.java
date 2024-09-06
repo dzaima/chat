@@ -105,39 +105,42 @@ public class MxChatMessage extends MxChatEvent {
       case "m.video":
         if (!visible) return;
         
-        Obj info = Obj.path(e0.ct, Obj.E, "info").obj(Obj.E);
+        Obj info = new Obj();
+        for (JSON.Entry e : Obj.path(e0.ct, Obj.E, "info").obj(Obj.E).entries()) info.put(e.k, e.v);
+        info.put(Extras.EXPECTED_FILENAME, new JSON.Str(e0.ct.str("filename", e0.ct.str("body", ""))));
+        
         ChatUser.URIInfo uri = r.u.parseURI(getRawURI(), info);
         
         int s = r.m.imageSafety();
         
-        Consumer<String> replaceWithPlainLink = str -> {
+        Runnable replaceWithPlainLink = () -> {
           LinkType lt;
           if (type.equals("m.image")) lt = LinkType.IMG;
           else if (type.equals("m.file") && info.str("mimetype", "").startsWith("text/")) lt = LinkType.TEXT;
           else lt = LinkType.UNK;
           
-          TextNode link = HTMLParser.link(r, str, lt);
-          link.add(new StringNode(n.ctx, str));
+          TextNode link = Extras.textLink(r.u, uri.uri, new Extras.LinkInfo(lt, null, info));
+          link.add(new StringNode(n.ctx, uri.uri));
           r.m.updMessage(this, link, newAtEnd);
         };
         
         if (type.equals("m.image") && s > (uri.safe? 0 : 1)) {
           ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, info.getInt("w", 0), info.getInt("h", 0), n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
-          Node nd = HTMLParser.inlineImagePlaceholder(r.u, uri.uri, placeholder);
+          Node nd = HTMLParser.inlineImagePlaceholder(r.u, uri.uri, new Extras.LinkInfo(LinkType.IMG, null, info), placeholder);
           r.m.updMessage(this, nd, newAtEnd);
           
           int expect = bodyUpdateCtr;
           Consumer<Node> got = n -> {
             if (!visible) return;
             if (n==null) {
-              replaceWithPlainLink.accept(uri.uri);
+              replaceWithPlainLink.run();
             } else if (expect==bodyUpdateCtr) {
               r.m.updMessage(this, n, false);
             }
           };
           r.u.loadImg(uri, true, got, ImageNode.InlineImageNode::new, () -> true);
         } else {
-          replaceWithPlainLink.accept(uri.uri);
+          replaceWithPlainLink.run();
         }
         break;
       default:

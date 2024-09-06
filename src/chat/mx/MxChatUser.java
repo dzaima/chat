@@ -261,11 +261,15 @@ public class MxChatUser extends ChatUser {
     return Promise.create(set -> media.request(parseURI(uri, null).requestFull(), r -> primary.add(() -> set.set(r)), ()->true));
   }
   
+  public String linkMenu(String url) {
+    return MxServer.isMxc(url)? "chat.mxcMenu" : super.linkMenu(url);
+  }
+  
   public URIInfo parseURI(String uri, Obj info) {
     int safety = m.imageSafety();
     if (MxServer.isMxc(uri)) {
       boolean hasThumbnail = info==null || !info.str("mimetype", "").equals("image/gif");
-      return new URIInfo(uri, safety>0, hasThumbnail) {
+      return new URIInfo(uri, info, safety>0, hasThumbnail) {
         public MediaRequest requestFull() {
           return new MediaRequest.FromMxRequest(s.mxcDownloadRequest(uri));
         }
@@ -275,7 +279,7 @@ public class MxChatUser extends ChatUser {
         }
       };
     }
-    return new URIInfo(uri, safety>1, false) {
+    return new URIInfo(uri, info, safety>1, false) {
       public MediaRequest requestFull() { return new MediaRequest.FromURL(uri); }
       public MediaRequest requestThumbnail() { throw new IllegalStateException(); }
     };
@@ -286,7 +290,10 @@ public class MxChatUser extends ChatUser {
     boolean doThumbnail = acceptThumbnail && info.hasThumbnail;
     media.request(
       doThumbnail? info.requestThumbnail() : info.requestFull(), 
-      d -> primary.add(() -> loaded.accept(HTMLParser.inlineImage(this, info.uri, !doThumbnail, d, ctor))),
+      data -> primary.add(() -> {
+        Extras.LinkInfo linkInfo = new Extras.LinkInfo(LinkType.IMG, doThumbnail? null : data, info.obj);
+        loaded.accept(HTMLParser.inlineImage(this, info.uri, linkInfo, ctor, data));
+      }),
       stillNeeded
     );
   }
@@ -306,8 +313,8 @@ public class MxChatUser extends ChatUser {
     m.gc.openLink(url);
   }
   public static final Counter popupCounter = new Counter();
-  public void openLink(String uri, LinkType type, byte[] data) {
-    if (type==LinkType.EXT) {
+  public void openLink(String uri, Extras.LinkInfo info) {
+    if (info.type==LinkType.EXT) {
       openLinkGeneric(uri);
       return;
     }
@@ -343,7 +350,7 @@ public class MxChatUser extends ChatUser {
     }
     
     // displayable image/animation
-    if (m.gc.getProp("chat.internalImageViewer").b() && (type==LinkType.IMG || uri.contains("/_matrix/media/"))) {
+    if (m.gc.getProp("chat.internalImageViewer").b() && (info.type==LinkType.IMG || uri.contains("/_matrix/media/"))) {
       int action = popupCounter.next();
       Consumer<byte[]> showImg = d -> {
         if (popupCounter.superseded(action)) return;
@@ -357,8 +364,8 @@ public class MxChatUser extends ChatUser {
         openLinkGeneric(uri);
       };
       
-      if (data!=null) {
-        showImg.accept(data);
+      if (info.linkedData!=null) {
+        showImg.accept(info.linkedData);
         return;
       }
       
@@ -375,7 +382,7 @@ public class MxChatUser extends ChatUser {
         }
       };
       
-      if (MxServer.isMxc(uri)) onIsImg.accept(new byte[]{(byte) (type==LinkType.IMG? 1 : 0)});
+      if (MxServer.isMxc(uri)) onIsImg.accept(new byte[]{(byte) (info.type==LinkType.IMG? 1 : 0)});
       else queueRequest(() -> CacheObj.compute("head_isImage\0"+uri, () -> {
         try {
           Utils.log("head", uri);
@@ -429,7 +436,7 @@ public class MxChatUser extends ChatUser {
     }
     
     // uploaded text file
-    if (type==LinkType.TEXT) {
+    if (info.type==LinkType.TEXT) {
       int action = popupCounter.next();
       Runnable done = m.doAction("loading text file...");
       queueGet(uri).then(bs -> {
@@ -438,9 +445,19 @@ public class MxChatUser extends ChatUser {
         if (bs == null) m.gc.openLink(uri);
         else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
       });
+      return;
     }
     
-    openLinkGeneric(uri);
+    if (MxServer.isMxc(uri)) {
+      String mime = info.mime();
+      if (mime.startsWith("video/") || mime.startsWith("audio/") || mime.startsWith("image/")) {
+        downloadTmpAndOpen(uri, info, () -> {});
+      } else {
+        downloadToSelect(uri, info, () -> {});
+      }
+    } else {
+      openLinkGeneric(uri);
+    }
   }
   private void openText(String text, Lang lang) {
     new Popup(m.ctx.win()) {

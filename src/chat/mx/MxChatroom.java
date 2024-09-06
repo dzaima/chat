@@ -104,7 +104,7 @@ public class MxChatroom extends Chatroom {
           return;
         }
       }
-      u.openLink(left, Extras.LinkType.UNK, null);
+      u.openLink(left, Extras.LinkInfo.UNK);
     }));
     commands.add(new SimplePlainCommand("sort", () -> {
       MxLog l = visibleLog();
