@@ -107,7 +107,8 @@ public class MxChatMessage extends MxChatEvent {
         
         Obj info = new Obj();
         for (JSON.Entry e : Obj.path(e0.ct, Obj.E, "info").obj(Obj.E).entries()) info.put(e.k, e.v);
-        info.put(Extras.EXPECTED_FILENAME, new JSON.Str(e0.ct.str("filename", e0.ct.str("body", ""))));
+        String expectedFilename = e0.ct.str("filename", e0.ct.str("body", ""));
+        info.put(Extras.EXPECTED_FILENAME, new JSON.Str(expectedFilename));
         
         ChatUser.URIInfo uri = r.u.parseURI(getRawURI(), info);
         
@@ -120,7 +121,7 @@ public class MxChatMessage extends MxChatEvent {
           else lt = LinkType.UNK;
           
           TextNode link = Extras.textLink(r.u, uri.uri, new Extras.LinkInfo(lt, null, info));
-          link.add(new StringNode(n.ctx, uri.uri));
+          link.add(new StringNode(n.ctx, expectedFilename));
           r.m.updMessage(this, link, newAtEnd);
         };
         
