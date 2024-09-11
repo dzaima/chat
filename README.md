@@ -4,7 +4,7 @@
 
 ### Usage
 
-1. `./build.py`
+1. `./build.py` (requires Java ≥ 11)
 2. make `accounts/profile.json` with:
    ```js
    {
