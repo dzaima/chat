@@ -316,7 +316,7 @@ public class MxChatUser extends ChatUser {
   private void openURIGeneric(String uri, Extras.LinkInfo info) {
     if (MxServer.isMxc(uri)) {
       String mime = info.mime();
-      if (mime.startsWith("video/") || mime.startsWith("audio/") || mime.startsWith("image/")) {
+      if (mime.startsWith("video/") || mime.startsWith("audio/") || mime.startsWith("image/") || mime.equals("application/pdf")) {
         downloadTmpAndOpen(uri, info, () -> {});
       } else {
         downloadToSelect(uri, info, () -> {});
