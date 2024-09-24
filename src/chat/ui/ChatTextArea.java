@@ -1,7 +1,6 @@
 package chat.ui;
 
 import chat.*;
-import chat.mx.*;
 import dzaima.ui.gui.NodeVW;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.prop.Props;
@@ -22,6 +21,11 @@ public class ChatTextArea extends CodeAreaNode {
     super(v.room().m.ctx, props);
     this.v = v;
     this.m = v.room().m;
+  }
+  
+  public void propsUpd() {
+    super.propsUpd();
+    setFamily(getProp("family").str());
   }
   
   public boolean keyF2(Key key, int scancode, KeyAction a) {

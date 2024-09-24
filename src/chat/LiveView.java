@@ -14,7 +14,7 @@ public abstract class LiveView extends View {
     this.m = m;
   }
   protected void initCompete() {
-    input = new ChatTextArea(this, Props.keys("family", "numbering").values(new StrProp("Arial"), EnumProp.FALSE));
+    input = new ChatTextArea(this, Props.keys("family", "numbering").values(m.gc.getCfgProp("chat.preview.defFamily"), EnumProp.FALSE));
     input.wrap = true;
     cfgUpdated();
   }
