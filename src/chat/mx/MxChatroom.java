@@ -2,7 +2,7 @@ package chat.mx;
 
 import chat.*;
 import chat.Command.*;
-import chat.ui.*;
+import chat.ui.RoomListNode;
 import chat.utils.*;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.io.*;

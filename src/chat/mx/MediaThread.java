@@ -1,7 +1,7 @@
 package chat.mx;
 
 import chat.networkLog.NetworkLog;
-import chat.utils.*;
+import chat.utils.CacheObj;
 import dzaima.utils.*;
 import libMx.*;
 

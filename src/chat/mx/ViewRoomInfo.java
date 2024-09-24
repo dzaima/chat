@@ -5,9 +5,7 @@ import chat.ui.*;
 import chat.utils.UnreadInfo;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.types.*;
-import dzaima.utils.*;
-
-import java.util.HashMap;
+import dzaima.utils.Vec;
 
 public class ViewRoomInfo {
   private final ChatMain m;

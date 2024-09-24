@@ -5,7 +5,6 @@ import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.ui.node.prop.Props;
-import dzaima.ui.node.types.StringNode;
 import dzaima.utils.Tools;
 import io.github.humbleui.skija.Image;
 

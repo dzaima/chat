@@ -19,7 +19,6 @@ public abstract class LiveView extends View {
     cfgUpdated();
   }
   
-  
   public final LiveView baseLiveView() { return this; }
   public abstract MuteState muteState();
   

@@ -1,7 +1,7 @@
 package chat.ui;
 
 import chat.*;
-import chat.mx.*;
+import chat.mx.ViewProfile;
 import dzaima.ui.gui.*;
 import dzaima.ui.gui.config.GConfig;
 import dzaima.ui.gui.io.Click;
