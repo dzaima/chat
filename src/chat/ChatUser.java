@@ -63,7 +63,7 @@ public abstract class ChatUser {
   }
   
   public void downloadToSelect(String url, Extras.LinkInfo info, Runnable onOk) {
-    m.saveFile(null, null, path -> { // TODO use info for placeholder filename
+    m.saveFile(null, null, info.expectedFilename(), path -> {
       if (path!=null) downloadTo(url, path, onOk);
     });
   }
