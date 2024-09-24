@@ -92,7 +92,7 @@ public class MxChatroom extends Chatroom {
         default: return false;
       }
     }));
-    commands.add(new SimplePlainCommand("network-log", () -> NetworkLog.open(m)));
+    commands.add(new SimplePlainCommand("network-log", () -> NetworkLog.open(u)));
     
     
     

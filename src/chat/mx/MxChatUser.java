@@ -22,12 +22,14 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.*;
 import java.util.zip.*;
 
 public class MxChatUser extends ChatUser {
   public final Obj data;
   public MxServer s = null;
+  public AtomicReference<MxServer> s_atomic = new AtomicReference<>();
   public MxLogin u = null;
   
   public boolean lazyLoadUsers;
@@ -121,12 +123,13 @@ public class MxChatUser extends ChatUser {
     int msgsToPreload = m.options.takeBool("--no-initial-messages")? 0 : 50;
     node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
     queueNetwork(() -> {
-      MxServer s0 = MxServer.of(login);
-      if (s0==null) {
+      MxServer s0 = login.create();
+      s_atomic.set(s0);
+      MxLogin u0 = login.login(s0);
+      if (u0==null) {
         Log.error("mx", "Failed to log in");
         return;
       }
-      MxLogin u0 = s0.primaryLogin;
       
       String name = u0.user().globalName();
       primary.add(() -> {

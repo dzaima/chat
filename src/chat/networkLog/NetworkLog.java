@@ -1,6 +1,7 @@
 package chat.networkLog;
 
 import chat.*;
+import chat.mx.MxChatUser;
 import chat.ui.*;
 import chat.utils.UnreadInfo;
 import dzaima.ui.gui.io.*;
@@ -27,12 +28,14 @@ public class NetworkLog extends BasicNetworkView {
   public final HashMap<RequestInfo, StatusMessage> statusMessages = new HashMap<>();
   
   public final ChatMain m;
+  public final MxChatUser mxUser;
   public final ChatUser user;
   public final Chatroom room;
   
-  public NetworkLog(ChatMain m) {
-    super(m);
-    this.m = m;
+  public NetworkLog(MxChatUser mxUser) {
+    super(mxUser.m);
+    this.mxUser = mxUser;
+    this.m = mxUser.m;
     user = new ChatUser(m) {
       public Vec<? extends Chatroom> rooms() { return Vec.of(room); }
       public void saveRooms() { }
@@ -64,8 +67,8 @@ public class NetworkLog extends BasicNetworkView {
     };
   }
   
-  public static void open(ChatMain m) {
-    m.toViewDirect(new NetworkLog(m));
+  public static void open(MxChatUser u) {
+    u.m.toViewDirect(new NetworkLog(u));
   }
   
   public static Runnable start(ChatMain m, boolean detailed0, int logMinutes) {
@@ -105,7 +108,7 @@ public class NetworkLog extends BasicNetworkView {
             case "retry":  ri.status = RequestInfo.Status.RETRYING; break;
             case "cancel": ri.status = RequestInfo.Status.CANCELED; break;
           }
-          if (detailed) {
+          if (detailed || m.networkViewOpen()) {
             Event ev = new Event(e.w, e.type, e.o);
             ri.events.add(ev);
             if (m.view instanceof StatusMessage.EventView) {
@@ -121,7 +124,7 @@ public class NetworkLog extends BasicNetworkView {
         }
       }
       
-      if (!(m.view instanceof BasicNetworkView) && logMinutes!=0) {
+      if (!m.networkViewOpen() && logMinutes!=0) {
         Instant now = Instant.now();
         while (!list.isEmpty()) {
           if (list.getFirst().start.until(now, ChronoUnit.MINUTES) <= logMinutes) break;
@@ -135,6 +138,7 @@ public class NetworkLog extends BasicNetworkView {
   
   private final Vec<ChatEvent> visEvents = new Vec<>();
   private void addRI(RequestInfo ri) {
+    if (ri.s != mxUser.s_atomic.get()) return;
     m.addMessage(visEvents.add(statusMessages.computeIfAbsent(ri, s -> new StatusMessage(this, s))), true);
   }
   public void show() {

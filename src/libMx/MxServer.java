@@ -24,7 +24,7 @@ public class MxServer {
     setG(new MxLogin(this, id, gToken));
   }
   
-  private MxServer(String url) {
+  MxServer(String url) {
     this.url = url;
   }
   
@@ -43,28 +43,6 @@ public class MxServer {
     return supportedVersions.contains(s);
   }
   
-  public static MxServer of(MxLoginMgr mgr) {
-    MxServer s = new MxServer(mgr.getServer());
-    s.loadVersionInfo();
-    MxLogin l = s.login(mgr);
-    if (l==null) return null;
-    s.setG(l);
-    return s;
-  }
-  
-  public MxLogin login(MxLoginMgr mgr) {
-    String token = mgr.getToken();
-    if (token!=null) {
-      MxLogin l = new MxLogin(this, mgr.getUserID(), mgr.getToken());
-      if (l.valid()) return l;
-    }
-    
-    MxLogin l = login(mgr.getUserID(), mgr.getPassword());
-    if (l==null) return null;
-    
-    mgr.updateToken(l.token);
-    return l;
-  }
   public MxLogin login(String uid, String passwd) {
     hide_data = true;
     try {
@@ -125,6 +103,8 @@ public class MxServer {
     public RunnableRequest post(Obj o) { return post(o.toString()); }
     
     public String calcCurrentPath() {
+      if (isDirectUrl) return pathParts[0];
+      
       StringBuilder p = new StringBuilder();
       for (int i = 0; i < pathParts.length; i++) {
         if (i!=0) p.append('/');
@@ -228,6 +208,9 @@ public class MxServer {
     return res;
   }
   
+  public Request requestDirectUrl(String path) {
+    return new Request(path);
+  }
   public Request requestRaw(String... path) {
     return new Request(concat(new String[]{"_matrix"}, path));
   }

@@ -28,7 +28,7 @@ public class StatusMessage extends BasicChatEvent {
     if (m.find()) p = m.group(1) + " " + p.substring(m.group().length());
     
     Utils.RequestType t = ri.rq.t;
-    body = (l.m.users.sz==1 || ri.uid==null? "" : ri.uid+": ") + (t==null? "" : t+" ") + p;
+    body = (t==null? "" : t+" ") + p;
   }
   
   public static String fmtTime(Instant time) {
@@ -53,7 +53,7 @@ public class StatusMessage extends BasicChatEvent {
   
   public void rightClick(Click c, int x, int y) {
     PartialMenu pm = new PartialMenu(l.m.gc);
-    pm.add("events", () -> l.m.toViewDirect(new EventView(l.m, ri)));
+    if (ri.events.sz>0) pm.add("events", () -> l.m.toViewDirect(new EventView(l.m, ri)));
     if (ri.rq.ct!=null) pm.add("request body", () -> {
       String ct = ri.rq.ct;
       try {
@@ -66,7 +66,7 @@ public class StatusMessage extends BasicChatEvent {
   
   private static final HashMap<String, String> uniqueStrings = new HashMap<>();
   public String senderID() {
-    return uniqueStrings.computeIfAbsent(ri.rq.t+" "+(ri.uid==null? "" : ri.uid), s -> String.valueOf(uniqueStrings.size()));
+    return uniqueStrings.computeIfAbsent(ri.rq.t.toString(), s -> String.valueOf(uniqueStrings.size()));
   }
   
   public class EventView extends BasicNetworkView {

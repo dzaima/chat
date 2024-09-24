@@ -12,6 +12,31 @@ public abstract class MxLoginMgr {
   public abstract String getToken(); // returns null if none known
   public abstract void updateToken(String token); // 
   
+  public MxServer create() {
+    return new MxServer(getServer());
+  }
+  public MxLogin login(MxServer s) { // s.primaryLogin becomes the return value
+    s.loadVersionInfo();
+    MxLogin l = login0(s);
+    if (l==null) return null;
+    s.setG(l);
+    return l;
+  }
+  
+  private MxLogin login0(MxServer s) {
+    String token = getToken();
+    if (token!=null) {
+      MxLogin l = new MxLogin(s, getUserID(), getToken());
+      if (l.valid()) return l;
+    }
+    
+    MxLogin l = s.login(getUserID(), getPassword());
+    if (l==null) return null;
+    
+    updateToken(l.token);
+    return l;
+  }
+  
   
   public static class MxFileLogin extends MxLoginMgr {
     private final Path path;

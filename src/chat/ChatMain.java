@@ -701,7 +701,9 @@ public class ChatMain extends NodeWindow {
     };
   }
   
-  
+  public boolean networkViewOpen() {
+    return view instanceof BasicNetworkView;
+  }
   
   public long readMinViewMs;
   public float altViewMult;
