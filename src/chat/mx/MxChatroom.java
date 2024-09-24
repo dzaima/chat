@@ -311,6 +311,71 @@ public class MxChatroom extends Chatroom {
     if ((pInv || nInv) && m.view==mainView()) m.toRoom(mainView()); // refresh "input" field
   }
   
+  
+  
+  public final Vec<Command> commands = new Vec<>();
+  public static class MxFmtCommand extends Command {
+    public final Function<String, MxFmt> process;
+    public MxFmtCommand(String name, boolean hasArgs, Function<String, MxFmt> process) {
+      super(name, hasArgs);
+      this.process = process;
+    }
+    public Object run(String s) { return process.apply(s); }
+  }
+  public static class IdArgCommand extends SimpleTestCommand {
+    public IdArgCommand(String name, Consumer<String> id) {
+      super(name, left -> { id.accept(left.replace(" ", "")); return true; });
+    }
+  }
+  
+  public MxFmt parse(String s) {
+    if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, this::onlyDisplayname));
+    else return new MxFmt(s, Utils.toHTML(s, true));
+  }
+  public String[] command(String s) {
+    if (!s.startsWith("/")) return new String[]{s};
+    int m = 1;
+    while (m < s.length()) {
+      char c = s.charAt(m);
+      if (!(Character.isLetterOrDigit(c) || c=='-')) break;
+      m++;
+    }
+    int se = m;
+    if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
+    return new String[]{s.substring(1, m), s.substring(se)};
+  }
+  
+  public Pair<Boolean,Integer> highlight(String s) {
+    String[] cmd = command(s);
+    boolean md = m.gc.getProp("chat.markdown").b();
+    if (cmd.length == 1) return new Pair<>(md, 0);
+    String c0 = cmd[0];
+    if (c0.equals("me")) return new Pair<>(md, 0);
+    md = c0.equals("md");
+    return new Pair<>(md, commands.linearFind(c -> Objects.equals(c.name, c0))!=null? c0.length()+1 : 0);
+  }
+  
+  public Vec<UserRes> autocompleteUsers(String prefix) {
+    String term = prefix.toLowerCase();
+    Vec<UserRes> res = new Vec<>();
+    boolean[] complete = new boolean[1];
+    userData.forEach((k, v) -> {
+      if (v.s==UserStatus.JOINED || v.s==UserStatus.INVITED || v.s==UserStatus.KNOCKING) {
+        String src = k.substring(1).toLowerCase();
+        String username = v.username;
+        String disp = username==null? src : username.toLowerCase();
+        if (src.startsWith(term) || (username!=null && disp.startsWith(term))) {
+          if (src.equals(term)) complete[0] = true;
+          res.add(new UserRes(disp, k));
+        }
+      }
+    });
+    if (complete[0]) res.clear();
+    return res;
+  }
+  
+  
+  
   private void renderTyping(Vec<Username> allNames) {
     Vec<Username> known = allNames.filter(c -> c.full.isResolved());
     StringBuilder typing = new StringBuilder();
@@ -358,71 +423,8 @@ public class MxChatroom extends Chatroom {
     if (nm!=null) nm.updateExtra();
   }
   
-  public MxFmt parse(String s) {
-    if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, this::onlyDisplayname));
-    else return new MxFmt(s, Utils.toHTML(s, true));
-  }
-  public String[] command(String s) {
-    if (!s.startsWith("/")) return new String[]{s};
-    int m = 1;
-    while (m < s.length()) {
-      char c = s.charAt(m);
-      if (!(Character.isLetterOrDigit(c) || c=='-')) break;
-      m++;
-    }
-    int se = m;
-    if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
-    return new String[]{s.substring(1, m), s.substring(se)};
-  }
-  public Pair<Boolean,Integer> highlight(String s) {
-    String[] cmd = command(s);
-    boolean md = m.gc.getProp("chat.markdown").b();
-    if (cmd.length == 1) return new Pair<>(md, 0);
-    String c0 = cmd[0];
-    if (c0.equals("me")) return new Pair<>(md, 0);
-    md = c0.equals("md");
-    return new Pair<>(md, commands.linearFind(c -> Objects.equals(c.name, c0))!=null? c0.length()+1 : 0);
-  }
-  
-  public static class MxFmtCommand extends Command {
-    public final Function<String, MxFmt> process;
-    public MxFmtCommand(String name, boolean hasArgs, Function<String, MxFmt> process) {
-      super(name, hasArgs);
-      this.process = process;
-    }
-    public Object run(String s) { return process.apply(s); }
-  }
-  
-  
-  public static class IdArgCommand extends SimpleTestCommand {
-    public IdArgCommand(String name, Consumer<String> id) {
-      super(name, left -> { id.accept(left.replace(" ", "")); return true; });
-    }
-  }
-  public final Vec<Command> commands = new Vec<>();
   public void delete(ChatEvent m) {
     u.queueNetwork(() -> r.s.primaryLogin.deleteMessage(r, m.id));
-  }
-  
-  
-  
-  public Vec<UserRes> autocompleteUsers(String prefix) {
-    String term = prefix.toLowerCase();
-    Vec<UserRes> res = new Vec<>();
-    boolean[] complete = new boolean[1];
-    userData.forEach((k, v) -> {
-      if (v.s==UserStatus.JOINED || v.s==UserStatus.INVITED || v.s==UserStatus.KNOCKING) {
-        String src = k.substring(1).toLowerCase();
-        String username = v.username;
-        String disp = username==null? src : username.toLowerCase();
-        if (src.startsWith(term) || (username!=null && disp.startsWith(term))) {
-          if (src.equals(term)) complete[0] = true;
-          res.add(new UserRes(disp, k));
-        }
-      }
-    });
-    if (complete[0]) res.clear();
-    return res;
   }
   
   public boolean hasFullUserList() {
