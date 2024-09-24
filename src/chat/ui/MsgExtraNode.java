@@ -38,6 +38,7 @@ public class MsgExtraNode extends InlineNode {
     
     if (receipts!=null) {
       receiptPara = new ParaNode(ctx, () -> receiptPara(ctx.gc, receipts));
+      receiptPara.add(ctx.makeHere(gc.getProp("chat.icon.read").gr()));
       l.add(receiptPara);
     } else {
       receiptPara = null;
@@ -63,7 +64,7 @@ public class MsgExtraNode extends InlineNode {
   }
   
   private static Paragraph receiptPara(GConfig gc, HashSet<String> receipts) {
-    return Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.receipt.family"), gc.getProp("chat.receipt.col").col(), gc.getProp("chat.receipt.size").lenF()), " ⦿ " + receipts.size());
+    return Graphics.paragraph(Graphics.textStyle(gc.getProp("chat.receipt.family"), gc.getProp("chat.receipt.col").col(), gc.getProp("chat.receipt.size").lenF()), Integer.toString(receipts.size()));
   }
   
   private static Paragraph reactionPara(GConfig gc, ArrayList<Map.Entry<String, Integer>> reactions) {
@@ -146,7 +147,7 @@ public class MsgExtraNode extends InlineNode {
   private static class ParaNode extends Node {
     private final Supplier<Paragraph> gen;
     private Paragraph para;
-    private int mw, mh;
+    private int mw=-1, mh=-1;
     
     public ParaNode(Ctx ctx, Supplier<Paragraph> gen) {
       super(ctx, Props.none());
@@ -155,8 +156,28 @@ public class MsgExtraNode extends InlineNode {
     
     public void propsUpd() { super.propsUpd();
       para = gen.get();
+      mw=mh=-1;
+    }
+    
+    private void upd() {
+      if (mw!=-1) return;
       mw = Tools.ceil(para.getMaxIntrinsicWidth());
       mh = Tools.ceil(para.getHeight());
+      if (ch.sz>0) {
+        Node c = ch.get(0);
+        int cw = c.minW();
+        mw+= cw;
+        mh = Math.max(mh, c.minH(cw));
+      }
+    }
+    
+    protected void resized() {
+      upd();
+      if (ch.sz==0) return;
+      Node c = ch.get(0);
+      int cw = c.minW();
+      int ch = c.minH(cw);
+      c.resize(cw, ch, 0, (h-ch)/2);
     }
     
     private boolean hover;
@@ -164,12 +185,12 @@ public class MsgExtraNode extends InlineNode {
     public void hoverE() { hover = false; }
     
     public void drawC(Graphics g) {
-      para.paint(g.canvas, 0, 0);
+      para.paint(g.canvas, ch.sz==0? 0 : ch.get(0).w, (h-para.getHeight())/2);
     }
     
-    public int minW() { return mw; }
-    public int maxW() { return mw; }
-    public int minH(int w) { return mh; }
-    public int maxH(int w) { return mh; }
+    public int minW() { upd(); return mw; }
+    public int maxW() { upd(); return mw; }
+    public int minH(int w) { upd(); return mh; }
+    public int maxH(int w) { upd(); return mh; }
   }
 }
