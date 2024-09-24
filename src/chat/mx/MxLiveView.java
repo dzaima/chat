@@ -111,10 +111,10 @@ public class MxLiveView extends LiveView {
   
   public boolean post(String raw, String replyTo) {
     MxFmt f;
-    String[] cmd = r.command(raw);
+    String[] cmd = r.splitCommand(raw);
     getF: {
       if (cmd.length == 2) {
-        Command fn = r.commands.linearFind(c -> c.name.equals(cmd[0]));
+        Command fn = Chatroom.findCommand(cmd, r.commands);
         if (fn == null) return false;
         Object res = fn.run(cmd[1]);
         if (res instanceof Boolean) return (boolean) res;

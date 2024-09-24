@@ -105,9 +105,32 @@ public class MxChatUser extends ChatUser {
   }, true);
   private final MediaThread media = new MediaThread();
   
+  public final Vec<Command> commands = new Vec<>();
+  
   public MxChatUser(ChatMain m, Obj dataIn) {
     super(m);
     this.data = dataIn;
+    
+    commands.add(new Command.SimpleArgCommand("set-nick-global", left -> queueNetwork(() -> u.setGlobalNick(left))));
+    commands.add(new Command.SimpleArgCommand("goto", left -> {
+      if (left.startsWith("!") || left.startsWith("#")) {
+        MxChatroom r = findRoom(left);
+        if (r!=null) {
+          m.toRoom(r.mainView());
+          return;
+        }
+      }
+      openLink(left, Extras.LinkInfo.UNK);
+    }));
+    commands.add(new Command.SimpleTestCommand("theme", left -> {
+      switch (left) {
+        case "light": m.setTheme(ChatMain.Theme.light); return true;
+        case "dark": m.setTheme(ChatMain.Theme.dark); return true;
+        default: return false;
+      }
+    }));
+    commands.add(new Command.SimplePlainCommand("network-log", () -> NetworkLog.open(this)));
+    
     MxLoginMgr login = new MxLoginMgr() {
       public String getServer()   { return data.str("server"); }
       public String getUserID()   { return data.str("userid"); }

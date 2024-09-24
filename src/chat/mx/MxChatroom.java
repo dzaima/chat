@@ -2,7 +2,6 @@ package chat.mx;
 
 import chat.*;
 import chat.Command.*;
-import chat.networkLog.NetworkLog;
 import chat.ui.*;
 import chat.utils.*;
 import dzaima.ui.gui.*;
@@ -84,28 +83,7 @@ public class MxChatroom extends Chatroom {
     }
     
     
-    
-    commands.add(new SimpleTestCommand("theme", left -> {
-      switch (left) {
-        case "light": m.setTheme(ChatMain.Theme.light); return true;
-        case "dark": m.setTheme(ChatMain.Theme.dark); return true;
-        default: return false;
-      }
-    }));
-    commands.add(new SimplePlainCommand("network-log", () -> NetworkLog.open(u)));
-    
-    
-    
-    commands.add(new SimpleArgCommand("goto", left -> {
-      if (left.startsWith("!") || left.startsWith("#")) {
-        MxChatroom r = u.findRoom(left);
-        if (r!=null) {
-          m.toRoom(r.mainView());
-          return;
-        }
-      }
-      u.openLink(left, Extras.LinkInfo.UNK);
-    }));
+    commands.addAll(u.commands);
     commands.add(new SimplePlainCommand("sort", () -> {
       MxLog l = visibleLog();
       if (l!=null) {
@@ -126,7 +104,6 @@ public class MxChatroom extends Chatroom {
     }));
     
     commands.add(new SimpleArgCommand("set-nick-room", left -> u.queueNetwork(() -> u.u.setRoomNick(r, left))));
-    commands.add(new SimpleArgCommand("set-nick-global", left -> u.queueNetwork(() -> u.u.setGlobalNick(left))));
     
     commands.add(new SimpleArgCommand("set-room-name", left -> u.queueNetwork(() -> r.setRoomName(left))));
     commands.add(new IdArgCommand("join",   id -> u.queueNetwork(() -> u.u.join(u.u.s.room(id)))));
@@ -332,27 +309,15 @@ public class MxChatroom extends Chatroom {
     if (m.gc.getProp("chat.markdown").b()) return new MxFmt(s, MDParser.toHTML(s, this::onlyDisplayname));
     else return new MxFmt(s, Utils.toHTML(s, true));
   }
-  public String[] command(String s) {
-    if (!s.startsWith("/")) return new String[]{s};
-    int m = 1;
-    while (m < s.length()) {
-      char c = s.charAt(m);
-      if (!(Character.isLetterOrDigit(c) || c=='-')) break;
-      m++;
-    }
-    int se = m;
-    if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
-    return new String[]{s.substring(1, m), s.substring(se)};
-  }
   
   public Pair<Boolean,Integer> highlight(String s) {
-    String[] cmd = command(s);
+    String[] cmd = splitCommand(s);
     boolean md = m.gc.getProp("chat.markdown").b();
     if (cmd.length == 1) return new Pair<>(md, 0);
     String c0 = cmd[0];
     if (c0.equals("me")) return new Pair<>(md, 0);
     md = c0.equals("md");
-    return new Pair<>(md, commands.linearFind(c -> Objects.equals(c.name, c0))!=null? c0.length()+1 : 0);
+    return new Pair<>(md, commandPrefix(cmd, commands));
   }
   
   public Vec<UserRes> autocompleteUsers(String prefix) {

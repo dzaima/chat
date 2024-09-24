@@ -8,6 +8,7 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.types.StringNode;
 import dzaima.utils.*;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public abstract class Chatroom {
@@ -99,10 +100,31 @@ public abstract class Chatroom {
   public abstract ChatUser user();
   public Chatroom room() { return this; }
   
-  public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
   public abstract void delete(ChatEvent m);
   public abstract ChatEvent find(String id);
+  
+  
+  
   public abstract String asCodeblock(String s);
+  public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
+  public String[] splitCommand(String s) {
+    if (!s.startsWith("/")) return new String[]{s};
+    int m = 1;
+    while (m < s.length()) {
+      char c = s.charAt(m);
+      if (!(Character.isLetterOrDigit(c) || c=='-')) break;
+      m++;
+    }
+    int se = m;
+    if (se<s.length() && Character.isWhitespace(s.charAt(se))) se++;
+    return new String[]{s.substring(1, m), s.substring(se)};
+  }
+  public static int commandPrefix(String[] cmd, Vec<Command> commands) {
+    return findCommand(cmd, commands)!=null? cmd[0].length()+1 : 0;
+  }
+  public static Command findCommand(String[] cmd, Vec<Command> commands) {
+    return commands.linearFind(c -> Objects.equals(c.name, cmd[0]));
+  }
   
   
   
