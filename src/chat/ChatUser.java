@@ -23,6 +23,7 @@ public abstract class ChatUser {
     node = m.accountNode.ctx.make(m.gc.getProp("chat.rooms.accountP").gr());
     roomListNode = (RoomListNode) node.ctx.id("roomlist");
     roomListNode.u = this;
+    ((AccountNode) node.ctx.id("account")).u = this;
   }
   
   public abstract Vec<? extends Chatroom> rooms();

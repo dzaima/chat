@@ -55,6 +55,7 @@ chat {
     delete = { "delete" }
     rename = { "r" }
     info = { "i" }
+    networkLog = { }
   }
   autocomplete.keys {
     prev = { "up" }
@@ -630,14 +631,19 @@ chat {
   
   // general UI
   rooms.accountP = v { h=min
-    pad { all=.5em x=.5em
-      h {
-        text { tsz=1.05em text { id=name "(loading)" } " " text { id=server color=chat.room.colServer family=chat.code.familyUI "??" } }
+    account { id=account
+      pad { all=.5em x=.5em
+        h {
+          text { tsz=1.05em text { id=name "(loading)" } " " text { id=server color=chat.room.colServer family=chat.code.familyUI "??" } }
+        }
       }
     }
     roomList { dir=v mode=drag id=roomlist
       h { alX=center text{ italics=true color=str.colorDisabled "loading..." } } // replaced with …rooms.roomP when loaded
     }
+  }
+  rooms.account.menu {
+    networkLog = { mi { id=networkLog "View network log" key=chat.menuKeys.networkLog } }
   }
   rooms.accountSepP = vsep { x=.5em }
   rooms.roomP = pad { id=bg

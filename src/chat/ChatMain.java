@@ -675,6 +675,7 @@ public class ChatMain extends NodeWindow {
       ctx.put("nameEditField", RoomEditing.NameEditFieldNode::new);
       ctx.put("chatfield", ChatTextFieldNode::new);
       ctx.put("copymenu", CopyMenuNode::new);
+      ctx.put("account", AccountNode::new);
       
       GConfig gc = GConfig.newConfig(gc0 -> {
         gc0.addCfg(() -> Tools.readRes("chat.dzcfg"));
