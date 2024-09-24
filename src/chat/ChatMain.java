@@ -634,6 +634,8 @@ public class ChatMain extends NodeWindow {
   }
   
   public static void main(String[] args) {
+    Windows.setManager(Windows.Manager.JWM);
+    
     AutoOptions o = new AutoOptions();
     o.argBool("--disable-saving", "Disable saving profile");
     o.argString("--dump-initial-sync", "Dump initial sync JSON of rooms with matching ID");
@@ -662,8 +664,6 @@ public class ChatMain extends NodeWindow {
     
     Utils.logFn = Log::fine;
     Utils.warnFn = Log::warn;
-    Windows.setManager(Windows.Manager.JWM);
-    // Windows.setManager(Windows.Manager.LWJGL);
     
     Windows.start(mgr -> {
       BaseCtx ctx = Ctx.newCtx();

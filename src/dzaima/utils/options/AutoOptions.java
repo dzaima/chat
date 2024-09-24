@@ -1,6 +1,9 @@
 package dzaima.utils.options;
 
+import dzaima.ui.gui.Windows;
+import dzaima.ui.gui.jwm.JWMWindow;
 import dzaima.utils.*;
+import io.github.humbleui.jwm.skija.*;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -126,6 +129,22 @@ public class AutoOptions {
         case "warn": Log.setLogLevel(Log.Level.WARN); break;
         case "error": Log.setLogLevel(Log.Level.ERROR); break;
         default: Options.error("--log: invalid mode");
+      }
+    });
+    argStringRunOne("--window-manager", "Manager: LWJGL or JWM", s -> {
+      switch (s.toUpperCase()) {
+        case "JWM": Windows.setManager(Windows.Manager.JWM); break;
+        case "LWJGL": Windows.setManager(Windows.Manager.LWJGL); break;
+        default: Options.error("--window-manager: invalid value");
+      }
+    });
+    argStringRunOne("--jwm-backend", "Skija backend: GL, D3D, metal, or raster", s -> {
+      switch (s.toLowerCase()) {
+        case "gl": JWMWindow.preferredLayer = w -> new LayerGLSkija(); break;
+        case "d3d": JWMWindow.preferredLayer = w -> new LayerD3D12Skija(); break;
+        case "metal": JWMWindow.preferredLayer = w -> new LayerMetalSkija(); break;
+        case "raster": JWMWindow.preferredLayer = w -> new LayerRasterSkija(); break;
+        default: Options.error("--jwm-backend: invalid value");
       }
     });
   }
