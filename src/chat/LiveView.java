@@ -1,9 +1,10 @@
 package chat;
 
-import chat.ui.*;
+import chat.ui.ChatTextArea;
 import chat.utils.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.*;
+import dzaima.utils.Vec;
 
 public abstract class LiveView extends View {
   public final ChatMain m;
@@ -70,6 +71,8 @@ public abstract class LiveView extends View {
   public abstract boolean edit(ChatEvent m, String raw);
   
   public abstract void upload(); // TODO rename to openUpload or something?
+  
+  public abstract Vec<Command> allCommands();
   
   public abstract void mentionUser(String uid);
   public abstract void markAsRead();

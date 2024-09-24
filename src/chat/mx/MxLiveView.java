@@ -76,6 +76,7 @@ public class MxLiveView extends LiveView {
   
   public boolean contains(ChatEvent ev) { return log.contains(ev); }
   public View getSearch() { return new MxSearchView(r.m, this); }
+  public Vec<Command> allCommands() { return r.commands; }
   
   private String lastReadTo;
   public void markAsRead() {
@@ -111,7 +112,7 @@ public class MxLiveView extends LiveView {
   
   public boolean post(String raw, String replyTo) {
     MxFmt f;
-    String[] cmd = r.splitCommand(raw);
+    String[] cmd = Chatroom.splitCommand(raw);
     getF: {
       if (cmd.length == 2) {
         Command fn = Chatroom.findCommand(cmd, r.commands);

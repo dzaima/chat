@@ -71,7 +71,11 @@ public class StatusMessage extends BasicChatEvent {
   
   public class EventView extends BasicNetworkView {
     public final NetworkLog.RequestInfo ri;
-    public EventView(ChatMain m, NetworkLog.RequestInfo ri) { super(m); this.ri = ri; }
+    public EventView(ChatMain m, NetworkLog.RequestInfo ri) {
+      super(m);
+      this.ri = ri;
+      initCompete();
+    }
     
     public Chatroom room() { return l.room; }
     public void show() {

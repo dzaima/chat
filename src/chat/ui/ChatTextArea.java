@@ -108,9 +108,9 @@ public class ChatTextArea extends CodeAreaNode {
         }
       }
       
-      if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/' && v instanceof MxLiveView) {
+      if (c.sy==0 && c.sx>=1 && get(0,0,1,0).charAt(0)=='/') {
         String curr = get(1, 0, c.sx, 0);
-        Vec<Command> cmds = ((MxLiveView) v).r.commands.filter(cmd -> cmd.name.contains(curr));
+        Vec<Command> cmds = v.allCommands().filter(cmd -> cmd.name.contains(curr));
         cmds.sort(Comparator.comparing(cmd -> cmd.name));
         if (cmds.sz==1 && cmds.get(0).name.equals(curr)) cmds.clear();
         for (Command cmd : cmds) entries.add(new Pair<>("/"+cmd.name, "/"+cmd.name+(cmd.hasArgs? " " : "")));

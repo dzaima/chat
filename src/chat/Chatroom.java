@@ -107,7 +107,7 @@ public abstract class Chatroom {
   
   public abstract String asCodeblock(String s);
   public abstract Pair<Boolean, Integer> highlight(String s); // a: whether highlight as markdown; b: command prefix length or 0
-  public String[] splitCommand(String s) {
+  public static String[] splitCommand(String s) {
     if (!s.startsWith("/")) return new String[]{s};
     int m = 1;
     while (m < s.length()) {

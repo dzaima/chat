@@ -6,6 +6,7 @@ import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Props;
 import dzaima.ui.node.types.VlNode;
+import dzaima.utils.Vec;
 
 public abstract class BasicNetworkView extends LiveView {
   protected BasicNetworkView(ChatMain m) { super(m); }
@@ -25,4 +26,5 @@ public abstract class BasicNetworkView extends LiveView {
   public void mentionUser(String uid) { }
   public void markAsRead() { }
   public boolean navigationKey(Key key, KeyAction a) { return false; }
+  public Vec<Command> allCommands() { return Vec.of(); }
 }

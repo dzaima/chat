@@ -4,7 +4,7 @@ import chat.*;
 import chat.mx.MxChatUser;
 import chat.ui.*;
 import chat.utils.UnreadInfo;
-import dzaima.ui.gui.io.*;
+import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
 import dzaima.utils.*;
@@ -61,14 +61,32 @@ public class NetworkLog extends BasicNetworkView {
       public RoomListNode.ExternalDirInfo asDir() { return null; }
       public void viewRoomInfo() { }
       public ChatUser user() { return user; }
-      public Pair<Boolean, Integer> highlight(String s) { return new Pair<>(false, 0); }
+      public Pair<Boolean, Integer> highlight(String s) { return new Pair<>(false, Chatroom.commandPrefix(Chatroom.splitCommand(s), mxUser.commands)); }
       public void delete(ChatEvent m) { }
       public void userMenu(Click c, int x, int y, String uid) { }
     };
+    initCompete();
+  }
+  
+  public Node inputPlaceContent() {
+    return input;
+  }
+  public boolean post(String raw, String replyTo) {
+    String[] cmd = Chatroom.splitCommand(raw);
+    if (cmd.length==1) return false;
+    Command c = Chatroom.findCommand(cmd, mxUser.commands);
+    if (c==null) return false;
+    c.run(cmd[1]);
+    return true;
+  }
+  public Vec<Command> allCommands() {
+    return mxUser.commands;
   }
   
   public static void open(MxChatUser u) {
-    u.m.toViewDirect(new NetworkLog(u));
+    NetworkLog v = new NetworkLog(u);
+    u.m.toViewDirect(v);
+    u.m.inputPlace.replace(0, v.inputPlaceContent()); // TODO avoid needing this somehow
   }
   
   public static Runnable start(ChatMain m, boolean detailed0, int logMinutes) {
