@@ -130,6 +130,7 @@ public class MxChatUser extends ChatUser {
       }
     }));
     commands.add(new Command.SimplePlainCommand("network-log", () -> NetworkLog.open(this)));
+    commands.add(new MxChatroom.IdArgCommand("join", id -> queueNetwork(() -> u.join(u.s.room(id)))));
     
     MxLoginMgr login = new MxLoginMgr() {
       public String getServer()   { return data.str("server"); }

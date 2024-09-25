@@ -106,7 +106,6 @@ public class MxChatroom extends Chatroom {
     commands.add(new SimpleArgCommand("set-nick-room", left -> u.queueNetwork(() -> u.u.setRoomNick(r, left))));
     
     commands.add(new SimpleArgCommand("set-room-name", left -> u.queueNetwork(() -> r.setRoomName(left))));
-    commands.add(new IdArgCommand("join",   id -> u.queueNetwork(() -> u.u.join(u.u.s.room(id)))));
     commands.add(new IdArgCommand("kick",   id -> u.queueNetwork(() -> r.kick  (id, null))));
     commands.add(new IdArgCommand("ban",    id -> u.queueNetwork(() -> r.ban   (id, null))));
     commands.add(new IdArgCommand("unban",  id -> u.queueNetwork(() -> r.unban (id      ))));
