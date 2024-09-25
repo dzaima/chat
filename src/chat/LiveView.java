@@ -13,7 +13,7 @@ public abstract class LiveView extends View {
   protected LiveView(ChatMain m) {
     this.m = m;
   }
-  protected void initCompete() {
+  protected void createInput() {
     input = new ChatTextArea(this, Props.keys("family", "numbering").values(m.gc.getCfgProp("chat.preview.defFamily"), EnumProp.FALSE));
     input.wrap = true;
     cfgUpdated();

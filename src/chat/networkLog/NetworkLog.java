@@ -65,7 +65,7 @@ public class NetworkLog extends BasicNetworkView {
       public void delete(ChatEvent m) { }
       public void userMenu(Click c, int x, int y, String uid) { }
     };
-    initCompete();
+    createInput();
   }
   
   public Node inputPlaceContent() {

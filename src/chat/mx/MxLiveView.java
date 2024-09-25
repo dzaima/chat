@@ -23,7 +23,7 @@ public class MxLiveView extends LiveView {
     super(r.m);
     this.r = r;
     this.log = log;
-    initCompete();
+    createInput();
   }
   
   public Chatroom room() { return r; }
