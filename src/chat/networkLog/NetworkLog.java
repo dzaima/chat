@@ -10,6 +10,7 @@ import dzaima.ui.node.ctx.Ctx;
 import dzaima.utils.*;
 import libMx.*;
 
+import java.io.*;
 import java.lang.reflect.Array;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -207,6 +208,16 @@ public class NetworkLog extends BasicNetworkView {
         obj = (v.bytes==null? "null" : v.bytes.length+"-element byte array");
       }
       this.obj = obj;
+    }
+    
+    public static String objToString(Object obj) {
+      if (obj instanceof Throwable) {
+        StringWriter w = new StringWriter();
+        ((Throwable) obj).printStackTrace(new PrintWriter(w));
+        return w.toString();
+      } else {
+        return Objects.toString(obj);
+      }
     }
   }
   public static class CompactJSON {

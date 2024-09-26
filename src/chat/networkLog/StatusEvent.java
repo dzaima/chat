@@ -35,26 +35,17 @@ public class StatusEvent extends BasicChatEvent {
   public String senderID() { return ev.type; }
   
   public void rightClick(Click c, int x, int y) {
-    Supplier<String> getText = () -> {
-      if (obj instanceof Throwable) {
-        StringWriter w = new StringWriter();
-        ((Throwable) obj).printStackTrace(new PrintWriter(w));
-        return w.toString();
-      } else {
-        return Objects.toString(obj);
-      }
-    };
     PartialMenu pm = new PartialMenu(l.m.gc);
     if (obj!=null) {
       pm.add("View full", () -> {
         try {
-          new ViewSource(l.m, getText.get()).open();
+          new ViewSource(l.m, NetworkLog.Event.objToString(obj)).open();
         } catch (Throwable t) {
           Log.stacktrace("network-log", t);
         }
       });
       pm.add("Save to file", () -> m().saveFile(null, null, null, p -> {
-        if (p!=null) Tools.writeFile(p, getText.get());
+        if (p!=null) Tools.writeFile(p, NetworkLog.Event.objToString(obj));
       }));
     }
     pm.open(l.m.ctx, c);

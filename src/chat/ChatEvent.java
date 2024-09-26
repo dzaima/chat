@@ -47,7 +47,7 @@ public abstract class ChatEvent {
   public boolean visible; // TODO remove in favor of n!=null
   public MsgNode n;
   public MsgNode show(boolean newAtEnd, boolean asContext) {
-    assert !visible; visible = true;
+    assert !visible : id; visible = true;
     n = MsgNode.create(this, asContext);
     updateBody(newAtEnd, false);
     return n;
