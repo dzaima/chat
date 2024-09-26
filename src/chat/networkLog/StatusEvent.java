@@ -4,10 +4,11 @@ import chat.ui.ViewSource;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.types.StringNode;
-import dzaima.utils.Log;
+import dzaima.utils.*;
 
 import java.io.*;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public class StatusEvent extends BasicChatEvent {
   private static final int MAX_PREVIEW = 100;
@@ -34,22 +35,28 @@ public class StatusEvent extends BasicChatEvent {
   public String senderID() { return ev.type; }
   
   public void rightClick(Click c, int x, int y) {
-    PartialMenu pm = new PartialMenu(l.m.gc);
-    if (obj!=null) pm.add("View full", () -> {
-      try {
-        String s;
-        if (obj instanceof Throwable) {
-          StringWriter w = new StringWriter();
-          ((Throwable) obj).printStackTrace(new PrintWriter(w));
-          s = w.toString();
-        } else {
-          s = Objects.toString(obj);
-        }
-        new ViewSource(l.m, s).open();
-      } catch (Throwable t) {
-        Log.stacktrace("network-log", t);
+    Supplier<String> getText = () -> {
+      if (obj instanceof Throwable) {
+        StringWriter w = new StringWriter();
+        ((Throwable) obj).printStackTrace(new PrintWriter(w));
+        return w.toString();
+      } else {
+        return Objects.toString(obj);
       }
-    });
+    };
+    PartialMenu pm = new PartialMenu(l.m.gc);
+    if (obj!=null) {
+      pm.add("View full", () -> {
+        try {
+          new ViewSource(l.m, getText.get()).open();
+        } catch (Throwable t) {
+          Log.stacktrace("network-log", t);
+        }
+      });
+      pm.add("Save to file", () -> m().saveFile(null, null, null, p -> {
+        if (p!=null) Tools.writeFile(p, getText.get());
+      }));
+    }
     pm.open(l.m.ctx, c);
   }
   
