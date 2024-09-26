@@ -372,6 +372,10 @@ public class ChatMain extends NodeWindow {
     Vec<Node> prep = new Vec<>();
     Node p = null;
     for (ChatEvent c : nds) {
+      if (c.visible) {
+        Log.warn("chat", "Event attempted to be shown twice: "+c.id);
+        continue;
+      }
       Node a = c.show(false, false);
       if (p!=null) {
         Node sep = handlePair(p, a, false);
