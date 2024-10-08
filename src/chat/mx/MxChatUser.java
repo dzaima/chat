@@ -483,7 +483,7 @@ public class MxChatUser extends ChatUser {
         done.run();
         if (popupCounter.superseded(action)) return;
         if (bs == null) m.gc.openLink(uri);
-        else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().defLang);
+        else openText(new String(bs, StandardCharsets.UTF_8), m.gc.langs().fromFilename(info.expectedFilename()));
       });
       return;
     }
