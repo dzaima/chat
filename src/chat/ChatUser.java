@@ -72,7 +72,7 @@ public abstract class ChatUser {
   public void downloadTmpAndOpen(String url, Extras.LinkInfo info, Runnable onOk) {
     try {
       String post = info.expectedFilename();
-      Path path = Files.createTempFile("temp-", post.isEmpty()? null : "-"+post);
+      Path path = Files.createTempFile("chat-temp-", post.isEmpty()? null : "-"+post);
       downloadTo(url, path, () -> {
         m.gc.openFile(path);
         onOk.run();
