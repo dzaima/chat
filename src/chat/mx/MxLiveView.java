@@ -162,19 +162,23 @@ public class MxLiveView extends LiveView {
           int size = data.length;
           MxSendMsg f;
           
-          if (special && mode.get().equals("image")) {
-            int w = -1, h = -1;
-            try {
-              Image img = Image.makeDeferredFromEncodedBytes(data);
-              w = img.getWidth();
-              h = img.getHeight();
-              img.close();
-            } catch (Throwable e) {
-              Log.stacktrace("mx get image info", e);
+          switch (special? mode.get() : "file") { 
+            case "image": {
+              int w = -1, h = -1;
+              try {
+                Image img = Image.makeDeferredFromEncodedBytes(data);
+                w = img.getWidth();
+                h = img.getHeight();
+                img.close();
+              } catch (Throwable e) {
+                Log.stacktrace("mx get image info", e);
+              }
+              f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
+              break;
             }
-            f = MxSendMsg.image(l, name.getAll(), mime.getAll(), size, w, h);
-          } else {
-            f = MxSendMsg.file(l, name.getAll(), mime.getAll(), size);
+            case "video": f = MxSendMsg.specialFile(l, name.getAll(), mime.getAll(), size, "m.video"); break; 
+            case "audio": f = MxSendMsg.specialFile(l, name.getAll(), mime.getAll(), size, "m.audio"); break; 
+            default: f = MxSendMsg.file(l, name.getAll(), mime.getAll(), size); break;
           }
           
           if (log.isThread()) f.inThread(log.threadID);
@@ -189,9 +193,10 @@ public class MxLiveView extends LiveView {
         ((BtnNode) node.ctx.id("sendAsFile")).setFn(c -> send.accept(false));
         
         Runnable mimeUpdated = () -> {
-          if (mime.getAll().startsWith("image/")) mode.set("image");
-          // else if (mimeType.startsWith("video/")) mode.set("video");
-          // else if (mimeType.startsWith("audio/")) mode.set("audio");
+          String mimeType = mime.getAll();
+          if (mimeType.startsWith("image/")) mode.set("image");
+          else if (mimeType.startsWith("video/")) mode.set("video");
+          else if (mimeType.startsWith("audio/")) mode.set("audio");
           else mode.set("file");
           
           Node place = node.ctx.id("specialSendPlace");

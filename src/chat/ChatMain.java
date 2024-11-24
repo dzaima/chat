@@ -129,11 +129,14 @@ public class ChatMain extends NodeWindow {
   
   public int imageSafety() { // 0-none; 1-safe; 2-all
     String p = gc.getProp("chat.loadImgs").val();
-    if (p.equals("none")) return 0;
-    if (p.equals("safe")) return 1;
-    if (p.equals("all")) return 2;
-    Log.warn("chat", "invalid chat.loadImgs value");
-    return 2;
+    switch (p) {
+      case "none": return 0;
+      case "safe": return 1;
+      case "all": return 2;
+      default:
+        Log.warn("chat", "invalid chat.loadImgs value");
+        return 2;
+    }
   }
   
   public void send() {

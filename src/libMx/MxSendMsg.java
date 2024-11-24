@@ -60,6 +60,19 @@ public abstract class MxSendMsg {
     return new MxJSONMsg(ct);
   }
   
+  public static MxSendMsg specialFile(String url, String body, String mime, int size, String msgtype) {
+    Obj info = new Obj(new HashMap<>());
+    if (size!=-1) info.put("size", new JSON.Num(size));
+    info.put("mimetype", new JSON.Str(mime));
+    Obj ct = Obj.fromKV(
+      "msgtype", msgtype,
+      "body", body,
+      "url", url,
+      "info", info
+    );
+    return new MxJSONMsg(ct);
+  }
+  
   private static class MxJSONMsg extends MxSendMsg {
     private final Obj ct;
     private MxJSONMsg(Obj ct) { this.ct = ct; }
