@@ -70,14 +70,14 @@ public class MxLog {
     if (open) r.m.insertMessages(atEnd, evs);
   }
   
-  public MxChatEvent pushEventAtEnd(MxEvent e, boolean ping) {
+  public MxChatEvent pushEventAtEnd(MxEvent e, boolean live) {
     lastEvent = e;
     int pos = size();
-    MxChatEvent ev = r.processEvent(e, true, ping);
+    MxChatEvent ev = r.processEvent(e, true, live);
     if (ev!=null) {
       list.insert(pos, ev);
       putCompleteMessage(ev);
-      if (open) r.m.addMessage(ev, ping);
+      if (open) r.m.addMessage(ev, live);
     }
     return ev;
   }

@@ -495,10 +495,10 @@ public class MxChatroom extends Chatroom {
     unreads.add(l, e);
   }
   
-  public MxChatEvent pushMsg(MxEvent e, boolean ping) { // returns the event object if it's visible on the timeline
-    MxChatEvent cm = primaryLogOf(e).pushEventAtEnd(e, ping);
+  public MxChatEvent pushMsg(MxEvent e, boolean live) { // returns the event object if it's visible on the timeline
+    MxChatEvent cm = primaryLogOf(e).pushEventAtEnd(e, live);
     maybeThreadRoot(cm);
-    if (ping) {
+    if (live) {
       if (cm!=null) {
         if (cm.increasesUnread()) for (MxLog c : allLogsOf(e)) addUnread(c, cm);
       } else if (e.m!=null && e.m.isEditEvent() && m.gc.getProp("chat.notifyOnEdit").b()) {
