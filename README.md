@@ -66,7 +66,7 @@ _italics_
 \*text surrounded by asterisks\*
 [link text](https://example.org)
 ---strikethrough--- (alternatively, ~~strikethrough~~)
-||spoiler||
+||spoiler|| (or select and press "|")
 `code block`
 `backticks: \` inside code block`
 `` alternatively: ` in doubled backticks ``

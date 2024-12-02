@@ -71,6 +71,16 @@ public class MxLiveView extends LiveView {
       input.um.pop();
       return true;
     }
+    if (codepoint=='|' && input.anySel()) {
+      input.um.pushL("spoiler text");
+      for (Cursor c : input.cs) {
+        String s = input.getByCursor(c);
+        c.clearSel();
+        input.insert(c.sx, c.sy, "||"+s+"||");
+      }
+      input.um.pop();
+      return true;
+    }
     return false;
   }
   
