@@ -177,24 +177,37 @@ public class MDParser {
             String lang = s.substring(i, le);
             int afterStart = i;
             i = le+1;
-            int cend = (s+"\n").indexOf("\n"+Tools.repeat('`', am)+"\n", i);
-            if (cend==-1) {
-              i = backtickEndI;
-              r.append(Tools.repeat('`', am));
-              continue;
-            }
+            int cend = i;
+            String tgt = "\n"+Tools.repeat('`', am);
+            String se = s+"\n";
+            do {
+              cend = se.indexOf(tgt, cend);
+              if (cend==-1) {
+                i = backtickEndI;
+                r.append(Tools.repeat('`', am));
+                continue str;
+              }
+              if (se.startsWith("\n", cend+am+1)) {
+                i = cend+am+1;
+                break;
+              }
+              if (se.startsWith("||\n", cend+am+1)) {
+                i = cend+am+1;
+                break;
+              }
+              cend++;
+            } while (true);
             String cont = le+1<cend? s.substring(le+1, cend) : "";
-            i = cend+am+2;
             
             ss(afterStart-am, afterStart, S_DEF_ESC);
             ss(le, i-4, S_CODE);
-            ss(i-1-am, i-1, S_DEF_ESC);
+            ss(i-1-am, i, S_DEF_ESC);
             r.append("<pre><code");
             if (lang.length()!=0) r.append(" class=\"language-").append(lang).append('\"');
             r.append('>');
             r.append(libMx.Utils.toHTML(cont, false));
             r.append("</code></pre>");
-            if (i-1<s.length() && s.charAt(i-1)=='\n' && end=='\n') return r.toString();
+            if (s.startsWith("\n", i)) i++;
           } else { // `` code with `backticks` ``
             int cend = s.indexOf(Tools.repeat('`', am), i);
             if (cend==-1) {
