@@ -55,6 +55,10 @@ public class MxLog {
   public Vec<MxChatEvent> addEvents(Iterable<MxEvent> it, boolean atEnd) {
     Vec<MxChatEvent> evs = new Vec<>();
     for (MxEvent e : it) {
+      if (msgMap.containsKey(e.id)) {
+        Log.warn("mx addEvents", "received duplicate event for ID "+e.id);
+        continue;
+      }
       if (atEnd) lastEvent = e;
       MxChatEvent ev = r.processEvent(e, false, false);
       if (ev==null) continue;

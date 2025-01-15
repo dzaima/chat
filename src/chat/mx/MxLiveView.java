@@ -271,7 +271,7 @@ public class MxLiveView extends LiveView {
       else return r.r.relationsBeforeTok(log.threadID, null, prevBatch, n);
     }, chunk -> {
       nextOlder = System.currentTimeMillis()+500;
-      if (chunk==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+ prevBatch); return; }
+      if (chunk==null) { Log.warn("mx", "MxRoom::beforeTok failed on token "+prevBatch); return; }
       r.loadQuestionableMemberState(chunk); // TODO this doesn't actually exist for relation paging :|
       if (chunk.events.isEmpty()) msgLogToStart = true;
       prevBatch = chunk.eTok;
