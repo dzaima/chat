@@ -50,6 +50,16 @@ public class Utils {
     public final int code;
     public RequestRes(byte[] bytes, int code) { this.bytes=bytes; this.code=code; }
     public boolean ok() { return code < 400; }
+    public String okString() {
+      assert ok();
+      return new String(bytes, StandardCharsets.UTF_8);
+    }
+  }
+  public static RequestRes post(RequestParams p, String path, byte[] data, String contentType) {
+    return postPut("POST", p, path, data, contentType);
+  }
+  public static RequestRes put(RequestParams p, String path, byte[] data, String contentType) {
+    return postPut("PUT", p, path, data, contentType);
   }
   public static RequestRes post(RequestParams p, String path, byte[] data) {
     return postPut("POST", p, path, data);

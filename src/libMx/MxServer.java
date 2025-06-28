@@ -93,14 +93,16 @@ public class MxServer {
       return token(gToken);
     }
     
-    private RunnableRequest type(Utils.RequestType n, String ct) {
-      return new RunnableRequest(this, n, ct);
+    private RunnableRequest type(Utils.RequestType n, String ct, String contentType) {
+      return new RunnableRequest(this, n, ct, contentType);
     }
-    public RunnableRequest get() { return type(Utils.RequestType.GET, null); }
-    public RunnableRequest  put(String content) { return type(Utils.RequestType.PUT, content); }
-    public RunnableRequest post(String content) { return type(Utils.RequestType.POST, content); }
-    public RunnableRequest  put(Obj o) { return put(o.toString()); }
-    public RunnableRequest post(Obj o) { return post(o.toString()); }
+    public RunnableRequest get() { return type(Utils.RequestType.GET, null, null); }
+    public RunnableRequest  put(String content, String contentType) { return type(Utils.RequestType.PUT,  content, contentType); }
+    public RunnableRequest post(String content, String contentType) { return type(Utils.RequestType.POST, content, contentType); }
+    public RunnableRequest  put(String content)                     { return type(Utils.RequestType.PUT,  content, null); }
+    public RunnableRequest post(String content)                     { return type(Utils.RequestType.POST, content, null); }
+    public RunnableRequest  put(Obj o)                              { return type(Utils.RequestType.PUT,  o.toString(), "application/json"); }
+    public RunnableRequest post(Obj o)                              { return type(Utils.RequestType.POST, o.toString(), "application/json"); }
     
     public String calcCurrentPath() {
       if (isDirectUrl) return pathParts[0];
@@ -120,10 +122,12 @@ public class MxServer {
   
   public class RunnableRequest extends Utils.LoggableRequest {
     public final Request r;
+    public final String contentType;
     
-    public RunnableRequest(Request r, Utils.RequestType t, String ct) {
+    public RunnableRequest(Request r, Utils.RequestType t, String ct, String contentType) {
       super(t, ct);
       this.r = r;
+      this.contentType = contentType==null? "application/x-www-form-urlencoded" : contentType;
     }
     
     public String calcPath() {
@@ -147,8 +151,8 @@ public class MxServer {
           Utils.RequestParams p = new Utils.RequestParams(r.authorization);
           switch (t) { default: throw new IllegalStateException();
             case GET:  res = Utils.get (p, finalUrl); break;
-            case PUT:  res = Utils.put (p, finalUrl, ct.getBytes(StandardCharsets.UTF_8)); break;
-            case POST: res = Utils.post(p, finalUrl, ct.getBytes(StandardCharsets.UTF_8)); break;
+            case PUT:  res = Utils.put (p, finalUrl, ct.getBytes(StandardCharsets.UTF_8), contentType); break;
+            case POST: res = Utils.post(p, finalUrl, ct.getBytes(StandardCharsets.UTF_8), contentType); break;
           }
           requestLogger.got(this, "status code", res.code);
           if (!justBytes) requestLogger.got(this, "raw result", new String(res.bytes, StandardCharsets.UTF_8));
@@ -308,7 +312,7 @@ public class MxServer {
   }
   public Mxc readMxc(String mxc) { // mxc components are guaranteed to be [a-zA-Z0-9_-]
     if (!isMxc(mxc)) return null;
-    String[] ps = Tools.split(mxc.substring(6), '/');
+    String[] ps = mxc.substring(6).split("/");
     if (ps.length!=2) return null;
     return new Mxc(ps[0], ps[1]);
   }
