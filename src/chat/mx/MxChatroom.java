@@ -22,6 +22,7 @@ public class MxChatroom extends Chatroom {
   public String canonicalAlias, description;
   public String[] altAliases = new String[0];
   private int nameState = 0; // 0 - none; 1 - user; 2 - alias; 3 - primary
+  private boolean roomCreated;
   
   public final HashMap<String, MxChatEvent> allKnownEvents = new HashMap<>(); // keys should be exactly value.id
   public final HashMap<String, String> editRoot = new HashMap<>(); // map edit-event-id → message-id, as a key of allKnownEvents
@@ -111,6 +112,7 @@ public class MxChatroom extends Chatroom {
     commands.add(new IdArgCommand("unban",  id -> u.queueNetwork(() -> r.unban (id      ))));
     commands.add(new IdArgCommand("invite", id -> u.queueNetwork(() -> r.invite(id, null))));
     commands.add(new IdArgCommand("view-user", id -> ViewProfile.viewProfile(id, this)));
+    if (!roomCreated) Log.warn("Room without m.room.create event: "+r.rid);
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
@@ -156,6 +158,7 @@ public class MxChatroom extends Chatroom {
         }
         break;
       case "m.room.create":
+        roomCreated = true;
         String type = ct.str("type", "");
         if (type.equals("m.space")) spaceInfo = new SpaceInfo(this);
         break;
