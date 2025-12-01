@@ -46,13 +46,14 @@ public class MxChatroom extends Chatroom {
   private final HashMap<String, EventInfo> eventInfo = new HashMap<>(); // map from any event ID to last visible message in the log before this
   private String lastVisible;
   
-  public SpaceInfo spaceInfo;
+  public final SpaceInfo spaceInfo;
   public enum MyStatus { INVITED, JOINED, LEFT, FORGOTTEN }
   public MyStatus myStatus;
   
   public MxChatroom(MxChatUser u, String rid, Obj init, MyStatus status0) {
     super(u);
     this.myStatus = status0;
+    this.spaceInfo = new SpaceInfo(this);
     this.u = u;
     this.r = u.s.room(rid);
     m.dumpInitial.accept(rid, init);
@@ -160,10 +161,10 @@ public class MxChatroom extends Chatroom {
       case "m.room.create":
         roomCreated = true;
         String type = ct.str("type", "");
-        if (type.equals("m.space")) spaceInfo = new SpaceInfo(this);
+        spaceInfo.isSpace = type.equals("m.space");
         break;
       case "m.space.child":
-        if (spaceInfo!=null && ev.hasStr("state_key")) {
+        if (ev.hasStr("state_key")) {
           spaceInfo.childInfo(ev.str("state_key"), ct.size()!=0);
         }
         break;
@@ -781,6 +782,7 @@ public class MxChatroom extends Chatroom {
   public static class SpaceInfo extends RoomListNode.ExternalDirInfo {
     public final MxChatroom r;
     public String customName;
+    public boolean isSpace;
     public SpaceInfo(MxChatroom r) { this.r = r; }
     
     public void setLocalName(String val) {
@@ -821,11 +823,11 @@ public class MxChatroom extends Chatroom {
     }
   }
   public RoomListNode.ExternalDirInfo asDir() {
-    return spaceInfo;
+    return spaceInfo.isSpace? spaceInfo : null;
   }
   public void setOfficialName(String name) {
     super.setOfficialName(name);
-    if (spaceInfo!=null) spaceInfo.nameUpdated();
+    spaceInfo.nameUpdated();
   }
   
   public void userMenu(Click c, int x, int y, String uid) {

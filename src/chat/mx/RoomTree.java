@@ -50,10 +50,13 @@ public class RoomTree {
         v.muteState.deserialize(t.o.str("mute", ""));
         if (t.o.has("name")) v.setCustomName(t.o.str("name"));
       } else {
-        if (v.spaceInfo!=null) spacesLeft.put(k, v);
+        if (v.spaceInfo.isSpace) spacesLeft.put(k, v);
         else roomsLeft.put(k, v);
       }
     });
+    Log.fine("mx RoomTree", "roomsLeft: "+roomsLeft);
+    Log.fine("mx RoomTree", "spacesLeft: "+spacesLeft);
+    Log.fine("mx RoomTree", "toSpace: "+toSpace);
     
     spacesLeft.forEach((k, v) -> { // add new spaces
       RoomTree t = new RoomTree(k, v, null, Obj.E);
