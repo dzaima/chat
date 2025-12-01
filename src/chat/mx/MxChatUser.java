@@ -39,6 +39,8 @@ public class MxChatUser extends ChatUser {
   public final HashSet<String> autoban = new HashSet<>();
   public final HashMap<String, MxChatroom> roomMap = new HashMap<>();
   public final Collection<MxChatroom> roomSet = roomMap.values();
+  public final HashMap<String, Vec<String>> directMessages = new HashMap<>(); // user ID → rooms
+  public final HashSet<String> allDMRoomIDs = new HashSet<>();
   
   private final ConcurrentLinkedQueue<Runnable> primary = new ConcurrentLinkedQueue<>();
   private final LinkedBlockingDeque<Runnable> network = new LinkedBlockingDeque<>();
@@ -164,6 +166,7 @@ public class MxChatUser extends ChatUser {
       
       Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(msgsToPreload, lazyLoadUsers, true).toString()).token(u0.token).get().runJ();
       Log.info("mx stats", () -> "Initial sync of "+u0.uid+": "+j.toString().length()+" characters");
+      processSync(j);
       primary.add(() -> {
         try {
           Obj rooms = j.obj("rooms", Obj.E);
@@ -188,7 +191,7 @@ public class MxChatUser extends ChatUser {
       
       MxSync2 sync0 = new MxSync2(s0, j.str("next_batch"), MxServer.syncFilter(-1, lazyLoadUsers, true));
       sync0.start();
-      sync = sync0;
+      primary.add(() -> sync = sync0);
     });
   }
   
@@ -229,6 +232,23 @@ public class MxChatUser extends ChatUser {
     return r;
   }
   
+  private void processSync(Obj o) {
+    for (Obj ev : Obj.arrPath(o, Arr.E, "account_data", "events").objs()) {
+      if ("m.direct".equals(ev.str("type", ""))) {
+        directMessages.clear();
+        allDMRoomIDs.clear();
+        for (Entry e : ev.obj("content").entries()) {
+          Vec<String> rooms = directMessages.computeIfAbsent(e.k, user -> new Vec<>());
+          for (String s : e.v.arr().strs()) {
+            rooms.add(s);
+            allDMRoomIDs.add(s);
+          }
+        }
+        Log.fine("mx", "DM room mapping updated: "+directMessages);
+      }
+    }
+  }
+  
   public void tick() {
     while (true) {
       Runnable c = primary.poll(); if(c==null) break;
@@ -242,6 +262,7 @@ public class MxChatUser extends ChatUser {
     
     while (true) {
       Obj m = sync.poll(); if (m==null) break;
+      processSync(m);
       currentSyncToken = m.str("next_batch");
       Box<Boolean> newRooms = new Box<>(false);
       
@@ -252,7 +273,7 @@ public class MxChatUser extends ChatUser {
             MxChatroom r = new MxChatroom(this, k.k, k.v.obj(), status);
             preRoomListChange();
             roomMap.put(k.k, r);
-            roomListNode.add(r.node); // TODO place in space if appropriate
+            roomListNode.add(r.node); // TODO place in space or DMs if appropriate
             newRooms.set(true);
           } else room.update(status, k.v.obj(), true);
         }
