@@ -8,12 +8,17 @@ import dzaima.utils.JSON.Obj;
 import java.util.*;
 
 public class RoomTree {
+  public static final String DM_FOLDER_ID = "(dzaima/chat DM folder)";
   private final String id; // if id==null, this is a local folder
   private final String name;
   private final Obj o;
   private MxChatroom got;
   private boolean open;
   private Vec<RoomTree> ch;
+  private boolean isDMs;
+  
+  boolean isLocalFolder() { return id==null; }
+  boolean isBacked() { return id!=null; }
   
   public RoomTree(String id, MxChatroom got, String name, Obj o) {
     this.id = id;
@@ -21,11 +26,17 @@ public class RoomTree {
     this.name = name;
     this.o = o;
   }
+  private static RoomTree newDir(String id, MxChatroom got, String name) {
+    RoomTree r = new RoomTree(id, got, name, Obj.E);
+    r.ch = new Vec<>();
+    r.open = true;
+    return r;
+  }
   
   public static void restoreTree(MxChatUser u, JSON.Arr state, JSON.Arr legacyOrder) { // won't request to save
     HashMap<String, MxChatroom> allRooms = u.roomMap;
     
-    HashMap<String, RoomTree> map = new HashMap<>();
+    HashMap<String, RoomTree> map = new HashMap<>(); // shouldn't be iterated over
     Vec<RoomTree> root = new Vec<>();
     for (Obj o : state.objs()) { // build target tree
       RoomTree t = buildTree(map, o);
@@ -36,7 +47,7 @@ public class RoomTree {
     allRooms.forEach((k, v) -> {
       if (v.asDir()!=null) knownSpaces.add(k);
     });
-    keepOnlyKnown(root, allRooms.keySet(), knownSpaces); // remove tree entries that aren't matched to any live room, and properly mark what is and isn't a folder; map can stay as-is, it isn't iterated over
+    keepOnlyKnown(root, allRooms.keySet(), knownSpaces); // remove tree entries that aren't matched to any live room, and properly mark what is and isn't a folder; map can keep unknown entries, nothing will care
     
     HashMap<String, MxChatroom> roomsLeft = new HashMap<>();
     HashMap<String, MxChatroom> spacesLeft = new HashMap<>();
@@ -59,13 +70,12 @@ public class RoomTree {
     Log.fine("mx RoomTree", "toSpace: "+toSpace);
     
     spacesLeft.forEach((k, v) -> { // add new spaces
-      RoomTree t = new RoomTree(k, v, null, Obj.E);
-      t.open = true;
-      t.ch = new Vec<>();
+      RoomTree t = RoomTree.newDir(k, v, null);
       root.add(t);
       map.put(k, t);
     });
     
+    Vec<RoomTree> tailRooms = new Vec<>();
     roomsLeft.forEach((k, v) -> { // add new rooms
       String spaceId = toSpace.get(k);
       RoomTree t = new RoomTree(k, v, null, Obj.E);
@@ -74,10 +84,19 @@ public class RoomTree {
         RoomTree space = map.get(spaceId);
         assert space!=null;
         space.ch.add(t);
+      } else if (u.allDMRoomIDs.contains(k)) {
+        RoomTree dms = map.computeIfAbsent(DM_FOLDER_ID, id -> {
+          RoomTree dms0 = RoomTree.newDir(null, null, "DMs");
+          dms0.isDMs = true;
+          root.add(dms0);
+          return dms0;
+        });
+        dms.ch.add(t);
       } else {
-        root.add(t);
+        tailRooms.add(t);
       }
     });
+    root.addAll(tailRooms);
     
     if (legacyOrder!=null && legacyOrder.size()>0) { // optionally reorder things by legacy room order
       HashMap<String, Integer> order = new HashMap<>();
@@ -93,11 +112,17 @@ public class RoomTree {
   public static RoomTree buildTree(HashMap<String, RoomTree> map, Obj o) {
     RoomTree res = new RoomTree(o.str("id", null), null, o.str("name", null), o);
     res.open = o.bool("open", true);
-    if (map.containsKey(res.id)) {
-      Log.error("mx", "Duplicate room entry for "+res.id+"; ignoring");
-      return null;
+    res.isDMs = o.bool("dms", false);
+    
+    if (res.isBacked() || res.isDMs) {
+      String k = res.isDMs? DM_FOLDER_ID : res.id;
+      if (map.containsKey(k)) {
+        Log.error("mx", "Duplicate room entry for "+ k +"; ignoring");
+        return null;
+      }
+      map.put(k, res);
     }
-    if (res.id!=null) map.put(res.id, res);
+    
     if (o.has("folder")) {
       res.ch = new Vec<>();
       for (Obj c : o.arr("folder").objs()) {
@@ -110,9 +135,12 @@ public class RoomTree {
   
   private static void keepOnlyKnown(Vec<RoomTree> v, Set<String> allRooms, Set<String> spaces) {
     v.filterInplace(c -> {
-      if (c.id!=null && !allRooms.contains(c.id)) return false; // don't keep unknown things that aren't local folders
+      if (c.isBacked() && !allRooms.contains(c.id)) {
+        Log.fine("mx RoomTree", "removing left room "+c.id);
+        return false; // don't keep unknown things that aren't local folders
+      }
       
-      if (c.id==null || spaces.contains(c.id)) { // keep children of known folders
+      if (c.isLocalFolder() || spaces.contains(c.id)) { // keep children of known folders
         if (c.ch==null) c.ch = new Vec<>();
         keepOnlyKnown(c.ch, allRooms, spaces);
       } else {
@@ -132,8 +160,9 @@ public class RoomTree {
     RoomListNode l = u.roomListNode;
     if (t.ch!=null) {
       RoomListNode.DirStartNode s;
-      if (t.id==null) {
+      if (t.isLocalFolder()) {
         s = new RoomListNode.DirStartNode(u);
+        s.isDMs = t.isDMs;
         s.setName(t.name);
       } else {
         s = new RoomListNode.DirStartNode(u, t.got.asDir());
@@ -193,6 +222,7 @@ public class RoomTree {
       if (e0.rawName!=null) m.put("name", new JSON.Str(e0.rawName));
     }
     m.put("open", JSON.Bool.of(e0.isOpen()));
+    if (e0.isDMs) m.put("dms", JSON.TRUE);
     Vec<Obj> list = saveList(s, true);
     m.put("folder", new JSON.Arr(list.toArray(new JSON.Val[0])));
     return new Obj(m);

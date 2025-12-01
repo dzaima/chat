@@ -223,6 +223,7 @@ public class RoomListNode extends ReorderableNode {
     public final RoomEditing editor;
     private final Node nameObj;
     public String rawName;
+    public boolean isDMs;
     
     public int unread;
     public boolean ping;
