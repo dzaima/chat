@@ -44,7 +44,7 @@ chat {
   msg.other = #F5F5F5
   msg.sel = #BBB
   msg.edit = #ACA
-  msg.reply = #555565
+  msg.reply = #c5bed8
   msg.highlight = #fB7
   msg.noticeBg = #fff
   msg.noticeCol = #666
