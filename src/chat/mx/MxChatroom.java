@@ -112,7 +112,7 @@ public class MxChatroom extends Chatroom {
     commands.add(new IdArgCommand("unban",  id -> u.queueNetwork(() -> r.unban (id      ))));
     commands.add(new IdArgCommand("invite", id -> u.queueNetwork(() -> r.invite(id, null))));
     commands.add(new IdArgCommand("view-user", id -> ViewProfile.viewProfile(id, this)));
-    if (!roomCreated) Log.warn("Room without m.room.create event: "+r.rid);
+    if (!roomCreated) Log.warn("mx", "Room without m.room.create event: "+r.rid);
   }
   public void initPrevBatch(Obj init) {
     Obj timeline = init.obj("timeline", Obj.E);
