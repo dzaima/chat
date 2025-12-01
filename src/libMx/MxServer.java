@@ -171,11 +171,11 @@ public class MxServer {
           requestLogger.got(this, "exception", e);
         }
         
-        requestedRetry = Math.max(requestedRetry, expTime);
+        requestedRetry = Math.max(requestedRetry, (int) (expTime * (1 + (Math.random()*0.2-0.1))));
         requestLogger.got(this, "retry", "in "+requestedRetry+"ms");
         Utils.log("mxq", "Retrying in "+(requestedRetry/1000)+"s");
         Utils.sleep(requestedRetry);
-        expTime = Math.min(Math.max(expTime*2, 1000), 180*1000);
+        expTime = Math.min(Math.max(expTime*3/2, 1000), 180*1000);
       }
     }
     
