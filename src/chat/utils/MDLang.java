@@ -10,11 +10,23 @@ import dzaima.utils.Pair;
 import io.github.humbleui.skija.*;
 import io.github.humbleui.skija.paragraph.*;
 
-public class MDLang extends Lang {
+import java.util.Arrays;
+
+public class MDLang extends Lang.GloballyHighlightedLang {
   public final GConfig gc;
-  public MDLang(ChatMain m, ChatTextArea ta) {
-    super(new MDState(m, ta));
+  public final ChatMain m;
+  public MDLang(ChatMain m) {
     gc = m.gc;
+    this.m = m;
+  }
+  
+  public byte[] globalHighlight(String s) {
+    Chatroom r = m.room();
+    if (r==null) return new byte[s.length()];
+    Pair<Boolean, Integer> h = r.highlight(s);
+    byte[] styles = h.a? MDParser.eval(s, c -> "").styles : new byte[s.length()];
+    for (int i = 0; i < h.b; i++) styles[i] = MDParser.S_COMMAND;
+    return styles;
   }
   
   protected TextStyle[] genStyles(Font f) {
@@ -56,36 +68,7 @@ public class MDLang extends Lang {
     return styles;
   }
   
-  static class MDState extends LangState<MDState> {
-    private final ChatMain m;
-    private final ChatTextArea ta;
-    MDState(ChatMain m, ChatTextArea ta) {
-      this.ta = ta;
-      this.m = m;
-    }
-    public MDState after(int sz, char[] p, byte[] b) {
-      String s = ta.getAll();
-      Chatroom r = m.room();
-      Pair<Boolean, Integer> h = r==null? new Pair<>(false,0) : r.highlight(s);
-      int[] styles = h.a? MDParser.eval(s, c->"").styles : new int[s.length()];
-      for (int i = 0; i < h.b; i++) styles[i] = MDParser.S_COMMAND;
-      int cx = 0;
-      for (EditNode.Line l : ta.lns) {
-        int lsz = l.sz();
-        byte[] bs = l.st.arr;
-        for (int i = 0; i < lsz; i++) {
-          bs[i] = (byte)styles[cx+i];
-        }
-        l.clearPara();
-        cx+= lsz+1;
-      }
-      return this;
-    }
-    public boolean equals(Object obj) { return obj instanceof MDState; }
-    public int hashCode() { return 0; }
-  }
-  
-  public static Lang makeLanguage(ChatMain m, ChatTextArea ta) {
-    return new MDLang(m, ta);
+  public static Lang makeLanguage(ChatMain m) {
+    return new MDLang(m);
   }
 }

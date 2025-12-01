@@ -58,7 +58,7 @@ public abstract class LiveView extends View {
   public abstract ChatEvent nextMsg(ChatEvent msg, boolean mine);
   
   public void cfgUpdated() {
-    if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m, input));
+    if (m.gc.getProp("chat.preview.enabled").b()) input.setLang(MDLang.makeLanguage(m));
     else input.setLang(m.gc.langs().defLang);
   }
   

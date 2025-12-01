@@ -11,7 +11,7 @@ public class MDParser {
   private int i;
   private String s;
   private boolean eof;
-  public int[] styles;
+  public byte[] styles;
   public String html;
   
   public static final int S_DEF = 0;
@@ -32,11 +32,11 @@ public class MDParser {
   public static final String ESCAPABLE = "!\"#$%&'()*+,-./:;<=>?@[]^_`{|}~\\";
   
   private void ss(int s, int e, int m) {
-    Arrays.fill(styles, s, e, m);
+    Arrays.fill(styles, s, e, (byte) m);
   }
   private void as(int s, int e, int sd) {
     for (int j = s; j < e; j++) {
-      if ((styles[j] & S_MASK) == S_DEF) styles[j]|= sd;
+      if ((styles[j] & S_MASK) == S_DEF) styles[j]|= (byte) sd;
     }
   }
   
@@ -44,7 +44,7 @@ public class MDParser {
     MDParser.toUsername = toUsername;
     MDParser g = new MDParser();
     g.s = s;
-    g.styles = new int[s.length()];
+    g.styles = new byte[s.length()];
     g.html = g.run('\0');
     return g;
   }
