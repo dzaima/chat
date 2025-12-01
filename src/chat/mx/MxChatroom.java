@@ -827,7 +827,7 @@ public class MxChatroom extends Chatroom {
   }
   public void setOfficialName(String name) {
     super.setOfficialName(name);
-    spaceInfo.nameUpdated();
+    if (spaceInfo!=null) spaceInfo.nameUpdated();
   }
   
   public void userMenu(Click c, int x, int y, String uid) {
