@@ -79,7 +79,7 @@ public class ChatMain extends NodeWindow {
   }
   
   public ChatMain(GConfig gc, Ctx pctx, PNodeGroup g, Path profilePath, Box<Theme> theme, Obj loadedProfile, Options o) {
-    super(gc, pctx, g, new WindowInit("chat"));
+    super(gc, pctx, g, new WindowInit("chat").setAppClass("dzaima-chat"));
     this.options = o;
     this.theme = theme;
     if (o.has("--disable-saving")) disableSaving = true;
