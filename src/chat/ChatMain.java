@@ -245,6 +245,14 @@ public class ChatMain extends NodeWindow {
     updateTitle();
   }
   
+  Popup currRoomHoverPopup;
+  public void roomHoverPopup(Popup p) {
+    if (currRoomHoverPopup != null) {
+      currRoomHoverPopup.close();
+    }
+    currRoomHoverPopup = p;
+  }
+  
   private int updInfoDelay;
   private long nextTimeUpdate;
   public int endDist;

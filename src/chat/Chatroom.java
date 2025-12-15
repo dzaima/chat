@@ -5,7 +5,6 @@ import chat.utils.UnreadInfo;
 import dzaima.ui.gui.PartialMenu;
 import dzaima.ui.gui.io.Click;
 import dzaima.ui.node.Node;
-import dzaima.ui.node.types.StringNode;
 import dzaima.utils.*;
 
 import java.util.Objects;
@@ -42,6 +41,19 @@ public abstract class Chatroom {
   public abstract void cfgUpdated();
   
   public void tick() { muteState.tick(); }
+  
+  public static final class HoverEntry {
+    public final String title;
+    public final UnreadInfo u;
+    public final Runnable open;
+    public HoverEntry(String title, UnreadInfo u, Runnable open) {
+      this.title = title;
+      this.u = u;
+      this.open = open;
+    }
+  }
+  public abstract Vec<HoverEntry> hoverEntries();
+  
   public static class Username {
     public final String fast; // never null
     public final Promise<String> full; // if requestForFuture, always non-null; else, null or resolved

@@ -55,6 +55,7 @@ public class NetworkLog extends BasicNetworkView {
       public UnreadInfo unreadInfo() { return UnreadInfo.NONE; }
       public Username getUsername(String uid, boolean nullIfUnknown) { return new Username(uid, Promise.resolved(uid)); }
       public void cfgUpdated() { }
+      public Vec<HoverEntry> hoverEntries() { return Vec.frozenEmpty(); }
       public String asCodeblock(String s) { return null; }
       public void retryOnFullUserList(Runnable then) { }
       public Vec<UserRes> autocompleteUsers(String prefix) { return new Vec<>(); }

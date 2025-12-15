@@ -18,6 +18,11 @@ chat {
                       // e.g. if this is 0.05 and the first unread in this room was 10 seconds ago, mark as read on viewing for 0.05*10 = 0.5 seconds
     doubleClickToRead = true // whether clicking on a room after already being in it instantly marks as read  
   }
+  threads {
+    listHover = 0.25 // number of seconds of hovering over a room to view its thread list
+    listHoverUnread = 0 // above but if the hovered room has unread messages
+    listClose = 0.25 // number of seconds to close the popup list after mouse leaves it
+  }
   
   keys {
     send = { "enter" }
@@ -269,6 +274,12 @@ chat {
   inviteOptions = v { pad=.2em
     btn { style=rect id=accept "accept invite" padX=.5em padY=.3em }
     btn { style=rect id=deny "deny invite" padX=.5em padY=.3em }
+  }
+  threads.list = v { bg=chat.room.listBg
+    vl {
+      id=list
+      w=20em
+    }
   }
   
   // right panel in general

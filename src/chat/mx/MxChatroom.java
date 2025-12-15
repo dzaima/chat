@@ -492,6 +492,10 @@ public class MxChatroom extends Chatroom {
     return Vec.ofCollection(liveLogs.values()).filter(c -> c.isThread() && c.list.sz>0);
   }
   
+  public Vec<HoverEntry> hoverEntries() {
+    return freshThreadLogs().map(l -> new HoverEntry(l.threadDesc(0), l.unreadInfo(), () -> m.toView(l.liveView())));
+  }
+  
   public void addPing(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
     if (e.senderID().equals(u.id())) return;
     if (l.lv!=null) l.lv.beforeUnreadChange();

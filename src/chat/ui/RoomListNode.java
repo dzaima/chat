@@ -373,6 +373,11 @@ public class RoomListNode extends ReorderableNode {
     public RoomLikeNode(Ctx ctx, ChatUser u) {
       super(u, ctx.make(ctx.gc.getProp("chat.rooms.roomP").gr()));
     }
+    
+    public abstract void leftClick();
+    public abstract void rightClick(Click c, int x, int y, Runnable onClose);
+    public abstract boolean isSelected();
+    
     public void setTitle(String title) {
       ctx.id("name").replace(0, new StringNode(ctx, title));
     }
@@ -385,9 +390,58 @@ public class RoomListNode extends ReorderableNode {
       this.r = r;
     }
     
-    public void propsUpd() { super.propsUpd(); updBG(); }
-    
     public boolean isSelected() { return r.mainView().open; }
+    
+    long hoverStart;
+    public void hoverS() {
+      super.hoverS();
+      hoverStart = gc.lastMs;
+    }
+    
+    boolean after(long start, String prop) {
+      return (gc.lastMs - start) > gc.getProp(prop).d()*1e3;
+    }
+    
+    public void hoverT(int mx, int my) {
+      super.hoverT(mx, my);
+      Vec<Chatroom.HoverEntry> entries = r.hoverEntries();
+      if (entries.size() > 0 && after(hoverStart, entries.some(c -> c.u.any()) ? "chat.threads.listHoverUnread" : "chat.threads.listHover")) {
+        XY me = this.relPos(null).add(this.w, 0);
+        Box<NodeVW> vw1 = new Box<>();
+        Popup p = new Popup(ctx.win()) {
+          protected void preSetup() {
+            super.preSetup();
+            for (Chatroom.HoverEntry c : entries) {
+              RoomLikeNode n = new RoomLikeNode(node.ctx, u) {
+                public void leftClick() { c.open.run(); }
+                public void rightClick(Click c, int x, int y, Runnable onClose) { }
+                public boolean isSelected() { return false; }
+              };
+              n.setTitle(c.title);
+              node.ctx.id("list").add(n);
+              setUnread(n, MuteState.UNMUTED, c.u);
+            }
+          }
+          
+          long lastHovered;
+          protected void tick() { super.tick();
+            if (vw1.get().mIn || hovered) {
+              lastHovered = gc.lastMs;
+            } else if (after(lastHovered, "chat.threads.listClose")) {
+              close();
+            }
+          }
+          
+          protected void unfocused() { close(); }
+          protected void setup() { }
+          protected XY pos(XY size, Rect bounds) {
+            return me;
+          }
+        };
+        r.m.roomHoverPopup(p);
+        vw1.set(p.openVW(gc, ctx, gc.getProp("chat.threads.list").gr(), false));
+      }
+    }
     
     public void leftClick() { r.m.toRoom(r.mainView()); }
     public void rightClick(Click c, int x, int y, Runnable onClose) { r.roomMenu(c, x, y, onClose); }
