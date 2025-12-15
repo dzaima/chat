@@ -369,10 +369,19 @@ public class RoomListNode extends ReorderableNode {
     public boolean isSelected() { return false; }
   }
   
-  public static class RoomNode extends SelRoomEntryNode {
+  public static abstract class RoomLikeNode extends SelRoomEntryNode {
+    public RoomLikeNode(Ctx ctx, ChatUser u) {
+      super(u, ctx.make(ctx.gc.getProp("chat.rooms.roomP").gr()));
+    }
+    public void setTitle(String title) {
+      ctx.id("name").replace(0, new StringNode(ctx, title));
+    }
+  }
+  
+  public static class RoomNode extends RoomLikeNode {
     public final Chatroom r;
     public RoomNode(Chatroom r, ChatUser u) {
-      super(u, r.m.ctx.make(r.m.gc.getProp("chat.rooms.roomP").gr()));
+      super(u.m.ctx, u);
       this.r = r;
     }
     

@@ -90,7 +90,7 @@ public abstract class Chatroom {
     titleUpdated();
   }
   public void titleUpdated() {
-    node.ctx.id("name").replace(0, new StringNode(node.ctx, title()));
+    node.setTitle(title());
     if (m.view!=null && m.view.room()==this) m.updateCurrentViewTitle();
   }
   
