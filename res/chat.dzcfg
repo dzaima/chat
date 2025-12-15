@@ -28,13 +28,13 @@ chat {
     editDn = { "down" }
     replyUp = { "alt+up" }
     replyDn = { "alt+down" }
-    roomUp = { "ctrl+up" }
-    roomDn = { "ctrl+down" }
+    roomUp = { "ctrl+up" "ctrl+pgup" }
+    roomDn = { "ctrl+down" "ctrl+pgdn" }
     search = { "ctrl+f" }
     deleteMsg = { "ctrl+alt+shift+del" }
     
-    fontPlus = { "ctrl+shift+=" "ctrl+plus" }
-    fontMinus = { "ctrl+minus" }
+    fontPlus = { "ctrl+shift+=" "ctrl+=" "ctrl+plus" "numpad+ctrl+plus" }
+    fontMinus = { "ctrl+minus" "numpad+ctrl+minus" }
     reloadCfg = { "f5" }
     openDevtools = { "f12" }
     toggleLegacyStringRendering = { "f2" }
