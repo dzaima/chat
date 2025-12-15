@@ -56,9 +56,9 @@ public class ViewProfile {
       protected void unfocused() { close(); }
       protected void setup() { }
       protected void preSetup() {
-        node.ctx.id("username").add(new StringNode(m.ctx, username.best()));
+        node.ctx.id("username").add(new StringNode(node.ctx, username.best()));
         Node r = node.ctx.idNullable("room");
-        if (r!=null) r.add(new StringNode(m.ctx, ViewProfile.this.viewedRoom.title()));
+        if (r!=null) r.add(new StringNode(node.ctx, ViewProfile.this.viewedRoom.title()));
         ((BtnNode) node.ctx.id("cancel")).setFn(b -> close());
         setup.accept(this);
       }
@@ -126,7 +126,7 @@ public class ViewProfile {
     
     if (viewedRoom.powerLevels.can(me, Action.REDACT)) link.apply("chat.profile.removeRecentUI", () -> confirm("chat.profile.removeRecentConfirmUI", p -> {
       Vec<MxChatEvent> es = getDeletableMessages(viewedRoom);
-      p.node.ctx.id("num").replace(0, new StringNode(m.ctx, Integer.toString(es.sz)));
+      p.node.ctx.id("num").replace(0, new StringNode(p.node.ctx, Integer.toString(es.sz)));
       
       ((BtnNode) p.node.ctx.id("run")).setFn(b -> {
         p.close();

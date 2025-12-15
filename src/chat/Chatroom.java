@@ -131,7 +131,7 @@ public abstract class Chatroom {
   public abstract UnreadInfo unreadInfo(); // count, ping
   
   public void unreadChanged() {
-    RoomListNode.setUnread(m, node, muteState, unreadInfo());
+    RoomListNode.setUnread(node, muteState, unreadInfo());
     m.unreadChanged();
     user().updateFolderUnread();
   }

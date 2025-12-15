@@ -37,7 +37,7 @@ public class ViewRoomInfo {
         Node ct = n.ctx.id("content");
         UnreadInfo u = l.unreadInfo();
         if (u.any()) {
-          ct.add(RoomListNode.makeUnread(m, u));
+          ct.add(RoomListNode.makeUnread(n.ctx, u));
           ct.add(new StringNode(m.ctx, " "));
         }
         ct.add(new StringNode(m.ctx, l.threadDesc(0)));

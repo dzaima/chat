@@ -264,7 +264,7 @@ public class RoomListNode extends ReorderableNode {
   
     public void updateUnread() {
       if (editor.editing()) return;
-      RoomListNode.setUnread(u.m, ch.get(0), MuteState.UNMUTED, isOpen()? UnreadInfo.NONE : new UnreadInfo(unread, ping));
+      RoomListNode.setUnread(ch.get(0), MuteState.UNMUTED, isOpen()? UnreadInfo.NONE : new UnreadInfo(unread, ping));
     }
     
     public boolean isOpen() {
@@ -384,18 +384,18 @@ public class RoomListNode extends ReorderableNode {
     public void rightClick(Click c, int x, int y, Runnable onClose) { r.roomMenu(c, x, y, onClose); }
   }
   
-  public static void setUnread(ChatMain m, Node node, MuteState muteState, UnreadInfo u) {
+  public static void setUnread(Node node, MuteState muteState, UnreadInfo u) {
     Node un = node.ctx.id("unread");
     un.clearCh();
     if (muteState.hidden(u)) {
-      un.add(node.ctx.make(m.gc.getProp("chat.rooms.unreadHiddenP").gr()));
+      un.add(node.ctx.make(node.ctx.gc.getProp("chat.rooms.unreadHiddenP").gr()));
     } else if (u.any()) {
-      un.add(makeUnread(m, u));
+      un.add(makeUnread(node.ctx, u));
     }
   }
   
-   public static Node makeUnread(ChatMain m, UnreadInfo u) {
-    Node n = m.ctx.make(m.gc.getProp("chat.rooms.unreadP").gr());
+   public static Node makeUnread(Ctx ctx, UnreadInfo u) {
+    Node n = ctx.make(ctx.gc.getProp("chat.rooms.unreadP").gr());
     n.ctx.id("num").add(new StringNode(n.ctx, "("+(u.unread>0? u.unread+"":"")+(u.ping? "*" : "")+")"));
     return n;
   }
