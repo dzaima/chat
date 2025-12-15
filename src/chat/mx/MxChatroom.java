@@ -488,6 +488,10 @@ public class MxChatroom extends Chatroom {
     }
   }
   
+  public Vec<MxLog> freshThreadLogs() {
+    return Vec.ofCollection(liveLogs.values()).filter(c -> c.isThread() && c.list.sz>0);
+  }
+  
   public void addPing(MxLog l, MxChatEvent e) { // call unreadChanged afterward!
     if (e.senderID().equals(u.id())) return;
     if (l.lv!=null) l.lv.beforeUnreadChange();
