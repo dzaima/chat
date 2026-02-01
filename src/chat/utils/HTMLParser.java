@@ -151,7 +151,7 @@ public class HTMLParser {
             continue;
           }
         }
-        p.add(new StringNode(p.ctx, s));
+        p.add(new StringNode(p.ctx, s.replace("\u2068","").replace("\u2069","")));
       } else if (cn instanceof Element) {
         Element c = (Element) cn;
         String tag = c.tagName();
