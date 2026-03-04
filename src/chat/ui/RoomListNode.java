@@ -110,6 +110,11 @@ public class RoomListNode extends ReorderableNode {
   }
   
   
+  
+  public void startLoad() {
+    clearCh();
+  }
+  
   public void recalculateDepths() {
     calculateDepths(ch, 0);
     noFancyScroll();

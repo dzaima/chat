@@ -104,7 +104,7 @@ public class RoomTree {
       orderBy(root, order);
     }
     
-    u.roomListNode.clearCh(); // and save all changes to the GUI room list
+    u.roomListNode.startLoad(); // and save all changes to the GUI room list
     for (RoomTree c : root) addToList(u, c);
     u.roomListNode.recalculateDepths();
   }

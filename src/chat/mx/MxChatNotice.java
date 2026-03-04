@@ -40,7 +40,7 @@ public class MxChatNotice extends MxChatEvent {
       Node disp = n.ctx.make(n.gc.getProp("chat.msg.noticeP").gr());
       Node ch = disp.ctx.id("ch");
       if ("deleted".equals(type)) {
-        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), ping);
+        r.m.updMessage(this, removedBody(), ping);
         return;
       }
       switch (e.type) {

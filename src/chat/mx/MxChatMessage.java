@@ -97,7 +97,7 @@ public class MxChatMessage extends MxChatEvent {
       case "deleted":
         if (!visible) return;
         
-        r.m.updMessage(this, n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr()), newAtEnd);
+        r.m.updMessage(this, removedBody(), newAtEnd);
         break;
       case "m.image":
       case "m.file":

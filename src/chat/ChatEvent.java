@@ -16,7 +16,7 @@ public abstract class ChatEvent {
   public final Instant time;
   public final boolean mine;
   public boolean edited;
-  public String target; // identifier of message this is replying to
+  public String target; // id of message this is replying to
   
   protected ChatEvent(String id, boolean mine, Instant time, String target) { // set body yourself
     this.id = id;
@@ -40,6 +40,10 @@ public abstract class ChatEvent {
     if (!visible) return;
     Node b = n.ctx.id("body").ch.get(0);
     b.replace(b.ch.sz-1, MsgExtraNode.createEnd(this));
+  }
+  
+  protected Node removedBody() {
+    return n.ctx.makeHere(n.gc.getProp("chat.msg.removedP").gr());
   }
   
   public abstract boolean userEq(ChatEvent o);
@@ -83,8 +87,8 @@ public abstract class ChatEvent {
   public abstract HashMap<String, Integer> getReactions(); // null if none
   public abstract HashSet<String> getReceipts(View view); // null if none
   public abstract boolean startsThread(View view);
-  public abstract void toTarget();
   public abstract void toThread();
+  public abstract void toTarget();
   public /*open*/ void replyButtonMenu(PartialMenu pm) { }
   
   class ReplyBtn extends PadCNode {

@@ -11,7 +11,6 @@ import dzaima.ui.gui.Popup;
 import dzaima.ui.gui.io.*;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
-import dzaima.ui.node.types.StringNode;
 import dzaima.ui.node.types.editable.code.CodeAreaNode;
 import dzaima.ui.node.types.editable.code.langs.Lang;
 import dzaima.utils.*;
@@ -147,7 +146,7 @@ public class MxChatUser extends ChatUser {
     for (String c : data.arr("autoban", Arr.E).strs()) autoban.add(c);
     lazyLoadUsers = !m.options.takeBool("--no-lazy-load-members");
     int msgsToPreload = m.options.takeBool("--no-initial-messages")? 0 : 50;
-    node.ctx.id("server").replace(0, new StringNode(node.ctx, login.getServer().replaceFirst("^https?://", "")));
+    setServer(login.getServer().replaceFirst("^https?://", ""));
     queueNetwork(() -> {
       MxServer s0 = login.create();
       s_atomic.set(s0);
@@ -161,7 +160,7 @@ public class MxChatUser extends ChatUser {
       primary.add(() -> {
         s = s0;
         u = u0;
-        node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
+        setUsername(name);
       });
       
       Obj j = u0.s.requestV3("sync").prop("filter", MxServer.syncFilter(msgsToPreload, lazyLoadUsers, true).toString()).token(u0.token).get().runJ();

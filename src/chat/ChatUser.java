@@ -5,6 +5,7 @@ import chat.ui.*;
 import chat.utils.UnreadInfo;
 import dzaima.ui.node.Node;
 import dzaima.ui.node.ctx.Ctx;
+import dzaima.ui.node.types.StringNode;
 import dzaima.utils.JSON.Obj;
 import dzaima.utils.*;
 
@@ -31,7 +32,7 @@ public abstract class ChatUser {
   
   public abstract void tick();
   public abstract void close();
-  public abstract String id();
+  public abstract String id(); // matching ChatEvent::senderID() of own messages
   public abstract Obj data(); // must return a proper save&restore-ready result at any point of time after constructor has finished
   
   public static abstract class URIInfo {
@@ -88,6 +89,13 @@ public abstract class ChatUser {
     if (mine) return pill? m.colMyPill : m.colMyNick;
     int[] cs = pill? m.colOtherPills : m.colOtherNicks;
     return cs[(name.hashCode()&Integer.MAX_VALUE) % cs.length];
+  }
+  
+  protected void setServer(String server) {
+    node.ctx.id("server").replace(0, new StringNode(node.ctx, server));
+  }
+  protected void setUsername(String name) {
+    node.ctx.id("name").replace(0, new StringNode(node.ctx, name));
   }
   
   public void preRoomListChange() {
