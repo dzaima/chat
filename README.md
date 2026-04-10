@@ -13,14 +13,14 @@
          "type": "matrix",
          "server": "https://matrix.org", // or your homeserver
          "userid": "@example:matrix.org",
-         "password": "yourPassword" // or "token": "tokenToUse"
+         "password": "yourPassword"
        }
        // you can add more accounts here
      ],
      "global": {"theme": "dark"} // or "light"
    }
    ```
-3. `./run` (alternatively, `./run path/to/alternateProfile.json`)
+3. `./run` (alternatively, `./run path/to/alternateProfile.json`; the password field can be removed after closing the app, the stored token will keep you logged in)
 
 ### keybindings
 
