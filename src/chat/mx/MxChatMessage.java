@@ -145,13 +145,18 @@ public class MxChatMessage extends MxChatEvent {
         }
         break;
       default:
-        Node disp = HTMLParser.parse(r, bodyPrefix+body);
+        Node disp;
         if (type.equals("m.emote")) {
-          Node n = new TextNode(disp.ctx, Props.none());
-          n.add(new StringNode(disp.ctx, "· "+senderDisplay()+" "));
-          n.add(disp);
-          disp = n;
-        } else if (!type.equals("m.text") && !type.equals("m.notice")) Log.warn("mx", "Message with type " + type);
+          disp = new TextNode(r.m.ctx, Props.none());
+          disp.add(HTMLParser.parse(r, bodyPrefix));
+          disp.add(new StringNode(r.m.ctx, (bodyPrefix.isEmpty()? "" : " ")+"· "+senderDisplay()+" "));
+          disp.add(HTMLParser.parse(r, body));
+        } else if (type.equals("m.text") || type.equals("m.notice")) {
+          disp = HTMLParser.parse(r, bodyPrefix+body);
+        } else {
+          Log.warn("mx", "Unknown message type: " + type);
+          disp = HTMLParser.parse(r, bodyPrefix+body);
+        }
         if (ping && containsMyPill(disp)) addPingFromThis();
         
         if (!visible) return;
