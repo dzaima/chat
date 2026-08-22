@@ -121,6 +121,7 @@ public class HTMLParser {
                     break trunc;
                   }
                   txt = uri.getHost();
+                  if (uri.getPort() != -1) txt+= ":"+uri.getPort();
                   if (!uri.getScheme().equals("https")) txt = uri.getScheme()+"://"+txt;
                   String[] path = Tools.split(uri.getPath(), '/');
                   int j = path[0].isEmpty()? 1 : 0;
