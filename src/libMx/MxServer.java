@@ -64,11 +64,11 @@ public class MxServer {
     private final ArrayList<String> props = new ArrayList<>();
     private final boolean isDirectUrl;
     private String authorization;
-    public Request(String[] pathParts) {
+    Request(String[] pathParts) {
       this.pathParts = pathParts;
       isDirectUrl = false;
     }
-    public Request(String directUrl) {
+    Request(String directUrl) {
       pathParts = new String[]{directUrl};
       isDirectUrl = true;
     }
@@ -147,7 +147,7 @@ public class MxServer {
           log(t.name(), path, ct);
           requestLogger.got(this, "start", null);
           Utils.RequestRes res;
-          String finalUrl = r.isDirectUrl? path : url+"/"+path;
+          String finalUrl = url+"/"+path;
           Utils.RequestParams p = new Utils.RequestParams(r.authorization);
           switch (t) { default: throw new IllegalStateException();
             case GET:  res = Utils.get (p, finalUrl); break;

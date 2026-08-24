@@ -114,6 +114,7 @@ public class MxChatUser extends ChatUser {
     
     commands.add(new Command.SimpleArgCommand("set-nick-global", left -> queueNetwork(() -> u.setGlobalNick(left))));
     commands.add(new Command.SimpleArgCommand("goto", left -> {
+      left = left.trim();
       if (left.startsWith("!") || left.startsWith("#")) {
         MxChatroom r = findRoom(left);
         if (r!=null) {
@@ -132,6 +133,15 @@ public class MxChatUser extends ChatUser {
     }));
     commands.add(new Command.SimplePlainCommand("network-log", () -> NetworkLog.open(this)));
     commands.add(new MxChatroom.IdArgCommand("join", id -> queueNetwork(() -> u.join(u.s.room(id)))));
+    Function<String, Pair<String,String>> reqParts = rest -> {
+      int sep = (rest+"\n").indexOf('\n');
+      String path = rest.substring(0, sep);
+      String body = rest.substring(rest.startsWith("\n",sep)? sep+1 : sep);
+      return new Pair<>(path, body);
+    };
+    commands.add(new Command.SimpleArgCommand("dev-request-get", rest -> {
+      queueNetwork(() -> s.requestDirectUrl(reqParts.apply(rest).a).gToken().get().runStr());
+    }));
     
     MxLoginMgr login = new MxLoginMgr() {
       public String getServer()   { return data.str("server"); }
