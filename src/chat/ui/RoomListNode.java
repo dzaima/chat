@@ -181,8 +181,7 @@ public class RoomListNode extends ReorderableNode {
     public abstract boolean isSelected();
     
     public void bg(Graphics g, boolean full) {
-      if (Tools.st(bg)) pbg(g, full);
-      if (Tools.vs(bg)) g.rect(0, 0, w, h, bg);
+      bgBasicFill(g, full, bg);
       drawDepths(g, u, h, depth, this instanceof DirEndNode? 1 : this instanceof DirStartNode && !((DirStartNode) this).isOpen()? 2 : 0);
     }
     

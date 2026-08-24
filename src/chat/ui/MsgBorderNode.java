@@ -42,8 +42,7 @@ public class MsgBorderNode extends Node {
   }
   
   public void bg(Graphics g, boolean full) {
-    if (Tools.st(bgCol)) pbg(g, full);
-    g.rect(0, 0, w, h, bgCol);
+    bgBasicFill(g, full, bgCol);
   }
   
   public void drawC(Graphics g) {
