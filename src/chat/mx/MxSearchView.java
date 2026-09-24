@@ -87,9 +87,8 @@ public class MxSearchView extends SearchView {
     }
     
     Vec<Vec<Pair<Boolean, MxChatEvent>>> groups = new Vec<>();
-    HashSet<MxChatEvent> alreadyShown = new HashSet<>();
     for (MxLog l : logs) {
-      Vec<MxChatEvent> ms = l.list.filter(c -> !(c instanceof MxChatNotice) && alreadyShown.add(c));
+      Vec<MxChatEvent> ms = l.list.filter(c -> !(c instanceof MxChatNotice));
       Vec<Integer> matches = new Vec<>();
       for (int i = 0; i < ms.sz; i++) {
         MxChatEvent e = ms.get(i);
@@ -97,28 +96,34 @@ public class MxSearchView extends SearchView {
       }
       if (matches.sz==0) continue;
       if (needCtx) {
-        HashMap<MxChatEvent, Integer> prev = new HashMap<>(); 
+        // grow a group from around a message to its nearby ones, extening that same group if more search results are contained in it. The final separated groups will be sorted by time.
+        HashMap<MxChatEvent, Integer> prev = new HashMap<>(); // where in the previous group was a message already seen in
         for (Integer m : matches) {
           Instant exp = ms.get(m).time;
-          Vec<Pair<Boolean, MxChatEvent>> cGroup = new Vec<>();
+          Vec<Pair<Boolean, MxChatEvent>> cGroup = null;
           for (int i = Math.max(0, m-ctxSz); i <= Math.min(m+ctxSz, ms.sz-1); i++) {
             MxChatEvent e = ms.get(i);
             if (tooFar(e.time, exp)) continue;
-            alreadyShown.add(e);
+            if (cGroup == null) {
+              if (prev.containsKey(e)) { // this message is in the previous block, so extend that instead
+                cGroup = groups.peek();
+              } else { // not in previous block, so start fresh
+                cGroup = new Vec<>();
+                groups.add(cGroup);
+                prev.clear();
+              }
+            }
             if (prev.containsKey(e)) {
-              cGroup = groups.peek();
               if (m==i) cGroup.set(prev.get(e), new Pair<>(true, e));
             } else {
               prev.put(e, cGroup.size());
               cGroup.add(new Pair<>(m==i, e));
             }
           }
-          if (cGroup!=groups.peek()) groups.add(cGroup);
         }
       } else {
         for (int c : matches) {
           MxChatEvent e = ms.get(c);
-          alreadyShown.add(e);
           groups.add(Vec.of(new Pair<>(true, e)));
         }
       }
