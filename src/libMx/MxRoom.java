@@ -25,7 +25,7 @@ public class MxRoom {
     ArrayList<MxEvent> res = new ArrayList<>();
     if (!o.has("events_before")) return null;
     for (Obj c : o.arr("events_before").objs()) {
-      res.add(new MxEvent(this, c));
+      res.add(MxEvent.from(this, c));
     }
     Collections.reverse(res);
     return res;
@@ -66,7 +66,7 @@ public class MxRoom {
     
     ArrayList<MxEvent> events = new ArrayList<>();
     if (!o.has("chunk")) return null;
-    for (Obj c : o.arr("chunk").objs()) events.add(new MxEvent(this, c));
+    for (Obj c : o.arr("chunk").objs()) events.add(MxEvent.from(this, c));
     
     
     if (d=='b') Collections.reverse(events);
@@ -89,12 +89,12 @@ public class MxRoom {
     ArrayList<MxEvent> events = new ArrayList<>();
     
     if (!o.has("events_before")) return null;
-    for (Obj c : o.arr("events_before").objs()) events.add(new MxEvent(this, c));
+    for (Obj c : o.arr("events_before").objs()) events.add(MxEvent.from(this, c));
     Collections.reverse(events);
     
-    if (o.has("event")) events.add(new MxEvent(this, o.obj("event")));
+    if (o.has("event")) events.add(MxEvent.from(this, o.obj("event")));
     
-    for (Obj c : o.arr("events_after").objs()) events.add(new MxEvent(this, c));
+    for (Obj c : o.arr("events_after").objs()) events.add(MxEvent.from(this, c));
     
     return new Chunk(events, readState(o), o.str("start", ""), o.str("end", ""));
   }
@@ -105,12 +105,12 @@ public class MxRoom {
   }
   public MxEvent getMemberState(String uid) {
     Obj ct = getState("m.room.member", uid);
-    return ct==null? null : new MxEvent(this, Obj.fromKV("content", ct, "state_key", uid));
+    return ct==null? null : MxEvent.from(this, Obj.fromKV("content", ct, "state_key", uid));
   }
   
   private ArrayList<MxEvent> readState(Obj o) {
     ArrayList<MxEvent> states = new ArrayList<>();
-    for (Obj c : o.arr("state", JSON.Arr.E).objs()) states.add(new MxEvent(this, c));
+    for (Obj c : o.arr("state", JSON.Arr.E).objs()) states.add(MxEvent.from(this, c));
     return states;
   }
   

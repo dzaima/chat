@@ -6,19 +6,17 @@ import dzaima.utils.JSON.Obj;
 import java.time.Instant;
 
 public class MxEvent {
-  public final Obj o, ct;
   public final MxRoom r;
-  public final String uid;
-  public final String id;
   
+  public final Obj o, ct;
   public final String type;
+  public final String id; // own ID
+  public final String uid; // sender
   public final Instant time;
   
-  public final MxMessage m;
+  public final MxMessage m; // this or null
   
-  public MxEvent(MxRoom r, Obj o) { this(r, o, ""); }
-  
-  public MxEvent(MxRoom r, Obj o, String defaultID) {
+  protected MxEvent(MxRoom r, Obj o, String defaultID) {
     this.r = r;
     this.o = o;
     this.type = o.str("type", "");
@@ -26,16 +24,17 @@ public class MxEvent {
     this.id = o.str("event_id", defaultID);
     this.ct = o.obj("content", Obj.E);
     this.time = Instant.ofEpochMilli(o.get("origin_server_ts", JSON.NULL).asLong(0));
-    this.m = type.equals("m.room.message")? new MxMessage(r, o) : null;
+    this.m = this instanceof MxMessage? (MxMessage) this : null;
   }
-  public MxEvent(MxMessage m) { // fake event
-    o = m.o;
-    r = m.r;
-    uid = m.uid;
-    id = m.id;
-    ct = m.ct;
-    type = m.type;
-    time = m.time;
-    this.m = m;
+  
+  public static MxEvent from(MxRoom r, Obj o) {
+    return from(r, o, "");
+  }
+  public static MxEvent from(MxRoom r, Obj o, String defaultID) {
+    if (o.str("type", "").equals("m.room.message")) {
+      return new MxMessage(r, o, defaultID);
+    } else {
+      return new MxEvent(r, o, defaultID);
+    }
   }
 }

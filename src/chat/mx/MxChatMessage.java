@@ -39,14 +39,14 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   public void edit(MxMessage nm, boolean ping) {
-    Log.fine("mx edit", id+" has been edited to type "+nm.type);
+    Log.fine("mx edit", id+" has been edited to type "+nm.msgType);
     edited = true;
     setBody(nm, false, ping);
   }
   
   private void setBody(MxMessage nm, boolean newAtEnd, boolean ping) {
     lastEdit = nm;
-    type = nm.type;
+    type = nm.msgType;
     updateBody(newAtEnd, ping);
   }
   

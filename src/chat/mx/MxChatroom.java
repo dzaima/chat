@@ -233,7 +233,7 @@ public class MxChatroom extends Chatroom {
       }
       
       int counterID = monotonicCounter++;
-      MxEvent mxEv = new MxEvent(r, ev, "auto_id_"+counterID); // manual ID for invite state which doesn't have event_id
+      MxEvent mxEv = MxEvent.from(r, ev, "auto_id_"+counterID); // manual ID for invite state which doesn't have event_id
       
       // for new joins we want to pick up the displayname on them, while for re-joins we want to keep the previous one for renames to work
       boolean earlyAdd = mxEv.type.equals("m.room.member") && !userData.containsKey(mxEv.uid);

@@ -1,22 +1,13 @@
 package libMx;
 
-import dzaima.utils.JSON;
 import dzaima.utils.JSON.Obj;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
-import java.time.Instant;
-
-public final class MxMessage {
+public final class MxMessage extends MxEvent {
   public static boolean supportThreads = true;
-  public final MxRoom r;
-  public final Obj o;
-  public final Obj ct;
-  public final String type; // "deleted" if this is a redaction
-  public final Instant time;
+  public final String msgType; // "deleted" if this is a redaction
   
-  public final String id; // event ID
-  public final String uid; // sender
   public final String editsId; // null if none
   public final String threadId; // null if none
   public final String replyId; // null if none
@@ -25,13 +16,11 @@ public final class MxMessage {
   public final Obj latestEditInfo; // if there's unsigned info of the latest edit (i.e. in pagination)
   
   public MxMessage(MxRoom r, Obj o) {
-    this.r = r;
-    this.o = o;
-    uid = o.str("sender", "(unknown)");
-    id = o.str("event_id", "");
-    time = Instant.ofEpochMilli(o.get("origin_server_ts", JSON.NULL).asLong(0));
-    ct = o.obj("content", Obj.E);
-    type = ct.str("msgtype", "deleted");
+    this(r, o, null);
+  }
+  MxMessage(MxRoom r, Obj o, String defaultID) {
+    super(r, o, defaultID);
+    msgType = ct.str("msgtype", "deleted");
     
     Obj fmtCt = ct;
     String editsId = null;

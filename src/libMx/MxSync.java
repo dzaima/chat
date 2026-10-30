@@ -28,7 +28,7 @@ public class MxSync {
     for (Entry e : join.entries()) {
       MxRoom r = s.room(e.k);
       for (Obj evo : Obj.arrPath(e.v, Arr.E, "timeline", "events").objs()) {
-        recv.add(new MxEvent(r, evo));
+        recv.add(MxEvent.from(r, evo));
       }
     }
   }
