@@ -103,11 +103,7 @@ public class MsgExtraNode extends InlineNode {
     Node c = ch.get(0);
     int w = c.minW() + gc.em/5; // TODO theme?
     int h = c.minH(w);
-    if (sv.w-sv.x < w) {
-      sv.nl();
-      sX = (short) sv.x;
-      sY1 = (short) sv.y;
-    }
+    if (sv.w-sv.x < w) sv.moveToAfterNewline(this);
     sv.h = Math.max(sv.h, h);
     sv.x = sv.w;
     if (sv.resize) c.resize(w, h, sv.w-w, sv.y);
