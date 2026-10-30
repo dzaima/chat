@@ -101,7 +101,7 @@ public class MxSearchView extends SearchView {
       }
       if (matches.sz==0) continue;
       if (needCtx) {
-        // grow a group from around a message to its nearby ones, extening that same group if more search results are contained in it. The final separated groups will be sorted by time.
+        // grow a group from around a message to its nearby ones, extending that same group if more search results are contained in it. The final separated groups will be sorted by time.
         HashMap<MxChatEvent, Integer> prev = new HashMap<>(); // where in the previous group was a message already seen in
         for (Integer m : matches) {
           Instant exp = ms.get(m).time;
@@ -141,11 +141,17 @@ public class MxSearchView extends SearchView {
       toSort.add(new Pair<>(e0, c));
     }
     
+    HashSet<ChatEvent> shown = new HashSet<>();
     toSort.sort(Comparator.comparing(c -> c.a.time));
     for (Pair<MxChatEvent, Vec<Pair<Boolean, MxChatEvent>>> c : toSort) {
       for (Pair<Boolean, MxChatEvent> p : c.b) {
-        m.addMessage(p.b, false, true, !p.a);
-        prevShown.add(p.b);
+        // last check to not don't double-show messages
+        // can happen if a message is found both in the main log of a room, and as the root of a thread in it (regardless of if it's context or not)
+        // handling this properly would require either being able to display the same message twice on screen (no), more manual deduplication (which to prefer?), or some funky context reuse (may be impossible to do sanely)
+        if (shown.add(p.b)) {
+          m.addMessage(p.b, false, true, !p.a);
+          prevShown.add(p.b);
+        }
       }
     }
     m.msgsScroll.toYE(true);
