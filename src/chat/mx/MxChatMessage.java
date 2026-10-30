@@ -110,13 +110,25 @@ public class MxChatMessage extends MxChatEvent {
       case "m.image":
       case "m.file":
       case "m.audio":
-      case "m.video":
+      case "m.video": {
         if (!visible) return;
         
         Obj info = new Obj();
         for (JSON.Entry e : Obj.path(e0.ct, Obj.E, "info").obj(Obj.E).entries()) info.put(e.k, e.v);
-        String expectedFilename = e0.ct.str("filename", e0.ct.str("body", ""));
-        info.put(Extras.EXPECTED_FILENAME, new JSON.Str(expectedFilename));
+        String filename0 = e0.ct.str("filename", null);
+        String body0 = e0.ct.str("body", "");
+        String filename = filename0==null? body0 : filename0;
+        boolean noBody = filename0 == null || (filename0.equals(body0) && e0.ct.str("format",null)==null);
+        
+        BiFunction<Node, Boolean, Node> withBody = (n0, explicitNewline) -> {
+          if (noBody) return n0;
+          TextNode n = new TextNode(n0.ctx, Props.none());
+          n.add(n0);
+          n.add(new InlineNode.LineEnd(n0.ctx, explicitNewline));
+          n.add(HTMLParser.parse(r, bodyPrefix+lastEdit.fmt.html));
+          return n;
+        };
+        info.put(Extras.EXPECTED_FILENAME, new JSON.Str(filename));
         
         ChatUser.URIInfo uri = r.u.parseURI(getRawURI(), info);
         
@@ -129,14 +141,14 @@ public class MxChatMessage extends MxChatEvent {
           else lt = LinkType.UNK;
           
           TextNode link = Extras.textLink(r.u, uri.uri, new Extras.LinkInfo(lt, null, info));
-          link.add(new StringNode(n.ctx, expectedFilename));
-          r.m.updMessage(this, link, newAtEnd);
+          link.add(new StringNode(n.ctx, filename));
+          r.m.updMessage(this, withBody.apply(link, true), newAtEnd);
         };
         
         if (type.equals("m.image") && s > (uri.safe? 0 : 1)) {
           ImageNode.InlineImageNode placeholder = new ImageNode.InlineImageNode(n.ctx, info.getInt("w", 0), info.getInt("h", 0), n.ctx.make(n.gc.getProp("chat.msg.imageLoadingP").gr()));
           Node nd = HTMLParser.inlineImagePlaceholder(r.u, uri.uri, new Extras.LinkInfo(LinkType.IMG, null, info), placeholder);
-          r.m.updMessage(this, nd, newAtEnd);
+          r.m.updMessage(this, withBody.apply(nd, false), newAtEnd);
           
           int expect = bodyUpdateCtr;
           Consumer<Node> got = n -> {
@@ -144,7 +156,7 @@ public class MxChatMessage extends MxChatEvent {
             if (n==null) {
               replaceWithPlainLink.run();
             } else if (expect==bodyUpdateCtr) {
-              r.m.updMessage(this, n, false);
+              r.m.updMessage(this, withBody.apply(n, false), false);
             }
           };
           r.u.loadImg(uri, true, got, ImageNode.InlineImageNode::new, () -> true);
@@ -152,6 +164,7 @@ public class MxChatMessage extends MxChatEvent {
           replaceWithPlainLink.run();
         }
         break;
+      }
       default:
         Node disp;
         if (type.equals("m.emote")) {
