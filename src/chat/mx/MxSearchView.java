@@ -2,6 +2,7 @@ package chat.mx;
 
 import chat.*;
 import dzaima.utils.*;
+import libMx.MxMessage;
 
 import java.time.*;
 import java.util.*;
@@ -92,7 +93,11 @@ public class MxSearchView extends SearchView {
       Vec<Integer> matches = new Vec<>();
       for (int i = 0; i < ms.sz; i++) {
         MxChatEvent e = ms.get(i);
-        if ((s.matchesUser(e.senderDisplay()) || s.matchesUser(e.senderID())) && (s.matches(e.body) || s.matches(e.src))) matches.add(i);
+        MxMessage edit = e.lastEdit();
+        if (edit != null
+          && (s.matchesUser(e.senderDisplay()) || s.matchesUser(e.senderID()))
+          && (s.matches(edit.fmt.body) || s.matches(edit.fmt.html))
+        ) matches.add(i);
       }
       if (matches.sz==0) continue;
       if (needCtx) {

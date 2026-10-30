@@ -12,9 +12,9 @@ public class MxFmted {
       html = "(deleted)";
       return;
     }
-    body = o.str("body");
+    body = o.str("body", "");
     String h;
-    if ("org.matrix.custom.html".equals(o.str("format", ""))) h = o.str("formatted_body");
+    if ("org.matrix.custom.html".equals(o.str("format", ""))) h = o.str("formatted_body", "");
     else h = Utils.toHTML(body);
     html = h;
   }

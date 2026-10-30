@@ -563,11 +563,11 @@ public class MxChatroom extends Chatroom {
         String edits = editRootOf(e.m.editsId);
         editRoot.put(e.id, edits);
         MxChatEvent prev = editRootEvent(e.m.editsId);
-        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e, ping);
+        if (prev instanceof MxChatMessage) ((MxChatMessage) prev).edit(e.m, ping);
         else Log.fine("mx", e.id+" attempted to edit "+edits+", which is unknown; assuming out of log");
         return makeDebugNotice(e, newAtEnd);
       } else {
-        return new MxChatMessage(e.m, e, this, newAtEnd, ping);
+        return new MxChatMessage(e, this, newAtEnd, ping);
       }
     }
   }

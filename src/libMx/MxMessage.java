@@ -18,29 +18,30 @@ public final class MxMessage {
   public final String id; // event ID
   public final String uid; // sender
   public final String editsId; // null if none
-  public final MxFmted fmt;
-  public final MxFmted latestFmt; // if this event has info on the latest edit
   public final String threadId; // null if none
   public final String replyId; // null if none
-  public MxMessage(MxRoom r, Obj o) { // TODO do sane things for evil inputs
+  
+  public final MxFmted fmt; // primary content in the event with this ID (includes picking out the proper content of edit events, but not tracing through unsigned for latest edit)
+  public final Obj latestEditInfo; // if there's unsigned info of the latest edit (i.e. in pagination)
+  
+  public MxMessage(MxRoom r, Obj o) {
     this.r = r;
     this.o = o;
-    uid = o.str("sender");
-    id = o.str("event_id");
+    uid = o.str("sender", "(unknown)");
+    id = o.str("event_id", "");
     time = Instant.ofEpochMilli(o.get("origin_server_ts", JSON.NULL).asLong(0));
-    ct = o.obj("content");
+    ct = o.obj("content", Obj.E);
     type = ct.str("msgtype", "deleted");
     
-    MxFmted fmtT = new MxFmted(ct);
-    
+    Obj fmtCt = ct;
     String editsId = null;
     String replyId = null;
     Obj rel = ct.obj("m.relates_to", Obj.E);
     String relType = rel.str("rel_type", null);
     
     if ("m.replace".equals(relType)) {
-      editsId = rel.str("event_id");
-      if (ct.has("m.new_content")) fmtT = new MxFmted(ct.obj("m.new_content"));
+      editsId = rel.str("event_id", null);
+      if (ct.has("m.new_content")) fmtCt = ct.obj("m.new_content", Obj.E);
     } else {
       if (rel.has("m.in_reply_to") && !(supportThreads && rel.bool("is_falling_back", false))) {
         replyId = rel.obj("m.in_reply_to").str("event_id");
@@ -48,18 +49,11 @@ public final class MxMessage {
     }
     this.replyId = replyId;
     this.editsId = editsId;
-    this.fmt = removeFallbackReply(fmtT);
-    
-    if (supportThreads && "m.thread".equals(relType)) threadId = rel.str("event_id");
+    this.fmt = removeFallbackReply(new MxFmted(fmtCt));
+    if (supportThreads && "m.thread".equals(relType)) threadId = rel.str("event_id", "");
     else threadId = null;
     
-    Obj ct2 = Obj.objPath(o, null, "unsigned", "m.relations", "m.replace", "content");
-    if (ct2!=null) {
-      if (ct2.has("m.new_content")) ct2 = ct2.obj("m.new_content");
-      latestFmt = removeFallbackReply(new MxFmted(ct2));
-    } else {
-      latestFmt = null;
-    }
+    latestEditInfo = Obj.objPath(o, null, "unsigned", "m.relations", "m.replace");
   }
   
   private static MxFmted removeFallbackReply(MxFmted fmtT) {
@@ -75,16 +69,6 @@ public final class MxMessage {
     return editsId!=null;
   }
   
-  private MxMessage edits;
-  public MxMessage loadEditBase() {
-    if (!isEditEvent()) return null;
-    if (edits == null) {
-      edits = r.loadMessage(editsId);
-      if (edits.isEditEvent()) edits = edits.loadEditBase();
-    }
-    return edits;
-  }
-  
   public boolean equals(Object o) {
     if (!(o instanceof MxMessage)) return false;
     return ((MxMessage) o).id.equals(id);
@@ -92,9 +76,5 @@ public final class MxMessage {
   
   public int hashCode() {
     return id.hashCode();
-  }
-  
-  public MxEvent fakeEvent() {
-    return new MxEvent(this);
   }
 }

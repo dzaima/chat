@@ -8,16 +8,13 @@ import dzaima.ui.node.Node;
 import dzaima.ui.node.prop.Prop;
 import dzaima.ui.node.types.InlineNode;
 import dzaima.utils.*;
-import libMx.MxEvent;
+import libMx.*;
 
 import java.util.*;
 
 public abstract class MxChatEvent extends ChatEvent {
   public final MxChatroom r;
-  public final MxEvent e0;
-  public MxEvent lastEvent;
-  public String body;
-  public String src;
+  public final MxEvent e0; // root event of this message (i.e. has the ID to reply to, original send time)
   public String type = "?";
   public int monotonicID;
   public boolean hasThread;
@@ -27,7 +24,10 @@ public abstract class MxChatEvent extends ChatEvent {
     assert !r.allKnownEvents.containsKey(id);
     this.r = r;
     this.e0 = e0;
-    this.lastEvent = e0;
+  }
+  
+  public /*open*/ MxMessage lastEdit() {
+    return null;
   }
   
   protected void loadReactions() {
@@ -139,12 +139,13 @@ public abstract class MxChatEvent extends ChatEvent {
     
     pm.add(n.gc.getProp("chat.mx.msgMenu.dev").gr(), "viewSource", () -> {
       StringBuilder b = new StringBuilder();
-      if (lastEvent!=e0) {
-        b.append("// initial event:\n");
-        b.append(e0.o.toString(2));
-        b.append("\n\n\n// latest edit:\n");
+      MxMessage lastEdit = lastEdit();
+      if (lastEdit != e0.m) {
+        b.append("// latest edit:\n");
+        b.append(lastEdit.o.toString(2));
+        b.append("\n\n\n// initial event:\n");
       }
-      b.append(lastEvent.o.toString(2));
+      b.append(e0.o.toString(2));
       
       new ViewSource(r.m, b.toString()).open();
     });
@@ -154,12 +155,11 @@ public abstract class MxChatEvent extends ChatEvent {
     });
   }
   
-  public void delete(JSON.Obj ev) {
+  public /*open*/ void delete(JSON.Obj ev) {
     Log.fine("mx", id+" has been deleted");
     type = "deleted";
     edited = false;
     target = null;
-    lastEvent = new MxEvent(r.r, ev);
     updateBody(true, false);
   }
   

@@ -133,9 +133,12 @@ public class MxLog {
   public String threadDesc(int maxLen) {
     if (maxLen==0) maxLen = Integer.MAX_VALUE;
     if (isMain()) return "main";
+    
+    String body = null;
     MxChatEvent root = r.allKnownEvents.get(threadID);
-    if (root==null) return "thread";
-    String body = root.src;
+    if (root instanceof MxChatMessage) body = ((MxChatMessage) root).lastEdit.fmt.body;
+    if (body==null || body.isEmpty()) return "thread";
+    
     if (body.contains("\n")) body = body.substring(0, body.indexOf('\n'));
     if (body.length()>maxLen) body = body.substring(0, maxLen)+"…";
     return body;

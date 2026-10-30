@@ -11,40 +11,47 @@ import dzaima.utils.*;
 import dzaima.utils.JSON.Obj;
 import libMx.*;
 
-import java.util.function.Consumer;
+import java.util.function.*;
 
 public class MxChatMessage extends MxChatEvent {
-  public final MxMessage m0;
+  public MxMessage lastEdit; // last known edit of this message
   private String bodyPrefix = ""; // from reply
   private boolean replyRequested;
   
-  public MxChatMessage(MxMessage m0, MxEvent e0, MxChatroom r, boolean newAtEnd, boolean ping) {
-    super(r, m0.uid.equals(r.u.u.uid), e0, m0.id, m0.replyId);
-    assert !m0.isEditEvent();
-    this.m0 = m0;
-    edited = m0.latestFmt!=null;
-    setBody(m0, newAtEnd, ping);
+  public MxChatMessage(MxEvent e0, MxChatroom r, boolean newAtEnd, boolean ping) {
+    super(r, e0.uid.equals(r.u.u.uid), e0, e0.id, e0.m.replyId);
+    assert !e0.m.isEditEvent();
+    MxMessage init = e0.m;
+    if (e0.m.latestEditInfo != null) {
+      edited = true;
+      init = new MxMessage(e0.r, e0.m.latestEditInfo);
+    }
+    setBody(init, newAtEnd, ping);
     if (!newAtEnd) loadReactions();
   }
   
-  public void edit(MxEvent ne, boolean ping) {
-    MxMessage nm = ne.m;
+  public MxMessage lastEdit() {
+    return lastEdit;
+  }
+  public void delete(Obj ev) {
+    lastEdit = new MxMessage(r.r, ev);
+    super.delete(ev);
+  }
+  
+  public void edit(MxMessage nm, boolean ping) {
     Log.fine("mx edit", id+" has been edited to type "+nm.type);
-    lastEvent = ne;
     edited = true;
     setBody(nm, false, ping);
   }
   
-  public void setBody(MxMessage nm, boolean newAtEnd, boolean ping) {
+  private void setBody(MxMessage nm, boolean newAtEnd, boolean ping) {
+    lastEdit = nm;
     type = nm.type;
-    MxFmted f = nm.latestFmt!=null? nm.latestFmt : nm.fmt;
-    body = f.html;
-    src = f.body;
     updateBody(newAtEnd, ping);
   }
   
   public String senderDisplay() {
-    return r.getUsername(m0.uid, true).best();
+    return r.getUsername(e0.uid, true).best();
   }
   public boolean userEq(ChatEvent o) {
     return o instanceof MxChatMessage && e0.uid.equals(((MxChatEvent) o).e0.uid);
@@ -58,9 +65,10 @@ public class MxChatMessage extends MxChatEvent {
   public void updateBody(boolean newAtEnd, boolean ping) {
     bodyUpdateCtr++;
     
-    if ((visible || ping) && m0.replyId!=null && !replyRequested) {
+    String replyID = e0.m.replyId;
+    if ((visible || ping) && replyID!=null && !replyRequested) {
       replyRequested = true;
-      MxChatEvent tg = r.editRootEvent(m0.replyId);
+      MxChatEvent tg = r.editRootEvent(replyID);
       if (tg!=null) {
         String uid = tg.e0.uid;
         if (ping && r.u.u.uid.equals(uid)) addPingFromThis();
@@ -68,12 +76,12 @@ public class MxChatMessage extends MxChatEvent {
         if (name==null || name.isEmpty()) name = r.getUsername(uid, true).best();
         bodyPrefix = r.pill(tg.e0, uid, name==null? uid : name) + " ";
       } else {
-        Log.fine("mx", "Loading reply info for "+id+"→"+m0.replyId);
+        Log.fine("mx", "Loading reply info for "+id+"→"+replyID);
         Obj filter = MxRoom.roomEventFilter(true);
         filter.put("types", JSON.Arr.of("m.room.message", "m.room.member"));
-        r.u.queueRequest(() -> r.r.msgContext(filter, m0.replyId, 0), ctx -> {
+        r.u.queueRequest(() -> r.r.msgContext(filter, replyID, 0), ctx -> {
           ok: if (ctx!=null) {
-            MxEvent msg = new Vec<>(ctx.events).linearFind(c -> c.id.equals(m0.replyId));
+            MxEvent msg = new Vec<>(ctx.events).linearFind(c -> c.id.equals(replyID));
             if (msg==null) break ok;
             
             MxEvent member = new Vec<>(ctx.states).linearFind(c -> c.type.equals("m.room.member") && c.o.str("state_key","").equals(c.uid));
@@ -87,7 +95,7 @@ public class MxChatMessage extends MxChatEvent {
             return;
           }
           bodyPrefix = "[unknown reply] ";
-          Log.warn("mx", "Unknown reply ID "+m0.replyId);
+          Log.warn("mx", "Unknown reply ID "+replyID);
           updateBody(newAtEnd, false);
         });
       }
@@ -150,12 +158,12 @@ public class MxChatMessage extends MxChatEvent {
           disp = new TextNode(r.m.ctx, Props.none());
           disp.add(HTMLParser.parse(r, bodyPrefix));
           disp.add(new StringNode(r.m.ctx, (bodyPrefix.isEmpty()? "" : " ")+"· "+senderDisplay()+" "));
-          disp.add(HTMLParser.parse(r, body));
+          disp.add(HTMLParser.parse(r, lastEdit.fmt.html));
         } else if (type.equals("m.text") || type.equals("m.notice")) {
-          disp = HTMLParser.parse(r, bodyPrefix+body);
+          disp = HTMLParser.parse(r, bodyPrefix+lastEdit.fmt.html);
         } else {
           Log.warn("mx", "Unknown message type: " + type);
-          disp = HTMLParser.parse(r, bodyPrefix+body);
+          disp = HTMLParser.parse(r, bodyPrefix+lastEdit.fmt.html);
         }
         if (ping && containsMyPill(disp)) addPingFromThis();
         
@@ -171,7 +179,7 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   private String getRawURI() {
-    return m0.ct.str("url", "");
+    return lastEdit.ct.str("url", "");
   }
   
   private static boolean containsMyPill(Node n) {
@@ -181,7 +189,7 @@ public class MxChatMessage extends MxChatEvent {
   }
   
   public String getSrc() {
-    return src;
+    return lastEdit.fmt.body;
   }
   
   public MsgNode.MsgType type() {
